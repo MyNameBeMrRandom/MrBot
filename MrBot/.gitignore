@@ -1,9 +1,9 @@
 *.pyc
 *.yaml
-*.txt
-
+ 
+logs/
+images/
+data/
 config.py
-pie_charts/
-info/
-avatar/
-files/
+
+
