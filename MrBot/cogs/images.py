@@ -126,25 +126,24 @@ class Images(commands.Cog):
 
 	def do_bg_list(self):
 
-		# Font
-		font = ImageFont.truetype('data/fonts/OpenSans-Regular.ttf', 120)
+		# Defind the fonts.
+		font = ImageFont.truetype('images/resources/fonts/OpenSans-Regular.ttf', 120)
 
-		#Open images
-		bg0 = Image.open('images/backgrounds/bg_default.png')
-		bg1 = Image.open('images/backgrounds/bg_1.png')
-		bg2 = Image.open('images/backgrounds/bg_2.png')
-		bg3 = Image.open('images/backgrounds/bg_3.png')
-		bg4 = Image.open('images/backgrounds/bg_4.png')
-		bg5 = Image.open('images/backgrounds/bg_5.png')
-		bg6 = Image.open('images/backgrounds/bg_6.png')
-		bg7 = Image.open('images/backgrounds/bg_7.png')
-		bg8 = Image.open('images/backgrounds/bg_8.png')
-		bg9 = Image.open('images/backgrounds/bg_9.png')
-		bg10 = Image.open('images/backgrounds/bg_10.png')
-		bg11 = Image.open('images/backgrounds/bg_11.png')
+		# Open all the images.
+		bg0 = Image.open('images/resources/backgrounds/bg_default.png')
+		bg1 = Image.open('images/resources/backgrounds/bg_1.png')
+		bg2 = Image.open('images/resources/backgrounds/bg_2.png')
+		bg3 = Image.open('images/resources/backgrounds/bg_3.png')
+		bg4 = Image.open('images/resources/backgrounds/bg_4.png')
+		bg5 = Image.open('images/resources/backgrounds/bg_5.png')
+		bg6 = Image.open('images/resources/backgrounds/bg_6.png')
+		bg7 = Image.open('images/resources/backgrounds/bg_7.png')
+		bg8 = Image.open('images/resources/backgrounds/bg_8.png')
+		bg9 = Image.open('images/resources/backgrounds/bg_9.png')
+		bg10 = Image.open('images/resources/backgrounds/bg_10.png')
+		bg11 = Image.open('images/resources/backgrounds/bg_11.png')
 
-
-		#Make new image
+		# Make a new image and paste images into it.
 		example = Image.new('RGB', (4000, 3600))
 		example.paste(im=bg0, box=(0, 200))
 		example.paste(im=bg1, box=(1000, 200))
@@ -159,10 +158,10 @@ class Images(commands.Cog):
 		example.paste(im=bg10, box=(2000, 2600))
 		example.paste(im=bg11, box=(3000, 2600))
 
-		#Allow for drawing on image
+		# Allow for drawing on the image.
 		example_draw = ImageDraw.Draw(example)
 
-		#Names for each background
+		# Names for each background.
 		example_draw.text((10, 15), f'bg_default', (255, 255, 255),  align='center', font=font)
 		example_draw.text((1010, 15), f'bg_1', (255, 255, 255),  align='center', font=font)
 		example_draw.text((2010, 15), f'bg_2', (255, 255, 255), align='center', font=font)
@@ -176,14 +175,11 @@ class Images(commands.Cog):
 		example_draw.text((2010, 2415), f'bg_10', (255, 255, 255), align='center', font=font)
 		example_draw.text((3010, 2415), f'bg_11', (255, 255, 255), align='center', font=font)
 
-		#Resize image and save it
+		# Resize image and save it.
 		example = example.resize([1000,900])
-		example.save(f'images/example/example.png')
-		output = BytesIO()
-		example.save(output, 'png')
-		output.seek(0)
+		example.save(f'images/resources/example/example.png')
 
-		#Close images
+		# Close images.
 		bg0.close()
 		bg1.close()
 		bg2.close()
@@ -198,50 +194,7 @@ class Images(commands.Cog):
 		bg11.close()
 		example.close()
 
-		#Return image
-		return output
-
-	def do_sharpen(self, ctx, amount):
-		file = Image.open(f'images/files/{ctx.author.id}.png')
-		enhancer = ImageEnhance.Sharpness(file)
-		file = enhancer.enhance(amount)
-		file.save(f'images/files/{ctx.author.id}_sharpened_{amount}.png')
-		output = BytesIO()
-		file.save(output, 'png')
-		output.seek(0)
-		return output
-
-	def do_contrast(self, ctx, amount):
-		file = Image.open(f'images/files/{ctx.author.id}.png')
-		enhancer = ImageEnhance.Contrast(file)
-		file = enhancer.enhance(amount)
-		file.save(f'images/files/{ctx.author.id}_contrast_{amount}.png')
-		output = BytesIO()
-		file.save(output, 'png')
-		output.seek(0)
-		return output
-
-	def do_colour(self, ctx, amount):
-		file = Image.open(f'images/files/{ctx.author.id}.png')
-		enhancer = ImageEnhance.Color(file)
-		file = enhancer.enhance(amount)
-		file.save(f'images/files/{ctx.author.id}_color_{amount}.png')
-		output = BytesIO()
-		file.save(output, 'png')
-		output.seek(0)
-		return output
-
-	def do_brightness(self, ctx, amount):
-		file = Image.open(f'images/files/{ctx.author.id}.png')
-		enhancer = ImageEnhance.Brightness(file)
-		file = enhancer.enhance(amount)
-		file.save(f'images/files/{ctx.author.id}_brightness_{amount}.png')
-		output = BytesIO()
-		file.save(output, 'png')
-		output.seek(0)
-		return output
-
-	def do_change_background(self, user, new_background):
+	def do_bg_change(self, user, new_background):
 		with open(f'data/accounts/{user.id}.yaml', 'r', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			old_background = data['config']['background']
@@ -249,6 +202,34 @@ class Images(commands.Cog):
 			with open(f'data/accounts/{user.id}.yaml', 'w', encoding='utf8') as w:
 				yaml.dump(data, w)
 		return old_background
+
+	def do_sharpen(self, ctx, amount):
+		file = Image.open(f'images/original_images/{ctx.author.id}.png')
+		enhancer = ImageEnhance.Sharpness(file)
+		file = enhancer.enhance(amount)
+		file.save(f'images/edited_images/{ctx.author.id}_sharpness_{amount}.png')
+		file.close()
+
+	def do_contrast(self, ctx, amount):
+		file = Image.open(f'images/original_images/{ctx.author.id}.png')
+		enhancer = ImageEnhance.Contrast(file)
+		file = enhancer.enhance(amount)
+		file.save(f'images/edited_images/{ctx.author.id}_contrast_{amount}.png')
+		file.close()
+
+	def do_colour(self, ctx, amount):
+		file = Image.open(f'images/original_images/{ctx.author.id}.png')
+		enhancer = ImageEnhance.Color(file)
+		file = enhancer.enhance(amount)
+		file.save(f'images/edited_images/{ctx.author.id}_colour_{amount}.png')
+		file.close()
+
+	def do_brightness(self, ctx, amount):
+		file = Image.open(f'images/original_images/{ctx.author.id}.png')
+		enhancer = ImageEnhance.Brightness(file)
+		file = enhancer.enhance(amount)
+		file.save(f'images/edited_images/{ctx.author.id}_brightness_{amount}.png')
+		file.close()
 
 	def do_status_times(self, ctx):
 		with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
@@ -344,7 +325,7 @@ class Images(commands.Cog):
 		await self.bot.loop.run_in_executor(None, self.do_imginfo, ctx, user)
 		await ctx.send(file=discord.File(f'images/imginfo/{user.id}_imginfo.png'))
 
-		# End timer and log how long operation took
+		# End timer and log how long operation took.
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
@@ -353,9 +334,15 @@ class Images(commands.Cog):
 		"""
 		Display a list of possible backgrounds you can have.
 		"""
+		# Start typing and timer
 		start = time.perf_counter()
 		await ctx.trigger_typing()
-		await ctx.send(file=discord.File(await self.bot.loop.run_in_executor(None, self.do_bg_list), filename=f'example.png',))
+
+		# Generate image.
+		await self.bot.loop.run_in_executor(None, self.do_bg_list)
+		await ctx.send(file=discord.File(f'images/resources/example/example.png'))
+
+		# End timer and log how long operation took
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
@@ -367,10 +354,10 @@ class Images(commands.Cog):
 		try:
 			author = ctx.author.name
 			useravatar = ctx.author.avatar_url
-			if not os.path.isfile(f'images/backgrounds/{new_background}.png'):
+			if not os.path.isfile(f'images/resources/backgrounds/{new_background}.png'):
 				return await ctx.send('That was not a recognised background.')
 			else:
-				old_background = await self.bot.loop.run_in_executor(None, self.do_change_background, ctx.author, new_background)
+				old_background = await self.bot.loop.run_in_executor(None, self.do_bg_change, ctx.author, new_background)
 				embed = discord.Embed(
 					colour=0x57FFF5,
 					timestamp=ctx.message.created_at,
@@ -405,7 +392,10 @@ class Images(commands.Cog):
 			await self.get_image(ctx, url)
 		else:
 			await self.get_image(ctx, file)
-		await ctx.send(f'Sharpened by a factor of `{amount}`.' ,file=discord.File(await self.bot.loop.run_in_executor(None, self.do_sharpen, ctx, amount), filename = f'example.png',))
+
+		await self.bot.loop.run_in_executor(None, self.do_sharpen, ctx, amount)
+		await ctx.send(f'Sharpened by a factor of `{amount}`.' ,file=discord.File(f'images/edited_images/{ctx.author.id}_sharpness_{amount}.png'))
+
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
@@ -432,7 +422,10 @@ class Images(commands.Cog):
 			await self.get_image(ctx, url)
 		else:
 			await self.get_image(ctx, file)
-		await ctx.send(f'Contrast changed by a factor of `{amount}`.' ,file=discord.File(await self.bot.loop.run_in_executor(None, self.do_contrast, ctx, amount), filename = f'example.png',))
+
+		await self.bot.loop.run_in_executor(None, self.do_contrast, ctx, amount)
+		await ctx.send(f'Contrast changed by a factor of `{amount}`.' ,file=discord.File(f'images/edited_images/{ctx.author.id}_contrast_{amount}.png'))
+
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
@@ -459,7 +452,10 @@ class Images(commands.Cog):
 			await self.get_image(ctx, url)
 		else:
 			await self.get_image(ctx, file)
-		await ctx.send(f'Colour shifted by a factor of `{amount}`.' ,file=discord.File(await self.bot.loop.run_in_executor(None, self.do_colour, ctx, amount), filename = f'example.png',))
+
+		await self.bot.loop.run_in_executor(None, self.do_colour, ctx, amount)
+		await ctx.send(f'Colour shifted by a factor of `{amount}`.' ,file=discord.File(f'images/edited_images/{ctx.author.id}_colour_{amount}.png'))
+
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
@@ -486,7 +482,10 @@ class Images(commands.Cog):
 			await self.get_image(ctx, url)
 		else:
 			await self.get_image(ctx, file)
-		await ctx.send(f'Brightness changed by a factor of `{amount}`.' ,file=discord.File(await self.bot.loop.run_in_executor(None, self.do_brightness, ctx, amount), filename=f'example.png'))
+
+		await self.bot.loop.run_in_executor(None, self.do_brightness, ctx, amount)
+		await ctx.send(f'Brightness changed by a factor of `{amount}`.' ,file=discord.File(f'images/edited_images/{ctx.author.id}_brightness_{amount}.png'))
+
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
