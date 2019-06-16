@@ -1,6 +1,7 @@
 *.pyc
+*.yaml
 *config.py
-
+*mrbot.log
 
 pie_charts/
 original_images/
