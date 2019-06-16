@@ -36,7 +36,7 @@ handler = logging.handlers.TimedRotatingFileHandler(
 	encoding='utf-8',
 	backupCount=10,
 	interval=100,
-	when='D',
+	when='W',
 	utc=True
 )
 handler.setFormatter(
