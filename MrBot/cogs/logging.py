@@ -194,28 +194,28 @@ class Logging(commands.Cog):
 			logging_channel = data['config']['logging_channel']
 			return logging_channel
 
-	@commands.Cog.listener()
-	async def on_command_error(self, ctx, error):
-		if isinstance(error, commands.CommandNotFound):
-			print(error)
-		elif isinstance(error, commands.CommandOnCooldown):
-			return await ctx.send(f"Ratelimited. Try again in {round(error.retry_after, 2)}s")
-		elif isinstance(error, commands.NoPrivateMessage):
-			return await ctx.send("No commands in DM's")
-		elif isinstance(error, commands.DisabledCommand):
-			return await ctx.send("This command is disabled.")
-		elif isinstance(error, commands.TooManyArguments):
-			if isinstance(ctx.command, commands.Group):
-				return await ctx.send(f"That subcommand for {ctx.command} was not recongnised. Do `{ctx.prefix}help {ctx.command}` for more information.")
-			return await ctx.send(f"{ctx.command} does not take any extra arguments. Do `{ctx.prefix}help {ctx.command}` for more information")
-		elif isinstance(error, commands.MissingRequiredArgument):
-			return await ctx.send(f"Missing the \"{error.param.name}\" parameter.")
-		elif isinstance(error, (commands.NotOwner, commands.MissingPermissions)):
-			return await ctx.send("You do not have permission to use this command.")
-		elif isinstance(error, commands.BotMissingPermissions):
-			return await ctx.send("I don't have permission to run this command.")
-		else:
-			print(error)
+	#@commands.Cog.listener()
+	#async def on_command_error(self, ctx, error):
+	#	if isinstance(error, commands.CommandNotFound):
+	#		print(error)
+	#	elif isinstance(error, commands.CommandOnCooldown):
+	#		return await ctx.send(f"Ratelimited. Try again in {round(error.retry_after, 2)}s")
+	#	elif isinstance(error, commands.NoPrivateMessage):
+	#		return await ctx.send("No commands in DM's")
+	#	elif isinstance(error, commands.DisabledCommand):
+	#		return await ctx.send("This command is disabled.")
+	#	elif isinstance(error, commands.TooManyArguments):
+	#		if isinstance(ctx.command, commands.Group):
+	#			return await ctx.send(f"That subcommand for {ctx.command} was not recongnised. Do `{ctx.prefix}help {ctx.command}` for more information.")
+	#		return await ctx.send(f"{ctx.command} does not take any extra arguments. Do `{ctx.prefix}help {ctx.command}` for more information")
+	#	elif isinstance(error, commands.MissingRequiredArgument):
+	#		return await ctx.send(f"Missing the \"{error.param.name}\" parameter.")
+	#	elif isinstance(error, (commands.NotOwner, commands.MissingPermissions)):
+	#		return await ctx.send("You do not have permission to use this command.")
+	#	elif isinstance(error, commands.BotMissingPermissions):
+	#		return await ctx.send("I don't have permission to run this command.")
+	#	else:
+	#		print(error.__traceback__)
 
 	@commands.Cog.listener()
 	async def on_command_completion(self, ctx):

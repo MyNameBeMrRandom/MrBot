@@ -27,37 +27,102 @@ class Images(commands.Cog):
 		self.session = aiohttp.ClientSession(loop=bot.loop)
 
 	async def get_image(self, ctx, url):
+		# Get the users avatar and save it.
 		async with self.session.get(url) as response:
 			file_bytes = await response.read()
 		file = Image.open(BytesIO(file_bytes))
-		file.save(f'images/files/{ctx.author.id}.png')
+		file.save(f'images/original_images/{ctx.author.id}.png')
 		file.close()
 
-	def add_corners_bi(self, backround_img, rad):
+	def round_corners(self, image, rad):
 		circle = Image.new('L', (rad * 2, rad * 2), 0)
 		draw = ImageDraw.Draw(circle)
 		draw.ellipse((0, 0, rad * 2, rad * 2), fill=255)
-		alpha = Image.new('L', backround_img.size, 255)
-		w, h = backround_img.size
+		alpha = Image.new('L', image.size, 255)
+		w, h = image.size
 		alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
 		alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
 		alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
 		alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
-		backround_img.putalpha(alpha)
-		return backround_img
+		image.putalpha(alpha)
+		return image
 
-	def add_corners_ai(self, avatar_edit, rad):
-		circle = Image.new('L', (rad * 2, rad * 2), 0)
-		draw = ImageDraw.Draw(circle)
-		draw.ellipse((0, 0, rad * 2, rad * 2), fill=255)
-		alpha = Image.new('L', avatar_edit.size, 255)
-		w, h = avatar_edit.size
-		alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
-		alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
-		alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
-		alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
-		avatar_edit.putalpha(alpha)
-		return avatar_edit
+	def do_imginfo(self, ctx, user):
+
+		#Define the fonts.
+		smallfont = ImageFont.truetype('images/resources/fonts/OpenSans-Regular.ttf', 30)
+		font = ImageFont.truetype('images/resources/fonts/OpenSans-Regular.ttf', 40)
+		bigfont = ImageFont.truetype('images/resources/fonts/OpenSans-Regular.ttf', 50)
+
+		#Open the background images.
+		try:
+			with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
+				data = yaml.load(r, Loader=yaml.FullLoader)
+				background = data['config']['background']
+				if background == 'bg_1':
+					background_img = Image.open('images/resources/backgrounds/bg_1.png')
+				elif background == 'bg_2':
+					background_img = Image.open('images/resources/backgrounds/bg_2.png')
+				elif background == 'bg_3':
+					background_img = Image.open('images/resources/backgrounds/bg_3.png')
+				elif background == 'bg_4':
+					background_img = Image.open('images/resources/backgrounds/bg_4.png')
+				elif background == 'bg_5':
+					background_img = Image.open('images/resources/backgrounds/bg_5.png')
+				elif background == 'bg_6':
+					background_img = Image.open('images/resources/backgrounds/bg_6.png')
+				elif background == 'bg_7':
+					background_img = Image.open('images/resources/backgrounds/bg_7.png')
+				elif background == 'bg_8':
+					background_img = Image.open('images/resources/backgrounds/bg_8.png')
+				elif background == 'bg_9':
+					background_img = Image.open('images/resources/backgrounds/bg_9.png')
+				elif background == 'bg_10':
+					background_img = Image.open('images/resources/backgrounds/bg_10.png')
+				elif background == 'bg_11':
+					background_img = Image.open('images/resources/backgrounds/bg_11.png')
+				else:
+					background_img = Image.open('images/resources/backgrounds/bg_default.png')
+		except FileNotFoundError:
+			background_img = Image.open('images/resources/backgrounds/bg_default.png')
+
+		# Get the users avatar and resize, and then round it.
+		avatar_img = Image.open(f'images/original_images/{ctx.author.id}.png')
+		avatar_img = avatar_img.resize([250, 250])
+		avatar_img = self.round_corners(avatar_img, 50)
+
+		# Copy rounded avatar image to background image.
+		avatar_img = avatar_img.copy()
+		background_img.paste(avatar_img, (700, 50), avatar_img)
+
+		# Allow for drawing on the background image.
+		background_draw = ImageDraw.Draw(background_img)
+
+		# Add text to background image.
+		background_draw.text((50, 35), f'{user}', (255, 255, 255),  align='center', font=bigfont)
+		if user.nick is not None:
+			background_draw.text((50, 90), f'{user.nick}', (255, 255, 255), align='center', font=font)
+
+		# Add status circles to the backround image based on the users status.
+		if user.status == discord.Status.online:
+			background_draw.ellipse((915, 265, 965, 315), fill=(0 ,128 ,0 , 0))
+		if user.status == discord.Status.idle:
+			background_draw.ellipse((915, 265, 965, 315), fill=(255 ,165 ,0 , 0))
+		if user.status == discord.Status.dnd:
+			background_draw.ellipse((915, 265, 965, 315), fill=(255 ,0 ,0 , 0))
+		if user.status == discord.Status.offline:
+			background_draw.ellipse((915, 265, 965, 315), fill=(128 ,128 ,128 , 0))
+
+		# Round the backround image and resize it.
+		backround_img = self.round_corners(background_img, 100)
+		backround_img = backround_img.resize([500, 500])
+
+		# Save image.
+		backround_img.save(f'images/imginfo/{user.id}_imginfo.png')
+
+		# Close images.
+		backround_img.close()
+		avatar_img.close()
 
 	def do_bg_list(self):
 
@@ -132,93 +197,6 @@ class Images(commands.Cog):
 		bg10.close()
 		bg11.close()
 		example.close()
-
-		#Return image
-		return output
-
-	def do_imginfo(self, ctx, user):
-
-		#Fonts
-		smallfont = ImageFont.truetype('data/fonts/OpenSans-Regular.ttf', 30)
-		font = ImageFont.truetype('data/fonts/OpenSans-Regular.ttf', 40)
-		bigfont = ImageFont.truetype('data/fonts/OpenSans-Regular.ttf', 50)
-
-		#Round the users avatar
-		avatar = Image.open(f'images/avatar/{user.id}_avatar.png')
-		avatar = avatar.resize([250, 250])
-		avatar_r_c = self.add_corners_ai(avatar, 50)
-		avatar_r_c.save(f'images/avatar/{user.id}_avatar_r_c.png')
-
-		#Open images/Allow for background choices
-		avatar_img = Image.open(f'images/avatar/{user.id}_avatar_r_c.png')
-
-		try:
-			with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
-				data = yaml.load(r, Loader=yaml.FullLoader)
-				background = data['config']['background']
-				if background == 'bg_1':
-					backround_img = Image.open('images/backgrounds/bg_1.png')
-				elif background == 'bg_2':
-					backround_img = Image.open('images/backgrounds/bg_2.png')
-				elif background == 'bg_3':
-					backround_img = Image.open('images/backgrounds/bg_3.png')
-				elif background == 'bg_4':
-					backround_img = Image.open('images/backgrounds/bg_4.png')
-				elif background == 'bg_5':
-					backround_img = Image.open('images/backgrounds/bg_5.png')
-				elif background == 'bg_6':
-					backround_img = Image.open('images/backgrounds/bg_6.png')
-				elif background == 'bg_7':
-					backround_img = Image.open('images/backgrounds/bg_7.png')
-				elif background == 'bg_8':
-					backround_img = Image.open('images/backgrounds/bg_8.png')
-				elif background == 'bg_9':
-					backround_img = Image.open('images/backgrounds/bg_9.png')
-				elif background == 'bg_10':
-					backround_img = Image.open('images/backgrounds/bg_10.png')
-				elif background == 'bg_11':
-					backround_img = Image.open('images/backgrounds/bg_11.png')
-				else:
-					backround_img = Image.open('images/backgrounds/bg_default.png')
-		except FileNotFoundError:
-			backround_img = Image.open('images/backgrounds/bg_default.png')
-
-		#Allow for drawing on the image
-		backround_draw = ImageDraw.Draw(backround_img)
-
-		#Copy rounded avatar to backround
-		avatar_img = avatar_img.copy()
-		position = 700, 50
-		backround_img.paste(avatar_img, position, avatar_img)
-
-		#Add text to backround image
-		backround_draw.text((50, 35), f'{user}', (255, 255, 255),  align='center', font=bigfont)
-		if user.nick is not None:
-			backround_draw.text((50, 90), f'{user.nick}', (255, 255, 255), align='center', font=font)
-
-		#Add status circles to the avatar image bases on users status
-		if user.status == discord.Status.online:
-			backround_draw.ellipse((915, 265, 965, 315), fill=(0 ,128 ,0 , 0))
-		if user.status == discord.Status.idle:
-			backround_draw.ellipse((915, 265, 965, 315), fill=(255 ,165 ,0 , 0))
-		if user.status == discord.Status.dnd:
-			backround_draw.ellipse((915, 265, 965, 315), fill=(255 ,0 ,0 , 0))
-		if user.status == discord.Status.offline:
-			backround_draw.ellipse((915, 265, 965, 315), fill=(128 ,128 ,128 , 0))
-
-		#Round the backround image
-		backround_img = self.add_corners_bi(backround_img, 100)
-
-		#Save image and resize it
-		backround_img = backround_img.resize([500, 500])
-		backround_img.save(f'images/info/{user.id}_info.png')
-		output = BytesIO()
-		backround_img.save(output, 'png')
-		output.seek(0)
-
-		#Close images
-		backround_img.close()
-		avatar_img.close()
 
 		#Return image
 		return output
@@ -354,16 +332,19 @@ class Images(commands.Cog):
 		if not user:
 			user = ctx.author
 
+		# Start typing and timer
 		await ctx.trigger_typing()
 		start = time.perf_counter()
-		avatar_url = str(user.avatar_url_as(format="png"))
-		async with self.session.get(avatar_url) as response:
-			avatar_bytes = await response.read()
-		avatar = Image.open(BytesIO(avatar_bytes))
-		avatar.save(f'images/avatar/{user.id}_avatar.png')
-		avatar.close()
 
-		await ctx.send(file=discord.File(await self.bot.loop.run_in_executor(None, self.do_imginfo, ctx, user), filename=f'{user.id}_info.png',))
+		# Get the users avatar.
+		url = str(user.avatar_url_as(format="png"))
+		await self.get_image(ctx, url)
+
+		# Generate image.
+		await self.bot.loop.run_in_executor(None, self.do_imginfo, ctx, user)
+		await ctx.send(file=discord.File(f'images/imginfo/{user.id}_imginfo.png'))
+
+		# End timer and log how long operation took
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
