@@ -32,15 +32,13 @@ extensions = [
 logger = logging.getLogger('MrBot')
 logger.setLevel(logging.INFO)
 handler = logging.handlers.TimedRotatingFileHandler(
-	filename=f'logs/latest.txt',
+	filename=f'logs/mrbot.log',
 	encoding='utf-8',
 	backupCount=10,
-	interval=1,
+	interval=100,
 	when='D',
 	utc=True
-
 )
-
 handler.setFormatter(
 	logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 )
