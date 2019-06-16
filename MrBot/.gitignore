@@ -1,9 +1,8 @@
 *.pyc
-*.yaml
- 
-logs/
-images/
-data/
-config.py
+*config.py
 
 
+pie_charts/
+original_images/
+imginfo/
+edited_images/

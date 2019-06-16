@@ -1,0 +1,215 @@
+
+2019-06-16 22:09:04,040 - MrBot - INFO - [EXT] - Successfully loaded - jishaku
+2019-06-16 22:09:04,048 - MrBot - INFO - [EXT] - Successfully loaded - cogs.bot_utils
+2019-06-16 22:09:04,064 - MrBot - INFO - [EXT] - Successfully loaded - cogs.accounts
+2019-06-16 22:09:04,128 - MrBot - INFO - [EXT] - Successfully loaded - cogs.economy
+2019-06-16 22:09:04,136 - MrBot - INFO - [EXT] - Successfully loaded - cogs.admin
+2019-06-16 22:09:04,152 - MrBot - INFO - [EXT] - Successfully loaded - cogs.logging
+2019-06-16 22:09:04,752 - MrBot - INFO - [EXT] - Successfully loaded - cogs.images
+2019-06-16 22:09:04,760 - MrBot - INFO - [EXT] - Successfully loaded - cogs.kross_server
+2019-06-16 22:09:04,768 - MrBot - INFO - [EXT] - Successfully loaded - cogs.owner
+2019-06-16 22:09:04,784 - MrBot - INFO - [EXT] - Successfully loaded - cogs.utilities
+2019-06-16 22:09:04,824 - MrBot - INFO - [EXT] - Successfully loaded - cogs.voice
+2019-06-16 22:10:09,644 - MrBot - INFO - [EXT] - Successfully loaded - jishaku
+2019-06-16 22:10:09,644 - MrBot - INFO - [EXT] - Successfully loaded - cogs.bot_utils
+2019-06-16 22:10:09,652 - MrBot - INFO - [EXT] - Successfully loaded - cogs.accounts
+2019-06-16 22:10:09,660 - MrBot - INFO - [EXT] - Successfully loaded - cogs.economy
+2019-06-16 22:10:09,668 - MrBot - INFO - [EXT] - Successfully loaded - cogs.admin
+2019-06-16 22:10:09,668 - MrBot - INFO - [EXT] - Successfully loaded - cogs.logging
+2019-06-16 22:10:09,828 - MrBot - INFO - [EXT] - Successfully loaded - cogs.images
+2019-06-16 22:10:09,828 - MrBot - INFO - [EXT] - Successfully loaded - cogs.kross_server
+2019-06-16 22:10:09,828 - MrBot - INFO - [EXT] - Successfully loaded - cogs.owner
+2019-06-16 22:10:09,836 - MrBot - INFO - [EXT] - Successfully loaded - cogs.utilities
+2019-06-16 22:10:09,836 - MrBot - INFO - [EXT] - Successfully loaded - cogs.voice
+2019-06-16 22:10:16,135 - MrBot - INFO - [SERVER_COUNT] - Attempting to post server count.
+2019-06-16 22:10:16,135 - MrBot - INFO - [BOT] Logged in as MrBotTest#4211 - 521769227074666497
+2019-06-16 22:10:16,335 - MrBot - ERROR - [SERVER_COUNT] - Failed to post server count.
+Forbidden: Forbidden (status code: 403)
+Traceback (most recent call last):
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\MrBot\MrBot\cogs\logging.py", line 27, in update_stats
+    await self.dblpy.post_guild_count()
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\client.py", line 130, in post_guild_count
+    await self.http.post_guild_count(self.bot_id, self.guild_count(), shard_count, shard_no)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 168, in post_guild_count
+    await self.request('POST', '{}/bots/{}/stats'.format(self.BASE, bot_id), json=payload)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 142, in request
+    raise Forbidden(resp, data)
+dbl.errors.Forbidden: Forbidden (status code: 403)
+2019-06-16 22:12:54,324 - MrBot - INFO - [EXT] - Successfully loaded - jishaku
+2019-06-16 22:12:54,326 - MrBot - INFO - [EXT] - Successfully loaded - cogs.bot_utils
+2019-06-16 22:12:54,327 - MrBot - INFO - [EXT] - Successfully loaded - cogs.accounts
+2019-06-16 22:12:54,344 - MrBot - INFO - [EXT] - Successfully loaded - cogs.economy
+2019-06-16 22:12:54,345 - MrBot - INFO - [EXT] - Successfully loaded - cogs.admin
+2019-06-16 22:12:54,346 - MrBot - INFO - [EXT] - Successfully loaded - cogs.logging
+2019-06-16 22:12:54,524 - MrBot - INFO - [EXT] - Successfully loaded - cogs.images
+2019-06-16 22:12:54,525 - MrBot - INFO - [EXT] - Successfully loaded - cogs.kross_server
+2019-06-16 22:12:54,526 - MrBot - INFO - [EXT] - Successfully loaded - cogs.owner
+2019-06-16 22:12:54,527 - MrBot - INFO - [EXT] - Successfully loaded - cogs.utilities
+2019-06-16 22:12:54,534 - MrBot - INFO - [EXT] - Successfully loaded - cogs.voice
+2019-06-16 22:13:00,806 - MrBot - INFO - [SERVER_COUNT] - Attempting to post server count.
+2019-06-16 22:13:00,807 - MrBot - INFO - [BOT] Logged in as MrBotTest#4211 - 521769227074666497
+2019-06-16 22:13:00,951 - MrBot - ERROR - [SERVER_COUNT] - Failed to post server count.
+Forbidden: Forbidden (status code: 403)
+Traceback (most recent call last):
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\MrBot\MrBot\cogs\logging.py", line 27, in update_stats
+    await self.dblpy.post_guild_count()
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\client.py", line 130, in post_guild_count
+    await self.http.post_guild_count(self.bot_id, self.guild_count(), shard_count, shard_no)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 168, in post_guild_count
+    await self.request('POST', '{}/bots/{}/stats'.format(self.BASE, bot_id), json=payload)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 142, in request
+    raise Forbidden(resp, data)
+dbl.errors.Forbidden: Forbidden (status code: 403)
+2019-06-16 22:13:37,600 - MrBot - INFO - [EXT] - Successfully loaded - jishaku
+2019-06-16 22:13:37,600 - MrBot - INFO - [EXT] - Successfully loaded - cogs.bot_utils
+2019-06-16 22:13:37,600 - MrBot - INFO - [EXT] - Successfully loaded - cogs.accounts
+2019-06-16 22:13:37,624 - MrBot - INFO - [EXT] - Successfully loaded - cogs.economy
+2019-06-16 22:13:37,625 - MrBot - INFO - [EXT] - Successfully loaded - cogs.admin
+2019-06-16 22:13:37,634 - MrBot - INFO - [EXT] - Successfully loaded - cogs.logging
+2019-06-16 22:13:37,789 - MrBot - INFO - [EXT] - Successfully loaded - cogs.images
+2019-06-16 22:13:37,789 - MrBot - INFO - [EXT] - Successfully loaded - cogs.kross_server
+2019-06-16 22:13:37,789 - MrBot - INFO - [EXT] - Successfully loaded - cogs.owner
+2019-06-16 22:13:37,799 - MrBot - INFO - [EXT] - Successfully loaded - cogs.utilities
+2019-06-16 22:13:37,799 - MrBot - INFO - [EXT] - Successfully loaded - cogs.voice
+2019-06-16 22:13:43,159 - MrBot - INFO - [SERVER_COUNT] - Attempting to post server count.
+2019-06-16 22:13:43,160 - MrBot - INFO - [BOT] Logged in as MrBotTest#4211 - 521769227074666497
+2019-06-16 22:13:43,295 - MrBot - ERROR - [SERVER_COUNT] - Failed to post server count.
+Forbidden: Forbidden (status code: 403)
+Traceback (most recent call last):
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\MrBot\MrBot\cogs\logging.py", line 27, in update_stats
+    await self.dblpy.post_guild_count()
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\client.py", line 130, in post_guild_count
+    await self.http.post_guild_count(self.bot_id, self.guild_count(), shard_count, shard_no)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 168, in post_guild_count
+    await self.request('POST', '{}/bots/{}/stats'.format(self.BASE, bot_id), json=payload)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 142, in request
+    raise Forbidden(resp, data)
+dbl.errors.Forbidden: Forbidden (status code: 403)
+2019-06-16 22:14:17,862 - MrBot - INFO - [EXT] - Successfully loaded - jishaku
+2019-06-16 22:14:17,862 - MrBot - INFO - [EXT] - Successfully loaded - cogs.bot_utils
+2019-06-16 22:14:17,870 - MrBot - INFO - [EXT] - Successfully loaded - cogs.accounts
+2019-06-16 22:14:17,886 - MrBot - INFO - [EXT] - Successfully loaded - cogs.economy
+2019-06-16 22:14:17,886 - MrBot - INFO - [EXT] - Successfully loaded - cogs.admin
+2019-06-16 22:14:17,894 - MrBot - INFO - [EXT] - Successfully loaded - cogs.logging
+2019-06-16 22:14:18,070 - MrBot - INFO - [EXT] - Successfully loaded - cogs.images
+2019-06-16 22:14:18,070 - MrBot - INFO - [EXT] - Successfully loaded - cogs.kross_server
+2019-06-16 22:14:18,070 - MrBot - INFO - [EXT] - Successfully loaded - cogs.owner
+2019-06-16 22:14:18,070 - MrBot - INFO - [EXT] - Successfully loaded - cogs.utilities
+2019-06-16 22:14:18,078 - MrBot - INFO - [EXT] - Successfully loaded - cogs.voice
+2019-06-16 22:14:23,930 - MrBot - INFO - [SERVER_COUNT] - Attempting to post server count.
+2019-06-16 22:14:23,931 - MrBot - INFO - [BOT] Logged in as MrBotTest#4211 - 521769227074666497
+2019-06-16 22:14:24,113 - MrBot - ERROR - [SERVER_COUNT] - Failed to post server count.
+Forbidden: Forbidden (status code: 403)
+Traceback (most recent call last):
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\MrBot\MrBot\cogs\logging.py", line 27, in update_stats
+    await self.dblpy.post_guild_count()
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\client.py", line 130, in post_guild_count
+    await self.http.post_guild_count(self.bot_id, self.guild_count(), shard_count, shard_no)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 168, in post_guild_count
+    await self.request('POST', '{}/bots/{}/stats'.format(self.BASE, bot_id), json=payload)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 142, in request
+    raise Forbidden(resp, data)
+dbl.errors.Forbidden: Forbidden (status code: 403)
+2019-06-16 22:14:49,633 - MrBot - INFO - [EXT] - Successfully loaded - jishaku
+2019-06-16 22:14:49,635 - MrBot - INFO - [EXT] - Successfully loaded - cogs.bot_utils
+2019-06-16 22:14:49,636 - MrBot - INFO - [EXT] - Successfully loaded - cogs.accounts
+2019-06-16 22:14:49,647 - MrBot - INFO - [EXT] - Successfully loaded - cogs.economy
+2019-06-16 22:14:49,647 - MrBot - INFO - [EXT] - Successfully loaded - cogs.admin
+2019-06-16 22:14:49,658 - MrBot - INFO - [EXT] - Successfully loaded - cogs.logging
+2019-06-16 22:14:49,828 - MrBot - INFO - [EXT] - Successfully loaded - cogs.images
+2019-06-16 22:14:49,829 - MrBot - INFO - [EXT] - Successfully loaded - cogs.kross_server
+2019-06-16 22:14:49,829 - MrBot - INFO - [EXT] - Successfully loaded - cogs.owner
+2019-06-16 22:14:49,831 - MrBot - INFO - [EXT] - Successfully loaded - cogs.utilities
+2019-06-16 22:14:49,837 - MrBot - INFO - [EXT] - Successfully loaded - cogs.voice
+2019-06-16 22:14:55,391 - MrBot - INFO - [SERVER_COUNT] - Attempting to post server count.
+2019-06-16 22:14:55,392 - MrBot - INFO - [BOT] Logged in as MrBotTest#4211 - 521769227074666497
+2019-06-16 22:14:55,532 - MrBot - ERROR - [SERVER_COUNT] - Failed to post server count.
+Forbidden: Forbidden (status code: 403)
+Traceback (most recent call last):
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\MrBot\MrBot\cogs\logging.py", line 27, in update_stats
+    await self.dblpy.post_guild_count()
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\client.py", line 130, in post_guild_count
+    await self.http.post_guild_count(self.bot_id, self.guild_count(), shard_count, shard_no)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 168, in post_guild_count
+    await self.request('POST', '{}/bots/{}/stats'.format(self.BASE, bot_id), json=payload)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 142, in request
+    raise Forbidden(resp, data)
+dbl.errors.Forbidden: Forbidden (status code: 403)
+2019-06-16 22:16:14,923 - MrBot - INFO - [EXT] - Successfully loaded - jishaku
+2019-06-16 22:16:14,924 - MrBot - INFO - [EXT] - Successfully loaded - cogs.bot_utils
+2019-06-16 22:16:14,926 - MrBot - INFO - [EXT] - Successfully loaded - cogs.accounts
+2019-06-16 22:16:14,941 - MrBot - INFO - [EXT] - Successfully loaded - cogs.economy
+2019-06-16 22:16:14,943 - MrBot - INFO - [EXT] - Successfully loaded - cogs.admin
+2019-06-16 22:16:14,943 - MrBot - INFO - [EXT] - Successfully loaded - cogs.logging
+2019-06-16 22:16:14,945 - MrBot - WARNING - [EXT] - Failed to load - cogs.images
+2019-06-16 22:16:14,946 - MrBot - INFO - [EXT] - Successfully loaded - cogs.kross_server
+2019-06-16 22:16:14,946 - MrBot - INFO - [EXT] - Successfully loaded - cogs.owner
+2019-06-16 22:16:14,948 - MrBot - INFO - [EXT] - Successfully loaded - cogs.utilities
+2019-06-16 22:16:14,954 - MrBot - INFO - [EXT] - Successfully loaded - cogs.voice
+2019-06-16 22:16:20,918 - MrBot - INFO - [SERVER_COUNT] - Attempting to post server count.
+2019-06-16 22:16:20,918 - MrBot - INFO - [BOT] Logged in as MrBotTest#4211 - 521769227074666497
+2019-06-16 22:16:21,511 - MrBot - ERROR - [SERVER_COUNT] - Failed to post server count.
+Forbidden: Forbidden (status code: 403)
+Traceback (most recent call last):
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\MrBot\MrBot\cogs\logging.py", line 27, in update_stats
+    await self.dblpy.post_guild_count()
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\client.py", line 130, in post_guild_count
+    await self.http.post_guild_count(self.bot_id, self.guild_count(), shard_count, shard_no)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 168, in post_guild_count
+    await self.request('POST', '{}/bots/{}/stats'.format(self.BASE, bot_id), json=payload)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 142, in request
+    raise Forbidden(resp, data)
+dbl.errors.Forbidden: Forbidden (status code: 403)
+2019-06-16 22:16:46,450 - MrBot - INFO - [EXT] - Successfully loaded - jishaku
+2019-06-16 22:16:46,452 - MrBot - INFO - [EXT] - Successfully loaded - cogs.bot_utils
+2019-06-16 22:16:46,454 - MrBot - INFO - [EXT] - Successfully loaded - cogs.accounts
+2019-06-16 22:16:46,470 - MrBot - INFO - [EXT] - Successfully loaded - cogs.economy
+2019-06-16 22:16:46,471 - MrBot - INFO - [EXT] - Successfully loaded - cogs.admin
+2019-06-16 22:16:46,472 - MrBot - INFO - [EXT] - Successfully loaded - cogs.logging
+2019-06-16 22:16:46,667 - MrBot - INFO - [EXT] - Successfully loaded - cogs.images
+2019-06-16 22:16:46,667 - MrBot - INFO - [EXT] - Successfully loaded - cogs.kross_server
+2019-06-16 22:16:46,668 - MrBot - INFO - [EXT] - Successfully loaded - cogs.owner
+2019-06-16 22:16:46,670 - MrBot - INFO - [EXT] - Successfully loaded - cogs.utilities
+2019-06-16 22:16:46,675 - MrBot - INFO - [EXT] - Successfully loaded - cogs.voice
+2019-06-16 22:16:52,610 - MrBot - INFO - [SERVER_COUNT] - Attempting to post server count.
+2019-06-16 22:16:52,611 - MrBot - INFO - [BOT] Logged in as MrBotTest#4211 - 521769227074666497
+2019-06-16 22:16:52,718 - MrBot - ERROR - [SERVER_COUNT] - Failed to post server count.
+Forbidden: Forbidden (status code: 403)
+Traceback (most recent call last):
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\MrBot\MrBot\cogs\logging.py", line 27, in update_stats
+    await self.dblpy.post_guild_count()
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\client.py", line 130, in post_guild_count
+    await self.http.post_guild_count(self.bot_id, self.guild_count(), shard_count, shard_no)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 168, in post_guild_count
+    await self.request('POST', '{}/bots/{}/stats'.format(self.BASE, bot_id), json=payload)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 142, in request
+    raise Forbidden(resp, data)
+dbl.errors.Forbidden: Forbidden (status code: 403)
+2019-06-16 22:17:02,833 - MrBot - INFO - [EXT] - Successfully loaded - jishaku
+2019-06-16 22:17:02,834 - MrBot - INFO - [EXT] - Successfully loaded - cogs.bot_utils
+2019-06-16 22:17:02,836 - MrBot - INFO - [EXT] - Successfully loaded - cogs.accounts
+2019-06-16 22:17:02,852 - MrBot - INFO - [EXT] - Successfully loaded - cogs.economy
+2019-06-16 22:17:02,853 - MrBot - INFO - [EXT] - Successfully loaded - cogs.admin
+2019-06-16 22:17:02,854 - MrBot - INFO - [EXT] - Successfully loaded - cogs.logging
+2019-06-16 22:17:03,022 - MrBot - INFO - [EXT] - Successfully loaded - cogs.images
+2019-06-16 22:17:03,022 - MrBot - INFO - [EXT] - Successfully loaded - cogs.kross_server
+2019-06-16 22:17:03,022 - MrBot - INFO - [EXT] - Successfully loaded - cogs.owner
+2019-06-16 22:17:03,022 - MrBot - INFO - [EXT] - Successfully loaded - cogs.utilities
+2019-06-16 22:17:03,030 - MrBot - INFO - [EXT] - Successfully loaded - cogs.voice
+2019-06-16 22:17:08,911 - MrBot - INFO - [COMMAND] - MrRandom#1234 used the command "imginfo" in the guild MrBot Support/Testing.
+2019-06-16 22:17:08,924 - MrBot - INFO - [SERVER_COUNT] - Attempting to post server count.
+2019-06-16 22:17:08,925 - MrBot - INFO - [BOT] Logged in as MrBotTest#4211 - 521769227074666497
+2019-06-16 22:17:09,081 - MrBot - ERROR - [SERVER_COUNT] - Failed to post server count.
+Forbidden: Forbidden (status code: 403)
+Traceback (most recent call last):
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\MrBot\MrBot\cogs\logging.py", line 27, in update_stats
+    await self.dblpy.post_guild_count()
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\client.py", line 130, in post_guild_count
+    await self.http.post_guild_count(self.bot_id, self.guild_count(), shard_count, shard_no)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 168, in post_guild_count
+    await self.request('POST', '{}/bots/{}/stats'.format(self.BASE, bot_id), json=payload)
+  File "C:\Users\MrRandom\PycharmProjects\MrBot\venv\lib\site-packages\dbl\http.py", line 142, in request
+    raise Forbidden(resp, data)
+dbl.errors.Forbidden: Forbidden (status code: 403)
+2019-06-16 22:17:20,275 - MrBot - INFO - [COMMAND] - MrRandom#1234 used the command "imginfo" in the guild discord.py.
+2019-06-16 22:17:55,354 - MrBot - INFO - [COMMAND] - MrRandom#1234 used the command "imginfo" in the guild discord.py.
