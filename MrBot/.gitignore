@@ -1,0 +1,9 @@
+*.pyc
+*.yaml
+*.txt
+
+config.py
+pie_charts/
+info/
+avatar/
+files/
