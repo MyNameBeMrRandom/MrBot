@@ -2,3 +2,4 @@
 MrBot/config.py
 MrBot/logs/mrbot.log
 *.png
+*.yaml

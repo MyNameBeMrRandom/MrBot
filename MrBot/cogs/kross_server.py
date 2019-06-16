@@ -12,22 +12,22 @@ class KrossServer(commands.Cog):
 
 	async def refresh_points(self, ctx):
 		channel = self.bot.get_channel(547156691985104896)
-		with open('data/kodama.txt') as r:
+		with open('data/kross_server/kodama.txt') as r:
 			kp = r.readline()
 			kp = int(kp)
 			km = await channel.fetch_message(548311930054639637)
 			await km.edit(content=f'Kodama has {kp} points!')
-		with open('data/phoenix.txt') as r:
+		with open('data/kross_server/phoenix.txt') as r:
 			pp = r.readline()
 			pp = int(pp)
 			pm = await channel.fetch_message(548311654568427533)
 			await pm.edit(content=f'Phoenix has {pp} points!')
-		with open('data/leviathan.txt') as r:
+		with open('data/kross_server/leviathan.txt') as r:
 			lp = r.readline()
 			lp = int(lp)
 			lm = await channel.fetch_message(548311845434294282)
 			await lm.edit(content=f'Leviathan has {lp} points!')
-		with open('data/sylph.txt') as r:
+		with open('data/kross_server/sylph.txt') as r:
 			sp = r.readline()
 			sp = int(sp)
 			sm = await channel.fetch_message(548311533424476170)
@@ -87,19 +87,19 @@ class KrossServer(commands.Cog):
 	async def points(self, ctx, house: str, operation: str, points: int):
 		if ctx.guild.id == 491312179476299786:
 			if house == 'kodama':
-				with open('data/kodama.txt') as r:
+				with open('data/kross_server/kodama.txt') as r:
 					cp = r.readline()
 					cp = int(cp)
 					if operation == 'add':
 						np = cp + points
-						with open('data/kodama.txt', 'w') as a:
+						with open('data/kross_server/kodama.txt', 'w') as a:
 							a.write(str(np))
 							a.close()
 						await ctx.send(f'Added {points} points to house Kodama. They now have {np} points!')
 						await self.refresh_points(ctx)
 					elif operation == 'minus':
 						np = cp - points
-						with open('data/sylph.txt', 'w') as m:
+						with open('data/kross_server/sylph.txt', 'w') as m:
 							m.write(str(np))
 							m.close()
 						await ctx.send(f'Removed {points} points from house Kodama. They now have {np} points!')
@@ -107,19 +107,19 @@ class KrossServer(commands.Cog):
 					else:
 						await ctx.send('That operation was not recognised.')
 			elif house == 'phoenix':
-				with open('data/phoenix.txt') as r:
+				with open('data/kross_server/phoenix.txt') as r:
 					cp = r.readline()
 					cp = int(cp)
 					if operation == 'add':
 						np = cp + points
-						with open('data/phoenix.txt', 'w') as a:
+						with open('data/kross_server/phoenix.txt', 'w') as a:
 							a.write(str(np))
 							a.close()
 						await ctx.send(f'Added {points} points to house Phoenix. They now have {np} points!')
 						await self.refresh_points(ctx)
 					elif operation == 'minus':
 						np = cp - points
-						with open('data/phoenix.txt', 'w') as m:
+						with open('data/kross_server/phoenix.txt', 'w') as m:
 							m.write(str(np))
 							m.close()
 						await ctx.send(f'Removed {points} points from house Phoenix. They now have {np} points!')
@@ -127,19 +127,19 @@ class KrossServer(commands.Cog):
 					else:
 						await ctx.send('That operation was not recognised.')
 			elif house == 'leviathan':
-				with open('data/leviathan.txt') as r:
+				with open('data/kross_server/leviathan.txt') as r:
 					cp = r.readline()
 					cp = int(cp)
 					if operation == 'add':
 						np = cp + points
-						with open('data/leviathan.txt', 'w') as a:
+						with open('data/kross_server/leviathan.txt', 'w') as a:
 							a.write(str(np))
 							a.close()
 						await ctx.send(f'Added {points} points to house Leviathan. They now have {np} points!')
 						await self.refresh_points(ctx)
 					elif operation == 'minus':
 						np = cp - points
-						with open('data/sylph.txt', 'w') as m:
+						with open('data/kross_server/sylph.txt', 'w') as m:
 							m.write(str(np))
 							m.close()
 						await ctx.send(f'Removed {points} points from house Leviathan. They now have {np} points!')
@@ -147,19 +147,19 @@ class KrossServer(commands.Cog):
 					else:
 						await ctx.send('That operation was not recognised.')
 			elif house == 'sylph':
-				with open('data/sylph.txt') as r:
+				with open('data/kross_server/sylph.txt') as r:
 					cp = r.readline()
 					cp = int(cp)
 					if operation == 'add':
 						np = cp + points
-						with open('data/sylph.txt', 'w') as a:
+						with open('data/kross_server/sylph.txt', 'w') as a:
 							a.write(str(np))
 							a.close()
 						await ctx.send(f'Added {points} points to house Sylph. They now have {np} points!')
 						await self.refresh_points(ctx)
 					elif operation == 'minus':
 						np = cp - points
-						with open('data/sylph.txt', 'w') as m:
+						with open('data/kross_server/sylph.txt', 'w') as m:
 							m.write(str(np))
 							m.close()
 						await ctx.send(f'Removed {points} points from house Sylph. They now have {np} points!')
