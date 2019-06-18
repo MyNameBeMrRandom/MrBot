@@ -5,7 +5,7 @@ import os
 
 class Accounts(commands.Cog):
 	"""
-	Economy commands.
+	Account commands.
 	"""
 
 	def __init__(self, bot):

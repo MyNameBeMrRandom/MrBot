@@ -7,6 +7,7 @@ from PIL import ImageDraw
 from PIL import ImageFont
 from io import BytesIO
 from PIL import Image
+import numpy as np
 import discord
 import asyncio
 import aiohttp
@@ -279,7 +280,7 @@ class Images(commands.Cog):
 		axs.legend(labels, loc="best")
 		axs.axis('equal')
 		plt.tight_layout()
-		plt.savefig(f'images/pie_charts/{ctx.author.id}_status_pie.png', transparent=True)
+		plt.savefig(f'images/charts/{ctx.author.id}_status_pie.png', transparent=True)
 		plt.close()
 
 	def do_pie_chart(self, ctx, names, numbers):
@@ -292,8 +293,8 @@ class Images(commands.Cog):
 			value = round(value / total * 100, 2)
 			percentages.append(value)
 
-		for name, number in zip(names, percentages):
-			labels.append(f'{name}: {number}%')
+		for name, percentage in zip(names, percentages):
+			labels.append(f'{name}: {percentages}%')
 
 		sizes = numbers
 
@@ -302,7 +303,20 @@ class Images(commands.Cog):
 		axs.legend(labels, loc="best")
 		axs.axis('equal')
 		plt.tight_layout()
-		plt.savefig(f'images/pie_charts/{ctx.author.id}_pie_chart.png', transparent=True)
+		plt.savefig(f'images/charts/{ctx.author.id}_pie_chart.png', transparent=True)
+		plt.close()
+
+	def do_bar_chart(self, ctx, title, xlabel, ylabel, names, numbers):
+
+		x_pos = np.arange(len(names))
+
+		plt.bar(x_pos, numbers)
+		plt.ylabel(ylabel)
+		plt.ylabel(xlabel)
+		plt.title(title)
+		plt.xticks(x_pos, names)
+		plt.tight_layout()
+		plt.savefig(f'images/charts/{ctx.author.id}_bar_chart.png')
 		plt.close()
 
 	@commands.command(name='imginfo')
@@ -527,18 +541,15 @@ class Images(commands.Cog):
 				return await ctx.send('Ended pie chart creation.')
 			number_of_values = int(number_of_values.content)
 		except asyncio.TimeoutError:
-			return await message.edit(content='You took to long to respond, ending pie chart creation.')
+			return await message.edit(content=f'{ctx.author.mention}, You took to long to respond, ending pie chart creation.')
 		except ValueError:
-			return await message.edit(content=f'That was not a valid number of values, make sure you use a number.')
+			return await message.edit(content=f'{ctx.author.mention}, That was not a valid number of values, make sure you use a number.')
 
 		if number_of_values <= 0 or number_of_values >= 51:
-			return await message.edit(content='That was not a valid number of values, Please choose a value between 1 and 50.')
-
-
+			return await message.edit(content=f'{ctx.author.mention}, That was not a valid number of values, please choose a value between 1 and 50.')
 
 		number_values = []
 		name_values = []
-		name_and_numbers = []
 		value = 1
 
 		for i in range(number_of_values):
@@ -547,30 +558,129 @@ class Images(commands.Cog):
 			try:
 				name = await ctx.bot.wait_for('message', timeout=30.0, check=check)
 				if name.content.startswith(ctx.prefix):
-					return await ctx.send('That is not a valid name for a value, do not use a bot command as a value.')
+					return await message.edit(content=f'{ctx.author.mention}, That is not a valid name for a value, do not use a bot command as a value.')
 				if name.content == 'cancel':
-					return await ctx.send('Ended pie chart creation.')
+					return await message.edit(content=f'{ctx.author.mention}, Ended pie chart creation.')
 				name_values.append(name.content)
 			except asyncio.TimeoutError:
-				return await message.edit(content='You took to long to respond, ending pie chart creation.')
+				return await message.edit(content=f'{ctx.author.mention}, You took to long to respond, ending pie chart creation.')
 
 			await message.edit(content=f'Enter a number for value `{value}`:')
 			try:
 				number = await ctx.bot.wait_for('message', timeout=30.0, check=check)
 				if number.content == 'cancel':
-					return await ctx.send('Ended pie chart creation.')
+					return await message.edit(content=f'{ctx.author.mention}, Ended pie chart creation.')
 				number_values.append(int(number.content))
 			except asyncio.TimeoutError:
-				return await message.edit(content='You took to long to respond, ending pie chart creation.')
+				return await message.edit(content=f'{ctx.author.mention}, You took to long to respond, ending pie chart creation.')
 			except ValueError:
-				return await message.edit(content='You did not enter a valid number.')
+				return await message.edit(content=f'{ctx.author.mention}, You did not enter a valid number.')
 			value += 1
 
 		try:
 			start = time.perf_counter()
 			await ctx.trigger_typing()
 			await self.bot.loop.run_in_executor(None, self.do_pie_chart, ctx, name_values, number_values)
-			await ctx.send(file=discord.File(f'images/pie_charts/{ctx.author.id}_pie_chart.png'))
+			await ctx.send(file=discord.File(f'images/charts/{ctx.author.id}_pie_chart.png'))
+			end = time.perf_counter()
+			return await ctx.send(f'That took {end - start:.3f}sec to complete')
+		except FileNotFoundError:
+			await ctx.send(f'You dont have an account.')
+			return await file_handling.account_creation(ctx)
+
+	@commands.cooldown(1, 10, BucketType.user)
+	@commands.command(name='bar_chart', aliases=['bar_c', 'bc'])
+	async def bar_chart(self, ctx):
+		"""
+		Launches an interactive pie chart creator.
+
+		Make sure you use this in a quiet channel, otherwise the message will get lost in the chat.
+		"""
+
+		def check(msg):
+			return ctx.author == msg.author and ctx.channel == msg.channel
+
+		message = await ctx.send(f'How many values would you like in your bar chart? (e.g 3, 6, 10). You can type `cancel` at any point to end creation.')
+		try:
+			number_of_values = await ctx.bot.wait_for('message', timeout=20.0, check=check)
+			if number_of_values.content == 'cancel':
+				return await message.edit(content=f'{ctx.author.mention}, Ended bar chart creation.')
+			number_of_values = int(number_of_values.content)
+		except asyncio.TimeoutError:
+			return await message.edit(content=f'{ctx.author.mention}, You took to long to respond, ending bar chart creation.')
+		except ValueError:
+			return await message.edit(content=f'{ctx.author.mention}, That was not a valid number of values, make sure you use a number.')
+
+		if number_of_values <= 0 or number_of_values >= 11:
+			return await message.edit(content=f'{ctx.author.mention}, That was not a valid number of values, Please choose a value between 1 and 10.')
+
+		await message.edit(content=f'What would you like the title of the bar chart to be?')
+		try:
+			title = await ctx.bot.wait_for('message', timeout=30.0, check=check)
+			if title.content.startswith(ctx.prefix):
+				return await message.edit(content=f'{ctx.author.mention}, That is not a valid title for the chart, do not use a bot command as a name.')
+			if title.content == 'cancel':
+				return await message.edit(content=f'{ctx.author.mention}, Ended bar chart creation.')
+			title = title.content
+		except asyncio.TimeoutError:
+			return await message.edit(content=f'{ctx.author.mention}, You took to long to respond, ending bar chart creation.')
+
+		await message.edit(content=f'What would you like the x-axis label of the bar chart to be?')
+		try:
+			xlabel = await ctx.bot.wait_for('message', timeout=30.0, check=check)
+			if xlabel.content.startswith(ctx.prefix):
+				return await message.edit(content=f'{ctx.author.mention}, That is not a valid title for the x-axis label, do not use a bot command as a label.')
+			if xlabel.content == 'cancel':
+				return await message.edit(content=f'{ctx.author.mention}, Ended bar chart creation.')
+			xlabel = xlabel.content
+		except asyncio.TimeoutError:
+			return await message.edit(content=f'{ctx.author.mention}, You took to long to respond, ending bar chart creation.')
+
+		await message.edit(content=f'What would you like the y-axis label of the bar chart to be?')
+		try:
+			ylabel = await ctx.bot.wait_for('message', timeout=30.0, check=check)
+			if ylabel.content.startswith(ctx.prefix):
+				return await message.edit(content=f'{ctx.author.mention}, That is not a valid title for the y-axis label, do not use a bot command as a label.')
+			if ylabel.content == 'cancel':
+				return await message.edit(content=f'{ctx.author.mention}, Ended bar chart creation.')
+			ylabel = ylabel.content
+		except asyncio.TimeoutError:
+			return await message.edit(content='You took to long to respond, ending bar chart creation.')
+
+		number_values = []
+		name_values = []
+		value = 1
+
+		for i in range(number_of_values):
+
+			await message.edit(content=f'Enter a name for value `{value}`:')
+			try:
+				name = await ctx.bot.wait_for('message', timeout=30.0, check=check)
+				if name.content.startswith(ctx.prefix):
+					return await message.edit(content=f'{ctx.author.mention}, That is not a valid name for a value, do not use a bot command as a value.')
+				if name.content == 'cancel':
+					return await message.edit(content=f'{ctx.author.mention}, Ended pie chart creation.')
+				name_values.append(name.content)
+			except asyncio.TimeoutError:
+				return await message.edit(content=f'{ctx.author.mention}, You took to long to respond, ending pie chart creation.')
+
+			await message.edit(content=f'Enter a number for value `{value}`:')
+			try:
+				number = await ctx.bot.wait_for('message', timeout=30.0, check=check)
+				if number.content == 'cancel':
+					return await message.edit(content=f'{ctx.author.mention}, Ended pie chart creation.')
+				number_values.append(int(number.content))
+			except asyncio.TimeoutError:
+				return await message.edit(content=f'{ctx.author.mention}, You took to long to respond, ending pie chart creation.')
+			except ValueError:
+				return await message.edit(content=f'{ctx.author.mention}, You did not enter a valid number.')
+			value += 1
+
+		try:
+			start = time.perf_counter()
+			await ctx.trigger_typing()
+			await self.bot.loop.run_in_executor(None, self.do_bar_chart, ctx, title, xlabel, ylabel, name_values, number_values)
+			await ctx.send(file=discord.File(f'images/charts/{ctx.author.id}_bar_chart.png'))
 			end = time.perf_counter()
 			return await ctx.send(f'That took {end - start:.3f}sec to complete')
 		except FileNotFoundError:
