@@ -1,11 +1,14 @@
-import asyncio
-import datetime
+from discord.ext import commands
+import humanize
 import itertools
+import datetime
+import wavelink
+import asyncio
+import discord
 import random
 import re
-import discord
-import wavelink
-from discord.ext import commands
+
+
 
 RURL = re.compile(r'https?:(?:www\.)?.+')
 
@@ -716,6 +719,28 @@ class Voice(commands.Cog):
 		else:
 			player.queue._queue.appendleft(player.current)
 		player.update = True
+
+	@commands.command(name='node_info')
+	async def node_info(self, ctx):
+		"""Retrieve various Node/Server/Player information."""
+		player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
+		node = player.node
+
+		used = humanize.naturalsize(node.stats.memory_used)
+		total = humanize.naturalsize(node.stats.memory_allocated)
+		free = humanize.naturalsize(node.stats.memory_free)
+		cpu = node.stats.cpu_cores
+
+		fmt = f'**WaveLink:** `{wavelink.__version__}`\n\n' \
+			f'Connected to `{len(self.bot.wavelink.nodes)}` nodes.\n' \
+			f'Best available Node `{self.bot.wavelink.get_best_node().__repr__()}`\n' \
+			f'`{len(self.bot.wavelink.players)}` players are distributed on nodes.\n' \
+			f'`{node.stats.players}` players are distributed on server.\n' \
+			f'`{node.stats.playing_players}` players are playing on server.\n\n' \
+			f'Server Memory: `{used}/{total}` | `({free} free)`\n' \
+			f'Server CPU: `{cpu}`\n\n' \
+			f'Server Uptime: `{datetime.timedelta(milliseconds=node.stats.uptime)}`'
+		await ctx.send(fmt)
 
 
 def setup(bot):
