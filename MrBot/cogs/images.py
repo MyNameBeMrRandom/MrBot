@@ -294,7 +294,7 @@ class Images(commands.Cog):
 			percentages.append(value)
 
 		for name, percentage in zip(names, percentages):
-			labels.append(f'{name}: {percentages}%')
+			labels.append(f'{name}: {percentage}%')
 
 		sizes = numbers
 
