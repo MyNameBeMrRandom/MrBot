@@ -514,7 +514,7 @@ class Images(commands.Cog):
 			start = time.perf_counter()
 			await ctx.trigger_typing()
 			await self.bot.loop.run_in_executor(None, self.do_status_pie, ctx)
-			await ctx.send(file=discord.File(f'images/pie_charts/{ctx.author.id}_status_pie.png'))
+			await ctx.send(file=discord.File(f'images/charts/{ctx.author.id}_status_pie.png'))
 			end = time.perf_counter()
 			return await ctx.send(f'That took {end - start:.3f}sec to complete')
 		except FileNotFoundError:
