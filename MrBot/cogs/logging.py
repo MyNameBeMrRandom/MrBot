@@ -1,4 +1,5 @@
 from discord.ext import commands
+import traceback
 import asyncio
 import discord
 import config
@@ -194,28 +195,44 @@ class Logging(commands.Cog):
 			logging_channel = data['config']['logging_channel']
 			return logging_channel
 
-	#@commands.Cog.listener()
-	#async def on_command_error(self, ctx, error):
-	#	if isinstance(error, commands.CommandNotFound):
-	#		print(error)
-	#	elif isinstance(error, commands.CommandOnCooldown):
-	#		return await ctx.send(f"Ratelimited. Try again in {round(error.retry_after, 2)}s")
-	#	elif isinstance(error, commands.NoPrivateMessage):
-	#		return await ctx.send("No commands in DM's")
-	#	elif isinstance(error, commands.DisabledCommand):
-	#		return await ctx.send("This command is disabled.")
-	#	elif isinstance(error, commands.TooManyArguments):
-	#		if isinstance(ctx.command, commands.Group):
-	#			return await ctx.send(f"That subcommand for {ctx.command} was not recongnised. Do `{ctx.prefix}help {ctx.command}` for more information.")
-	#		return await ctx.send(f"{ctx.command} does not take any extra arguments. Do `{ctx.prefix}help {ctx.command}` for more information")
-	#	elif isinstance(error, commands.MissingRequiredArgument):
-	#		return await ctx.send(f"Missing the \"{error.param.name}\" parameter.")
-	#	elif isinstance(error, (commands.NotOwner, commands.MissingPermissions)):
-	#		return await ctx.send("You do not have permission to use this command.")
-	#	elif isinstance(error, commands.BotMissingPermissions):
-	#		return await ctx.send("I don't have permission to run this command.")
-	#	else:
-	#		print(error.__traceback__)
+	@commands.Cog.listener()
+	async def on_command_error(self, ctx, error):
+		error = getattr(error, 'original', error)
+		if hasattr(ctx.command, 'on_error'):
+			return
+		elif isinstance(error, commands.NoPrivateMessage):
+			try:
+				return await ctx.send(f"The command `{ctx.command}` cannot be used in private messages.")
+			except Exception:
+				pass
+		elif isinstance(error, commands.DisabledCommand):
+			return await ctx.send(f"The command `{ctx.command}` is currently disabled.")
+		elif isinstance(error, commands.CommandNotFound):
+			return await ctx.send(f"That command was not found.")
+		elif isinstance(error, commands.CommandOnCooldown):
+			return await ctx.send(f"The command `{ctx.command}` is on cooldown, retry in {round(error.retry_after, 2)}s.")
+		elif isinstance(error, commands.MissingRequiredArgument):
+			return await ctx.send(f"You missed the `{error.param}` parameter.")
+		elif isinstance(error, commands.TooManyArguments):
+			return await ctx.send(f"Too many arguments were passed for the command `{ctx.command}`.")
+		elif isinstance(error, commands.BadArgument):
+			return await ctx.send(f"A bad argument was passed to the command `{ctx.command}`.")
+		elif isinstance(error, commands.MissingPermissions):
+			return await ctx.send(f"You dont have the permissions to run the `{ctx.command}` command.")
+		elif isinstance(error, commands.BotMissingPermissions):
+			return await ctx.send(f"I am missing the following permissions to run the command `{ctx.command}`.\n{error.missing_perms}")
+		elif isinstance(error, discord.HTTPException):
+			if isinstance(error, discord.Forbidden):
+				return await ctx.send(f"I am missing permissions to run the command `{ctx.command}`.")
+		elif isinstance(error, commands.CommandInvokeError):
+			return await ctx.send(f"There was an error while running that command")
+		else:
+			try:
+				print(f'{error.original.__class__.__name__}: {error.original}')
+				traceback.print_tb(error.original.__traceback__)
+			except AttributeError:
+				print(f'{error.__class__.__name__}: {error}')
+				traceback.print_tb(error.__traceback__)
 
 	@commands.Cog.listener()
 	async def on_command_completion(self, ctx):
@@ -442,7 +459,7 @@ class Logging(commands.Cog):
 	async def on_message_edit(self, before, after):
 		guild = before.guild
 		# If the user is the bot itself return nothing.
-		if before.id == guild.me.id:
+		if before.id == 424637852035317770:
 			return
 		# If message has been pinned/unpinned.
 		if not before.pinned == after.pinned:
@@ -491,7 +508,7 @@ class Logging(commands.Cog):
 	async def on_message_delete(self, message):
 		guild = message.guild
 		# If the user is the bot itself return nothing.
-		if message.author.id == guild.me.id:
+		if message.author.id == 424637852035317770:
 			return
 		# Check if this type of logging is enabled.
 		check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'message_delete')
@@ -561,7 +578,7 @@ class Logging(commands.Cog):
 	async def on_member_update(self, before, after):
 		guild = before.guild
 		# If the user is the bot, return nothing.
-		if before.id == guild.me.id:
+		if before.id == 424637852035317770:
 			return
 		# If the members status has changed.
 		if not before.status == after.status:

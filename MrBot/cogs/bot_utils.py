@@ -7,7 +7,6 @@ class HelpCommand(commands.HelpCommand):
 
 	def __init__(self):
 		super().__init__(command_attrs={
-			'cooldown': commands.Cooldown(1, 3.0, commands.BucketType.member),
 			'help': "Shows help about the bot, an Extension or a command.\n\n**<arguement>** means the arguement is **required.**\n**[arguement]** means the arguement is **optional.**\n**[a|b]** means it can be **'A' or 'B'.**\n**[arguement...]** means you can have **multiple arguements.**"
 		})
 

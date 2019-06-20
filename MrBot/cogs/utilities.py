@@ -50,37 +50,35 @@ class Utilities(commands.Cog):
 
 	def guild_region(self, ctx):
 		guild = ctx.guild
-		if guild.region == guild.region.amsterdam:
-			return "Amsterdam"
-		elif guild.region == guild.region.brazil:
+		if guild.region == discord.VoiceRegion.brazil:
 			return "Brazil"
-		elif guild.region == guild.region.eu_central:
+		elif guild.region == discord.VoiceRegion.eu_central:
 			return "Central-Europe"
-		elif guild.region == guild.region.eu_west:
+		elif guild.region == discord.VoiceRegion.eu_west:
 			return "Western-Europe"
-		elif guild.region == guild.region.frankfurt:
+		elif guild.region == discord.VoiceRegion.frankfurt:
 			return "Frankfurt"
-		elif guild.region == guild.region.hongkong:
+		elif guild.region == discord.VoiceRegion.hongkong:
 			return "Hong-Kong"
-		elif guild.region == guild.region.japan:
+		elif guild.region == discord.VoiceRegion.japan:
 			return "Japan"
-		elif guild.region == guild.region.london:
+		elif guild.region == discord.VoiceRegion.london:
 			return "London"
-		elif guild.region == guild.region.russia:
+		elif guild.region == discord.VoiceRegion.russia:
 			return "Russia"
-		elif guild.region == guild.region.singapore:
+		elif guild.region == discord.VoiceRegion.singapore:
 			return "Singapore"
-		elif guild.region == guild.region.southafrica:
+		elif guild.region == discord.VoiceRegion.southafrica:
 			return "South-Africa"
-		elif guild.region == guild.region.us_central:
+		elif guild.region == discord.VoiceRegion.us_central:
 			return "Us-Central"
-		elif guild.region == guild.region.sydney:
+		elif guild.region == discord.VoiceRegion.sydney:
 			return "Sydney"
-		elif guild.region == guild.region.us_east:
+		elif guild.region == discord.VoiceRegion.us_east:
 			return "Us-East"
-		elif guild.region == guild.region.us_south:
+		elif guild.region == discord.VoiceRegion.us_south:
 			return "Us-South"
-		elif guild.region == guild.region.us_west:
+		elif guild.region == discord.VoiceRegion.us_west:
 			return "Us-West"
 		else:
 			return "N/A"
