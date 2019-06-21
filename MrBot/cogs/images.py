@@ -246,7 +246,7 @@ class Images(commands.Cog):
 
 	def do_status_pie(self, ctx):
 		# Get the times in seconds.
-		online_time, offline_time, idle_time, dnd_time = await self.bot.loop.run_in_executor(None, file_handling.get_status_times, ctx)
+		online_time, offline_time, idle_time, dnd_time = file_handling.get_status_times(ctx)
 		# Calculate the percentages of each status.
 		online_percent, offline_percent, idle_percent, dnd_percent = self.calculate_status_percentages(online_time, offline_time, idle_time, dnd_time)
 
