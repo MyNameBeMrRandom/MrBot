@@ -130,10 +130,8 @@ class Utilities(commands.Cog):
 			data = yaml.load(r, Loader=yaml.FullLoader)
 
 			status_since = data['status_times'][f'{ctx.author.status}_since']
-
 			status_time_before = time.time() - status_since
 			current_status = round(status_time_before)
-
 			online_time = data['status_times'][f'online_time']
 			offline_time = data['status_times'][f'offline_time']
 			idle_time = data['status_times'][f'idle_time']
@@ -336,7 +334,7 @@ class Utilities(commands.Cog):
 			location = obj.callback.__module__.replace('.', '/') + '.py'
 			github_url = 'https://github.com/Rapptz/discord.py'
 
-		final_url = f'<{github_url}/blob/master/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
+		final_url = f'<{github_url}/blob/master/MrBot/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
 		await ctx.send(final_url)
 
 	@commands.command(name='linecount')
@@ -357,13 +355,6 @@ class Utilities(commands.Cog):
 							else:
 								total += 1
 		await ctx.send(f'MrBot is made of {total:,} lines of code, spread out across {file_amount:,} files.')
-
-	@commands.command(name='say')
-	async def say(self, ctx, *, content):
-		"""
-		Say whatever is inputed, as the bot.
-		"""
-		return await ctx.send(f'{content}')
 
 	@commands.command(name='status_times', aliases=['st', 'status_t'])
 	async def status_times(self, ctx):
