@@ -9,7 +9,6 @@ import codecs
 import random
 import typing
 import psutil
-import yaml
 import time
 import os
 
@@ -125,44 +124,12 @@ class Utilities(commands.Cog):
 			except AttributeError:
 				return 'N/A'
 
-	def get_status_times(self, ctx):
-		with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-
-			status_since = data['status_times'][f'{ctx.author.status}_since']
-			status_time_before = time.time() - status_since
-			current_status = round(status_time_before)
-			online_time = data['status_times'][f'online_time']
-			offline_time = data['status_times'][f'offline_time']
-			idle_time = data['status_times'][f'idle_time']
-			dnd_time = data['status_times'][f'dnd_time']
-			if ctx.author.status == discord.Status.online:
-				return online_time + current_status, offline_time, idle_time, dnd_time
-			elif ctx.author.status == discord.Status.offline:
-				return online_time, offline_time + current_status, idle_time, dnd_time
-			elif ctx.author.status == discord.Status.idle:
-				return online_time, offline_time, idle_time + current_status, dnd_time
-			elif ctx.author.status == discord.Status.dnd:
-				return online_time, offline_time, idle_time, dnd_time + current_status
-			else:
-				return online_time, offline_time, idle_time, dnd_time
-
-	def calculate_status_times(self, times):
-		minute, second = divmod(times, 60)
-		hour, minute = divmod(minute, 60)
-		day, hour = divmod(hour, 24)
-		days = round(day)
-		hours = round(hour)
-		minutes = round(minute)
-		seconds = round(second)
-		return f'{days}d, {hours}h, {minutes}m, {seconds}s'
-
-	def calculate_status_percent(self, online, offline, idle, dnd):
-		total = online + offline + idle + dnd
-		online_p = online / total
-		offline_p = offline / total
-		idle_p = idle / total
-		dnd_p = dnd / total
+	def calculate_status_percentages(self, online_time, offline_time, idle_time, dnd_time):
+		total = online_time + offline_time + idle_time + dnd_time
+		online_p = online_time / total
+		offline_p = offline_time / total
+		idle_p = idle_time / total
+		dnd_p = dnd_time / total
 		online_percent = round(online_p * 100, 3)
 		offline_percent = round(offline_p * 100, 3)
 		idle_percent = round(idle_p * 100, 3)
@@ -356,18 +323,23 @@ class Utilities(commands.Cog):
 								total += 1
 		await ctx.send(f'MrBot is made of {total:,} lines of code, spread out across {file_amount:,} files.')
 
-	@commands.command(name='status_times', aliases=['st', 'status_t'])
+	@commands.command(name='status_times', aliases=['st'])
 	async def status_times(self, ctx):
 		try:
-			online_time, offline_time, idle_time, dnd_time = await self.bot.loop.run_in_executor(None, self.get_status_times, ctx)
+			# Get the times in seconds.
+			online_time, offline_time, idle_time, dnd_time = await self.bot.loop.run_in_executor(None, file_handling.get_status_times, ctx)
+			# Calculate the total time.
 			total_time = online_time + offline_time + idle_time + dnd_time
-			online = self.calculate_status_times(online_time)
-			offline = self.calculate_status_times(offline_time)
-			idle = self.calculate_status_times(idle_time)
-			dnd = self.calculate_status_times(dnd_time)
-			total= self.calculate_status_times(total_time)
-			online_percent, offline_percent, idle_percent, dnd_percent = self.calculate_status_percent(online_time, offline_time, idle_time, dnd_time)
+			# Calculate and display each status in days, hour, minutes and seconds.
+			online = file_handling.calculate_status_times(online_time)
+			offline = file_handling.calculate_status_times(offline_time)
+			idle = file_handling.calculate_status_times(idle_time)
+			dnd = file_handling.calculate_status_times(dnd_time)
+			total = file_handling.calculate_status_times(total_time)
+			# Calculate the percentages of each status and the total percent.
+			online_percent, offline_percent, idle_percent, dnd_percent = self.calculate_status_percentages(online_time, offline_time, idle_time, dnd_time)
 			total_percent = round(offline_percent + online_percent + idle_percent + dnd_percent, 2)
+			# Send the message.
 			return await ctx.send(f'__**Status times for {ctx.author}**__\n\n'
 			                      f'**Online:**  | {online} | {online_percent}%\n'
 			                      f'**Offline:** | {offline} | {offline_percent}%\n'
@@ -377,7 +349,6 @@ class Utilities(commands.Cog):
 		except FileNotFoundError:
 			await ctx.send('You dont have an account.\n')
 			return await file_handling.account_creation(ctx)
-
 
 def setup(bot):
 	bot.add_cog(Utilities(bot))
