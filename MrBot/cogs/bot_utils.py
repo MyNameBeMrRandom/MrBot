@@ -20,18 +20,18 @@ class HelpCommand(commands.HelpCommand):
 			aliases = '/'.join(command.aliases)
 			command_name = f'{command.name}/{aliases}'
 			if parent:
-				command_name = f'mb {parent} {command_name}'
+				command_name = f'{self.context.prefix} {parent} {command_name}'
 			else:
-				command_name = f'mb {command.name}'
+				command_name = f'{self.context.prefix} {command_name}'
 		else:
 			if parent:
-				command_name = f'mb {parent} {command.name}'
+				command_name = f'{self.context.prefix} {parent} {command.name}'
 			else:
-				command_name = f'mb {command.name}'
+				command_name = f'{self.context.prefix} {command.name}'
 		return command_name
 
 	async def send_bot_help(self, mapping):
-		is_owner = await self.context.bot.is_owner(self.context.author)
+		owner = self.context.bot.get_user(238356301439041536)
 		embed = discord.Embed(
 			colour=0xFF0000,
 			timestamp=self.context.message.created_at,
@@ -39,31 +39,39 @@ class HelpCommand(commands.HelpCommand):
 			description=''
 		)
 		for cog in self.context.bot.cogs.values():
-			if sum(1 for command in cog.get_commands() if not (not is_owner and command.hidden)) == 0:
+			if sum(1 for c in cog.get_commands() if not (self.context.author != owner and c.hidden)) == 0:
 				continue
 			if cog.__doc__:
 				cog_help = cog.__doc__.strip().split('\n')[0]
 			else:
 				cog_help = 'No Help for this extension.'
 			embed.description += f"**{cog.qualified_name}**:\n{cog_help}\n"
+		embed.description += f"\n**Tip:**\nYou can do `{self.context.prefix} <extension_name>` for more information on an extension and its commands."
 		return await self.context.send(embed=embed)
 
 	async def send_cog_help(self, cog):
-		is_owner = await self.context.bot.is_owner(self.context.author)
+		owner = self.context.bot.get_user(238356301439041536)
 		embed = discord.Embed(
 			colour=0xFF0000,
 			timestamp=self.context.message.created_at,
 			description=''
 		)
-		embed.description += f"__**{cog.qualified_name}:**__\n\n"
+		embed.description += f"__**{cog.qualified_name} extension help page.**__\n\n"
 		for command in cog.get_commands():
 			command_name = f'{self.get_command_signature(command)}'
-			if command.hidden is True and self.context.author != is_owner:
-				continue
-			if command.help:
-				command_help = f' - ' + command.help.strip().split('\n')[0]
+			if self.context.author != owner:
+				if not command.hidden is True:
+					continue
+				else:
+					if command.help:
+						command_help = f' - ' + command.help.strip().split('\n')[0]
+					else:
+						command_help = f' - No help provided for this command.'
 			else:
-				command_help = f' - No help provided for this command.'
+				if command.help:
+					command_help = f' - ' + command.help.strip().split('\n')[0]
+				else:
+					command_help = f' - No help provided for this command.'
 			embed.description += f'**{command_name}**{command_help}\n'
 			if isinstance(command, commands.Group):
 				for group_command in command.commands:
@@ -73,6 +81,7 @@ class HelpCommand(commands.HelpCommand):
 					else:
 						group_command_help = f' - No help provided for this command.'
 					embed.description += f'\u200b \u200b \u200b \u200b \u200b**{group_command_name}**{group_command_help}\n'
+		embed.description += f"\n**Tip:**\nYou can do `{self.context.prefix} <command_name>` for more information on a command and it's uses."
 		return await self.context.send(embed=embed)
 
 	async def send_command_help(self, command):
