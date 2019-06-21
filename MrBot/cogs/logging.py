@@ -208,7 +208,7 @@ class Logging(commands.Cog):
 		elif isinstance(error, commands.DisabledCommand):
 			return await ctx.send(f"The command `{ctx.command}` is currently disabled.")
 		elif isinstance(error, commands.CommandNotFound):
-			return await ctx.send(f"That command was not found.")
+			return await ctx.send(f"The command `{ctx.message.clean_content}` was not found.")
 		elif isinstance(error, commands.CommandOnCooldown):
 			return await ctx.send(f"The command `{ctx.command}` is on cooldown, retry in {round(error.retry_after, 2)}s.")
 		elif isinstance(error, commands.MissingRequiredArgument):
