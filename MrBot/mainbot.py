@@ -6,6 +6,8 @@ import yaml
 import time
 import os
 
+os.environ['JISHAKU_HIDE'] = 'True'
+
 try:
 	# noinspection PyUnresolvedReferences
 	import uvloop
@@ -67,10 +69,7 @@ class MrBot(commands.AutoShardedBot):
 				print(f'Failed - {ext}')
 				logger.warning(f'[EXT] - Failed to load - {ext}')
 
-	async def bot_logout(self):
-		await super().logout()
-
-	async def bot_start(self):
+	def update_times(self):
 		for guild in self.guilds:
 			for member in guild.members:
 				try:
@@ -83,6 +82,12 @@ class MrBot(commands.AutoShardedBot):
 									yaml.dump(data, w)
 				except FileNotFoundError:
 					return
+
+	async def bot_logout(self):
+		await super().logout()
+
+	async def bot_start(self):
+		await self.loop.run_in_executor(None, self.update_times)
 		await self.login(config.DISCORD_TOKEN)
 		await self.connect()
 
