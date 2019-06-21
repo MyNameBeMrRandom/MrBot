@@ -74,6 +74,14 @@ class Owner(commands.Cog):
 				self._last_result = ret
 				await ctx.send(f'```py\n{value}{ret}\n```')
 
+	@commands.command(name='say')
+	@commands.is_owner()
+	async def say(self, ctx, *, content):
+		"""
+		Say whatever is inputed, as the bot.
+		"""
+		return await ctx.send(f'{content}')
+
 
 def setup(bot):
 	bot.add_cog(Owner(bot))
