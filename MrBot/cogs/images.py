@@ -232,54 +232,36 @@ class Images(commands.Cog):
 		file.save(f'images/edited_images/{ctx.author.id}_brightness_{amount}.png')
 		file.close()
 
-	def do_status_times(self, ctx):
-		with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-
-			status_since = data['status_times'][f'{ctx.author.status}_since']
-			status_time_before = time.time() - status_since
-			current_status = round(status_time_before)
-
-			online_time = data['status_times'][f'online_time']
-			offline_time = data['status_times'][f'offline_time']
-			idle_time = data['status_times'][f'idle_time']
-			dnd_time = data['status_times'][f'dnd_time']
-			if ctx.author.status == discord.Status.online:
-				return online_time + current_status, offline_time, idle_time, dnd_time
-			elif ctx.author.status == discord.Status.offline:
-				return online_time, offline_time + current_status, idle_time, dnd_time
-			elif ctx.author.status == discord.Status.idle:
-				return online_time, offline_time, idle_time + current_status, dnd_time
-			elif ctx.author.status == discord.Status.dnd:
-				return online_time, offline_time, idle_time, dnd_time + current_status
-			else:
-				return online_time, offline_time, idle_time, dnd_time
-
-	def calculate_status_percent(self, online, offline, idle, dnd):
-		total = online + offline + idle + dnd
-		online_p = online / total
-		offline_p = offline / total
-		idle_p = idle / total
-		dnd_p = dnd / total
-		online_percent = round(online_p * 100, 1)
-		offline_percent = round(offline_p * 100, 1)
-		idle_percent = round(idle_p * 100, 1)
-		dnd_percent = round(dnd_p * 100, 1)
+	def calculate_status_percentages(self, online_time, offline_time, idle_time, dnd_time):
+		total = online_time + offline_time + idle_time + dnd_time
+		online_p = online_time / total
+		offline_p = offline_time / total
+		idle_p = idle_time / total
+		dnd_p = dnd_time / total
+		online_percent = round(online_p * 100, 3)
+		offline_percent = round(offline_p * 100, 3)
+		idle_percent = round(idle_p * 100, 3)
+		dnd_percent = round(dnd_p * 100, 3)
 		return online_percent, offline_percent, idle_percent, dnd_percent
 
 	def do_status_pie(self, ctx):
-		online_time, offline_time, idle_time, dnd_time = self.do_status_times(ctx)
-		online_percent, offline_percent, idle_percent, dnd_percent = self.calculate_status_percent(online_time, offline_time, idle_time, dnd_time)
+		# Get the times in seconds.
+		online_time, offline_time, idle_time, dnd_time = await self.bot.loop.run_in_executor(None, file_handling.get_status_times, ctx)
+		# Calculate the percentages of each status.
+		online_percent, offline_percent, idle_percent, dnd_percent = self.calculate_status_percentages(online_time, offline_time, idle_time, dnd_time)
 
+		# Set labels sizes and colours.
 		labels = [f'Online: {online_percent}%', f'Idle: {idle_percent}%', f'DnD: {dnd_percent}%', f'Offline: {offline_percent}%']
 		sizes = [online_time, idle_time, dnd_time, offline_time]
 		colors = ['#7acba6', '#fcc15d', '#f57e7e', '#9ea4af']
 
+		# Create pie chart.
 		fig, axs = plt.subplots()
 		axs.pie(sizes, colors=colors,shadow=True, startangle=90)
 		axs.legend(labels, loc="best")
 		axs.axis('equal')
 		plt.tight_layout()
+		# Save and close pie chart.
 		plt.savefig(f'images/charts/{ctx.author.id}_status_pie.png', transparent=True)
 		plt.close()
 

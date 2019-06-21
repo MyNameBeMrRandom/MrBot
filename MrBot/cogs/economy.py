@@ -33,16 +33,10 @@ class Economy(commands.Cog):
 			with open(f'data/accounts/{user.id}.yaml', 'w', encoding='utf8') as w:
 				yaml.dump(data, w)
 
-	def get_data(self, user_id, data_type1, data_type2):
-		with open(f'data/accounts/{user_id}.yaml', 'r', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-			return_data = data[f'{data_type1}'][f'{data_type2}']
-		return return_data
-
 	async def do_deposit(self, ctx, amount):
 		if amount == 'all':
 			try:
-				cash_amount = int(await self.bot.loop.run_in_executor(None, self.get_data, ctx.author.id, 'economy', 'cash'))
+				cash_amount = int(await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'economy', 'cash'))
 				if cash_amount == 0:
 					embed = discord.Embed(
 						colour=0x57FFF5,
@@ -69,7 +63,7 @@ class Economy(commands.Cog):
 		if not amount == 'all':
 			try:
 				amount = int(amount)
-				cash_amount = int(await self.bot.loop.run_in_executor(None, self.get_data, ctx.author.id, 'economy', 'cash'))
+				cash_amount = int(await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'economy', 'cash'))
 				if amount > cash_amount or amount <= 0:
 					embed = discord.Embed(
 						colour=0x57FFF5,
@@ -97,8 +91,8 @@ class Economy(commands.Cog):
 	async def do_withdraw(self, ctx, amount):
 		if amount == 'all':
 			try:
-				cash_amount = int(await self.bot.loop.run_in_executor(None, self.get_data, ctx.author.id, 'economy', 'cash'))
-				bank_amount = int(await self.bot.loop.run_in_executor(None, self.get_data, ctx.author.id, 'economy', 'bank'))
+				cash_amount = int(await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'economy', 'cash'))
+				bank_amount = int(await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'economy', 'bank'))
 				if bank_amount == 0:
 					embed = discord.Embed(
 						colour=0x57FFF5,
@@ -125,7 +119,7 @@ class Economy(commands.Cog):
 		elif not amount == 'all':
 			try:
 				amount = int(amount)
-				bank_amount = int(await self.bot.loop.run_in_executor(None, self.get_data, ctx.author.id, 'economy', 'bank'))
+				bank_amount = int(await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'economy', 'bank'))
 				if amount > bank_amount or amount <= 0:
 					embed = discord.Embed(
 						colour=0x57FFF5,
@@ -204,8 +198,8 @@ class Economy(commands.Cog):
 		Display the amount of money you have.
 		"""
 		try:
-			bank = await self.bot.loop.run_in_executor(None, self.get_data, ctx.author.id, 'economy', 'cash')
-			cash = await self.bot.loop.run_in_executor(None, self.get_data, ctx.author.id, 'economy', 'bank')
+			bank = await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'economy', 'cash')
+			cash = await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'economy', 'bank')
 			embed = discord.Embed(
 				colour=0x57FFF5,
 				timestamp=ctx.message.created_at,
