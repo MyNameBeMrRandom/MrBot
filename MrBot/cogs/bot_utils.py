@@ -60,7 +60,7 @@ class HelpCommand(commands.HelpCommand):
 		for command in cog.get_commands():
 			command_name = f'{self.get_command_signature(command)}'
 			if self.context.author != owner:
-				if not command.hidden is True:
+				if command.hidden is True:
 					continue
 				else:
 					if command.help:
