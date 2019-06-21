@@ -148,6 +148,3 @@ async def config_creation(ctx):
 	else:
 		return await ctx.send('A config file was no generated')
 
-
-
-
