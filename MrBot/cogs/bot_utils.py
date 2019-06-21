@@ -46,7 +46,8 @@ class HelpCommand(commands.HelpCommand):
 			else:
 				cog_help = 'No Help for this extension.'
 			embed.description += f"**{cog.qualified_name}**:\n{cog_help}\n"
-		embed.description += f"\n**Tip:**\nYou can do `{self.context.prefix} <extension_name>` for more information on an extension and its commands."
+		embed.description += f"\n**Tips:**\n-You can do `{self.context.prefix} help <extension_name>` for more information on an extension and its commands.\n" \
+							 f"-Make sure you use the correct capitalisation when getting help for an extension, eg `{self.context.prefix} help Images`."
 		return await self.context.send(embed=embed)
 
 	async def send_cog_help(self, cog):
