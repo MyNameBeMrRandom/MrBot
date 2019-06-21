@@ -1,7 +1,54 @@
+import discord
 import asyncio
 import yaml
 import time
 
+
+def get_status_times(ctx):
+	with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
+		data = yaml.load(r, Loader=yaml.FullLoader)
+		status_since = data['status_times'][f'{ctx.author.status}_since']
+		status_time_before = time.time() - status_since
+		current_status = round(status_time_before)
+		online_time = data['status_times'][f'online_time']
+		offline_time = data['status_times'][f'offline_time']
+		idle_time = data['status_times'][f'idle_time']
+		dnd_time = data['status_times'][f'dnd_time']
+		if ctx.author.status == discord.Status.online:
+			return online_time + current_status, offline_time, idle_time, dnd_time
+		elif ctx.author.status == discord.Status.offline:
+			return online_time, offline_time + current_status, idle_time, dnd_time
+		elif ctx.author.status == discord.Status.idle:
+			return online_time, offline_time, idle_time + current_status, dnd_time
+		elif ctx.author.status == discord.Status.dnd:
+			return online_time, offline_time, idle_time, dnd_time + current_status
+		else:
+			return online_time, offline_time, idle_time, dnd_time
+
+def calculate_status_times(times):
+	message = ""
+	minute, second = divmod(times, 60)
+	hour, minute = divmod(minute, 60)
+	day, hour = divmod(hour, 24)
+	days = round(day)
+	hours = round(hour)
+	minutes = round(minute)
+	seconds = round(second)
+	if days != 0:
+		message += f'{days}d, '
+	elif hour != 0:
+		message += f'{hours}h, '
+	elif minutes != 0:
+		message += f'{minutes}m, '
+	elif seconds != 0:
+		message += f'{seconds}s'
+	return message
+
+def get_data(user, data_1, data_2):
+	with open(f'data/accounts/{user.id}.yaml', 'r', encoding='utf8') as r:
+		data = yaml.load(r, Loader=yaml.FullLoader)
+		return_data = data[f'{data_1}'][f'{data_2}']
+	return return_data
 
 def do_account_creation(ctx):
 	new_account = {
@@ -100,3 +147,7 @@ async def config_creation(ctx):
 		return await ctx.bot.loop.run_in_executor(None, do_config_creation, ctx)
 	else:
 		return await ctx.send('A config file was no generated')
+
+
+
+
