@@ -46,9 +46,9 @@ class HelpCommand(commands.HelpCommand):
 			else:
 				cog_help = 'No Help for this extension.'
 			embed.description += f"**{cog.qualified_name}**:\n{cog_help}\n"
-		embed.description += f"\n**Tips:**\n-You can do `{self.context.prefix} help <extension_name>` for more information on an extension and its commands.\n" \
-							 f"-Make sure you use the correct capitalisation when getting help for an extension, eg `{self.context.prefix} help Images`.\n" \
-							 f"-The voice extension does not currently check for permissions so be sure to give the bot the required voice chat permissions."
+		embed.description += f"\n**Tips:**\n - You can do `{self.context.prefix} help <extension_name>` for more information on an extension and its commands.\n" \
+							 f"- Make sure you use the correct capitalisation when getting help for an extension, eg `{self.context.prefix} help Images`.\n" \
+							 f"- The voice extension does not currently check for permissions so be sure to give the bot the required voice chat permissions."
 		return await self.context.send(embed=embed)
 
 	async def send_cog_help(self, cog):
@@ -58,7 +58,10 @@ class HelpCommand(commands.HelpCommand):
 			timestamp=self.context.message.created_at,
 			description=''
 		)
-		embed.description += f"__**{cog.qualified_name} extension help page.**__\n\n"
+		if sum(1 for c in cog.get_commands() if not (c.hidden and self.context.author != owner)) == 0:
+			return await self.context.send('That extension is owner only.')
+		else:
+			embed.description += f"__**{cog.qualified_name} extension help page.**__\n\n"
 		for command in cog.get_commands():
 			command_name = f'{self.get_command_signature(command)}'
 			if self.context.author != owner:
@@ -67,63 +70,106 @@ class HelpCommand(commands.HelpCommand):
 				else:
 					if command.help:
 						command_help = f' - ' + command.help.strip().split('\n')[0]
+						embed.description += f'**{command_name}**{command_help}\n'
 					else:
 						command_help = f' - No help provided for this command.'
+					embed.description += f'**{command_name}**{command_help}\n'
 			else:
 				if command.help:
 					command_help = f' - ' + command.help.strip().split('\n')[0]
+					embed.description += f'**{command_name}**{command_help}\n'
 				else:
 					command_help = f' - No help provided for this command.'
-			embed.description += f'**{command_name}**{command_help}\n'
+					embed.description += f'**{command_name}**{command_help}\n'
 			if isinstance(command, commands.Group):
 				for group_command in command.commands:
 					group_command_name = f'{self.get_command_signature(group_command)}'
 					if group_command.help:
 						group_command_help = f' - ' + group_command.help.strip().split('\n')[0]
+						embed.description += f'**{group_command_name}**{group_command_help}\n'
 					else:
 						group_command_help = f' - No help provided for this command.'
-					embed.description += f'\u200b \u200b \u200b \u200b \u200b**{group_command_name}**{group_command_help}\n'
+						embed.description += f'**{group_command_name}**{group_command_help}\n'
 		embed.description += f"\n**Tip:**\nYou can do `{self.context.prefix} <command_name>` for more information on a command and it's uses."
 		return await self.context.send(embed=embed)
 
 	async def send_command_help(self, command):
+		owner = self.context.bot.get_user(238356301439041536)
 		embed = discord.Embed(
 			colour=0xFF0000,
 			description=''
 		)
 		command_name = f'{self.get_command_signature(command)}'
-		if command.help:
-			command_help = f'{command.help}'
+
+		if self.context.author != owner:
+			if command.hidden is True:
+				return await self.context.send(f'That command is owner only.')
+			else:
+				if command.help:
+					command_help = f'{command.help}'
+				else:
+					command_help = f'No help provided for this command.'
+				if command.signature:
+					embed.description += f'**{command_name} {command.signature}:**\n\n{command_help}\n'
+				else:
+					embed.description += f'**{command_name}:**\n\n{command_help}\n'
 		else:
-			command_help = f'No help provided for this command.'
-		if command.signature:
-			embed.description += f'**{command_name} {command.signature}:**\n\n{command_help}\n'
-		else:
-			embed.description += f'**{command_name}:**\n\n{command_help}\n'
+			if command.help:
+				command_help = f'{command.help}'
+			else:
+				command_help = f'No help provided for this command.'
+			if command.signature:
+				embed.description += f'**{command_name} {command.signature}:**\n\n{command_help}\n'
+			else:
+				embed.description += f'**{command_name}:**\n\n{command_help}\n'
+
 		return await self.context.send(embed=embed)
 
 	async def send_group_help(self, group):
+		owner = self.context.bot.get_user(238356301439041536)
 		embed = discord.Embed(
 			colour=0xFF0000,
 			description=''
 		)
 		group_name = f'{self.get_command_signature(group)}'
-		if group.help:
-			group_help = group.help.strip().split('\n')[0]
-		else:
-			group_help = f'No help provided for this command.'
-		if group.signature:
-			embed.description += f'**{group_name} {group.signature}:**\n{group_help}\n\n'
-		else:
-			embed.description += f'**{group_name}:**\n{group_help}\n\n'
 
-		for command in group.commands:
-			group_command_name = f'**{self.get_command_signature(command)}**'
-			if command.help:
-				group_command_help = f' - ' + command.help.strip().split('\n')[0]
+		if self.context.author != owner:
+			if group.hidden is True:
+				return await self.context.send(f'That command is owner only.')
 			else:
-				group_command_help = f' - No help provided for this command.'
-			embed.description += f'{group_command_name}{group_command_help}\n'
+				if group.help:
+					group_help = group.help.strip().split('\n')[0]
+				else:
+					group_help = f'No help provided for this command.'
+				if group.signature:
+					embed.description += f'**{group_name} {group.signature}:**\n{group_help}\n\n'
+				else:
+					embed.description += f'**{group_name}:**\n{group_help}\n\n'
+
+				for command in group.commands:
+					group_command_name = f'**{self.get_command_signature(command)}**'
+					if command.help:
+						group_command_help = f' - ' + command.help.strip().split('\n')[0]
+					else:
+						group_command_help = f' - No help provided for this command.'
+					embed.description += f'{group_command_name}{group_command_help}\n'
+		else:
+			if group.help:
+				group_help = group.help.strip().split('\n')[0]
+			else:
+				group_help = f'No help provided for this command.'
+			if group.signature:
+				embed.description += f'**{group_name} {group.signature}:**\n{group_help}\n\n'
+			else:
+				embed.description += f'**{group_name}:**\n{group_help}\n\n'
+
+			for command in group.commands:
+				group_command_name = f'**{self.get_command_signature(command)}**'
+				if command.help:
+					group_command_help = f' - ' + command.help.strip().split('\n')[0]
+				else:
+					group_command_help = f' - No help provided for this command.'
+				embed.description += f'{group_command_name}{group_command_help}\n'
 		return await self.context.send(embed=embed)
 
 class Help(commands.Cog):
