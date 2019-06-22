@@ -169,6 +169,7 @@ class Utilities(commands.Cog):
 	async def stats(self, ctx):
 		messages_seen = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages')
 		commands_run = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'commands')
+		messages_sent = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages_sent')
 		embed = discord.Embed(
 			colour=0xFF0000,
 			timestamp=ctx.message.created_at,
@@ -183,7 +184,8 @@ class Utilities(commands.Cog):
 													  f"**Available:** {round(psutil.virtual_memory().available/1073741824, 2)} GB", inline=False)
 		embed.add_field(name="__**Process information:**__", value=f"**Memory usage:** {process.memory_info().rss//(1024**2)}mb\n"
 																   f"**CPU usage:** {process.cpu_percent(interval=None)}%", inline=False)
-		embed.add_field(name="__**Bot Information:**__", value=f"**Messages seen:** {messages_seen}\n**Commands run:** {commands_run}", inline=False)
+		embed.add_field(name="__**Bot Information:**__", value=f"**Messages seen:** {messages_seen}\n**Commands run:** {commands_run}\n"
+															   f"**Messages sent:** {messages_sent}", inline=False)
 		return await ctx.send(embed=embed)
 
 	@commands.command(name='serverinfo')
