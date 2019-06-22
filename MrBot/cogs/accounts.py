@@ -52,11 +52,11 @@ class Accounts(commands.Cog):
 			            f'**DnD:**      | {dnd} | {dnd_percent}%\n'
 			            f'**Total:**     | {total} | {total_percent}%\n\n')
 			# Get different data for the command.
-			background = await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'config', 'background')
-			bank = await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'economy', 'bank')
-			cash = await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'economy', 'cash')
-			timezone = await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'info', 'timezone')
-			votes = await self.bot.loop.run_in_executor(None, file_handling.get_data, ctx.author, 'info', 'votes')
+			background = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'config', 'background')
+			bank = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'bank')
+			cash = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'cash')
+			timezone = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'info', 'timezone')
+			votes = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'info', 'votes')
 			# Append to the message
 			message += (f'**Configuration:**\n'
 			            f'**Background:** {background}\n\n')
