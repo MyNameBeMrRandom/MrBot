@@ -26,7 +26,6 @@ def get_status_times(ctx):
 			return online_time, offline_time, idle_time, dnd_time
 
 def calculate_status_times(times):
-	message = ""
 	minute, second = divmod(times, 60)
 	hour, minute = divmod(minute, 60)
 	day, hour = divmod(hour, 24)
@@ -34,15 +33,7 @@ def calculate_status_times(times):
 	hours = round(hour)
 	minutes = round(minute)
 	seconds = round(second)
-	if days != 0:
-		message += f'{days}d, '
-	elif hour != 0:
-		message += f'{hours}h, '
-	elif minutes != 0:
-		message += f'{minutes}m, '
-	elif seconds != 0:
-		message += f'{seconds}s'
-	return message
+	return f'{days}d, {hours}h, {minutes}m, {seconds}s'
 
 def get_data(user, data_1, data_2):
 	with open(f'data/accounts/{user.id}.yaml', 'r', encoding='utf8') as r:
@@ -127,30 +118,30 @@ def do_config_creation(ctx):
 		yaml.dump(new_config, x)
 
 async def account_creation(ctx):
-	await ctx.send(f'\nWould you like to create an account? Type `yes` to continue account creation.')
+	message = await ctx.send(f'\nWould you like to create an account? Type `yes` to continue account creation.')
 	def check(msg):
 		return ctx.author == msg.author and ctx.channel == msg.channel
 	try:
 		response = await ctx.bot.wait_for('message', timeout=30.0, check=check)
 	except asyncio.TimeoutError:
-		return await ctx.send('You took to long to respond, ending account creation.')
+		return await message.edit(content='You took to long to respond, ending account creation.')
 	if response.content.lower() == 'yes':
 		await ctx.send(f'Account created with ID `{ctx.author.id}`!')
 		return await ctx.bot.loop.run_in_executor(None, do_account_creation, ctx)
 	else:
-		return await ctx.send('An account was not created.')
+		return await message.edit(content='An account was not created.')
 
 async def config_creation(ctx):
-	await ctx.send(f'Would you like to create a config for this guild? Type `yes` to continue config creation.')
+	message = await ctx.send(f'Would you like to create a config for this guild? Type `yes` to continue config creation.')
 	def check(msg):
 		return ctx.author == msg.author and ctx.channel == msg.channel
 	try:
 		response = await ctx.bot.wait_for('message', timeout=30.0, check=check)
 	except asyncio.TimeoutError:
-		return await ctx.send('You took to long to respond, ending config creation.')
+		return await message.edit(content='You took to long to respond, ending config creation.')
 	if response.content == 'yes':
 		await ctx.send(f'Config created with ID `{ctx.guild.id}`!')
 		return await ctx.bot.loop.run_in_executor(None, do_config_creation, ctx)
 	else:
-		return await ctx.send('A config file was no generated')
+		return await message.edit(content='A config file was no generated')
 
