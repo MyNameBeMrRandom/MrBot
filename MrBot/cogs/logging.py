@@ -662,8 +662,11 @@ class Logging(commands.Cog):
 	async def on_user_update(self, before, after):
 		# Loop through all guilds the bot is in.
 		for guild in self.bot.guilds:
+			# If user is a bot.
+			if before.bot:
+				return
 			#If the user is not in the guilds, return nothing.
-			if before.id or after.id not in guild.members.id:
+			if before or after not in guild.members:
 				return
 			# If the users username has changed.
 			if not before.name == after.name:
@@ -682,7 +685,7 @@ class Logging(commands.Cog):
 					embed.description += f'**Before:**\n{before.name}\n**After:**\n{after.name}'
 					return await channel.send(embed=embed)
 			# If the users discriminator has changed.
-			if not before.discriminator == after.discriminator:
+			elif not before.discriminator == after.discriminator:
 				# Check if this type of logging is enabled.
 				user_discriminator_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'user_discriminator')
 				if user_discriminator_check is True:
@@ -698,7 +701,7 @@ class Logging(commands.Cog):
 					embed.description += f'**Before:**\n{before.discriminator}\n**After:**\n{after.discriminator}'
 					return await channel.send(embed=embed)
 			# If the users avatar has changed.
-			if not before.avatar == after.avatar:
+			elif before.avatar != after.avatar:
 				# Check if this type of logging is enabled.
 				user_avatar_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'user_avatar')
 				if user_avatar_check is True:

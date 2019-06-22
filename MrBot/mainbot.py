@@ -52,7 +52,7 @@ class MrBot(commands.AutoShardedBot):
 
 	def __init__(self):
 		super().__init__(
-			command_prefix=config.DISCORD_PREFIX,
+			command_prefix=commands.when_mentioned_or(config.DISCORD_PREFIX),
 			reconnect=True,
 		)
 		self.loop = asyncio.get_event_loop()
