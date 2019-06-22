@@ -195,6 +195,17 @@ class Logging(commands.Cog):
 			logging_channel = data['config']['logging_channel']
 			return logging_channel
 
+	def update_stat(self, stat_type):
+		try:
+			with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
+				data = yaml.load(r, Loader=yaml.FullLoader)
+				stat = data[f'{stat_type}']
+				data[f'{stat_type}'] = stat + 1
+				with open(f'data/stats/stats.yaml', 'w', encoding='utf8') as w:
+					yaml.dump(data, w)
+		except FileNotFoundError:
+			return
+
 	@commands.Cog.listener()
 	async def on_command_error(self, ctx, error):
 		error = getattr(error, 'original', error)
@@ -236,6 +247,7 @@ class Logging(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_command_completion(self, ctx):
+		await self.bot.loop.run_in_executor(None, self.update_stat, 'commands')
 		self.bot.logging.info(f'[COMMAND] - {ctx.author} used the command "{ctx.command}" in the guild {ctx.guild}.')
 
 	@commands.Cog.listener()

@@ -35,7 +35,7 @@ def calculate_status_times(times):
 	seconds = round(second)
 	return f'{days}d, {hours}h, {minutes}m, {seconds}s'
 
-def get_data(user, data_1, data_2):
+def get_account_data(user, data_1, data_2):
 	with open(f'data/accounts/{user.id}.yaml', 'r', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		return_data = data[f'{data_1}'][f'{data_2}']
@@ -45,6 +45,12 @@ def get_guild_data(guild, data_1, data_2):
 	with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		return_data = data[f'{data_1}'][f'{data_2}']
+	return return_data
+
+def get_stat_data(data_1):
+	with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
+		data = yaml.load(r, Loader=yaml.FullLoader)
+		return_data = data[f'{data_1}']
 	return return_data
 
 def do_account_creation(ctx):
@@ -144,4 +150,3 @@ async def config_creation(ctx):
 		return await ctx.bot.loop.run_in_executor(None, do_config_creation, ctx)
 	else:
 		return await message.edit(content='A config file was no generated')
-

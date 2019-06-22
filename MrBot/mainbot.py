@@ -69,13 +69,17 @@ class MrBot(commands.AutoShardedBot):
 				print(f'Failed - {ext}')
 				logger.warning(f'[EXT] - Failed to load - {ext}')
 
-	def update_times(self):
+	def update_data(self):
 		for guild in self.guilds:
 			for member in guild.members:
 				try:
 					if os.path.isfile(f'data/accounts/{member.id}.yaml'):
 						with open(f'data/accounts/{member.id}.yaml', 'r', encoding='utf8') as r:
 							data = yaml.load(r, Loader=yaml.FullLoader)
+							data['status_times'][f'online_since'] = None
+							data['status_times'][f'offline_since'] = None
+							data['status_times'][f'dnd_since'] = None
+							data['status_times'][f'idle_since'] = None
 							if data['status_times'][f'{member.status}_since'] is None:
 								data['status_times'][f'{member.status}_since'] = time.time()
 								with open(f'data/accounts/{member.id}.yaml', 'w', encoding='utf8') as w:
@@ -83,11 +87,22 @@ class MrBot(commands.AutoShardedBot):
 				except FileNotFoundError:
 					return
 
+	def update_stat(self, stat_type):
+		try:
+			with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
+				data = yaml.load(r, Loader=yaml.FullLoader)
+				stat = data[f'{stat_type}']
+				data[f'{stat_type}'] = stat + 1
+				with open(f'data/stats/stats.yaml', 'w', encoding='utf8') as w:
+					yaml.dump(data, w)
+		except FileNotFoundError:
+			return
+
 	async def bot_logout(self):
 		await super().logout()
 
 	async def bot_start(self):
-		await self.loop.run_in_executor(None, self.update_times)
+		await self.loop.run_in_executor(None, self.update_data)
 		await self.login(config.DISCORD_TOKEN)
 		await self.connect()
 
@@ -98,6 +113,7 @@ class MrBot(commands.AutoShardedBot):
 	async def on_message(self, message):
 		if message.author.bot:
 			return
+		await self.loop.run_in_executor(None, self.update_stat, 'messages')
 		await self.process_commands(message)
 
 	def run(self):

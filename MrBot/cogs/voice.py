@@ -145,44 +145,27 @@ class Voice(commands.Cog):
 				return await ctx.send(embed=embed)
 		if player.is_connected:
 			if not ctx.guild.me.voice.channel.id == channel.id:
-				try:
-					embed = discord.Embed(
-						colour=0x57FFF5,
-						timestamp=ctx.message.created_at,
-						description=f'MrBot moved to the `{channel}` channel'
-					)
-					embed.set_author(icon_url=useravatar, name=author)
-					await ctx.send(embed=embed)
-					return await player.connect(channel.id)
-				except Exception as e:
-					embed = discord.Embed(
-						colour=0x57FFF5,
-						timestamp=ctx.message.created_at,
-						description=f'MrBot was unable to move to the `{channel}` channel.\n\n**Reason: {e}**'
-					)
-					embed.set_author(icon_url=useravatar, name=author)
-					return await ctx.send(embed=embed)
+				return await player.connect(channel.id)
 			else:
-				return
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					timestamp=ctx.message.created_at,
+					description=f'MrBot is already in that channel.'
+				)
+				embed.set_author(icon_url=useravatar, name=author)
+				return await ctx.send(embed=embed)
 		else:
 			try:
+				await player.connect(channel.id)
 				embed = discord.Embed(
 					colour=0x57FFF5,
 					timestamp=ctx.message.created_at,
 					description=f'MrBot joined the `{channel}` channel'
 				)
 				embed.set_author(icon_url=useravatar, name=author)
-				await ctx.send(embed=embed)
-				return await player.connect(channel.id)
-			except Exception as e:
-				print(type(e))
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					timestamp=ctx.message.created_at,
-					description=f'MrBot was unable to join the `{channel}` channel.\n\n**Reason: {e}**'
-				)
-				embed.set_author(icon_url=useravatar, name=author)
 				return await ctx.send(embed=embed)
+			except Exception as e:
+				print(e)
 
 	@commands.command(name='play')
 	async def play(self, ctx, *, query: str):
