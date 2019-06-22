@@ -22,7 +22,7 @@ class Owner(commands.Cog):
 			return '\n'.join(content.split('\n')[1:-1])
 		return content.strip('` \n')
 
-	@commands.command(name='eval')
+	@commands.command(name='eval', hidden=True)
 	@commands.is_owner()
 	async def eval(self, ctx, *, body: str):
 		"""
@@ -74,7 +74,7 @@ class Owner(commands.Cog):
 				self._last_result = ret
 				await ctx.send(f'```py\n{value}{ret}\n```')
 
-	@commands.command(name='say')
+	@commands.command(name='say', hidden=True)
 	@commands.is_owner()
 	async def say(self, ctx, *, content):
 		"""

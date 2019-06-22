@@ -68,7 +68,7 @@ class Admin(commands.Cog):
 					yaml.dump(data, w)
 					return f'Disabled logging in this guild.'
 
-	@commands.group(name='config', aliases=['cfg'], invoke_without_command=True)
+	@commands.group(name='config', aliases=['cfg'])
 	async def config(self, ctx):
 		"""
 		Display information about the current guilds config.
@@ -247,10 +247,9 @@ class Admin(commands.Cog):
 			os.remove(f'data/guilds/{ctx.guild.id}.yaml')
 			return await ctx.send('Deleted this guilds config.')
 		except FileNotFoundError:
-			await ctx.send(f'This guild does not have a config')
-			return await file_handling.config_creation(ctx)
+			return await ctx.send(f'This guild does not have a config')
 
-	@commands.group(name='logging', invoke_without_command=True)
+	@commands.group(name='logging')
 	async def logging(self, ctx):
 		"""
 		Get information about the guilds logging status.
