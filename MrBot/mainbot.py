@@ -111,9 +111,11 @@ class MrBot(commands.AutoShardedBot):
 		print(f'\nLogged in as {self.user} - {self.user.id}')
 
 	async def on_message(self, message):
+		await self.loop.run_in_executor(None, self.update_stat, 'messages')
+		if message.author.id == self.user.id:
+			await self.loop.run_in_executor(None, self.update_stat, 'messages_sent')
 		if message.author.bot:
 			return
-		await self.loop.run_in_executor(None, self.update_stat, 'messages')
 		await self.process_commands(message)
 
 	def run(self):
