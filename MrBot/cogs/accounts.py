@@ -24,7 +24,7 @@ class Accounts(commands.Cog):
 		dnd_percent = round(dnd_p * 100, 3)
 		return online_percent, offline_percent, idle_percent, dnd_percent
 
-	@commands.group(name='account', aliases=['profile'], hidden=True)
+	@commands.group(name='account', aliases=['profile'])
 	async def account(self, ctx):
 		"""
 		Display information about your account.
@@ -71,7 +71,7 @@ class Accounts(commands.Cog):
 			await ctx.send('You dont have an account.\n')
 			return await file_handling.account_creation(ctx)
 
-	@account.command(name='create', hidden=True)
+	@account.command(name='create')
 	async def create_account(self, ctx):
 		"""
 		Creates an account with your user ID.
@@ -90,8 +90,7 @@ class Accounts(commands.Cog):
 			os.remove(f'data/accounts/{ctx.author.id}.yaml')
 			return await ctx.send('Deleted your account.')
 		except FileNotFoundError:
-			await ctx.send(f'You dont have an account.')
-			return await file_handling.account_creation(ctx)
+			return await ctx.send(f'You dont have an account.')
 
 
 def setup(bot):
