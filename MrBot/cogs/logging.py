@@ -48,13 +48,13 @@ class Logging(commands.Cog):
 				return 'N/A'
 
 	def user_status(self, user):
-		if user.status == user.status.online:
+		if user.status == discord.Status.online:
 			return "Online"
-		elif user.status == user.status.idle:
+		elif user.status == discord.Status.idle:
 			return "Idle"
-		elif user.status == user.status.dnd:
+		elif user.status == discord.Status.dnd:
 			return "Do not Disturb"
-		elif user.status == user.status.offline:
+		elif user.status == discord.Status.offline:
 			return "Offline"
 		else:
 			return "Offline"
