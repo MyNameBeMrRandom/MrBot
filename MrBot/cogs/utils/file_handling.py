@@ -50,6 +50,12 @@ def get_data(user, data_1, data_2):
 		return_data = data[f'{data_1}'][f'{data_2}']
 	return return_data
 
+def get_guild_data(guild, data_1, data_2):
+	with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
+		data = yaml.load(r, Loader=yaml.FullLoader)
+		return_data = data[f'{data_1}'][f'{data_2}']
+	return return_data
+
 def do_account_creation(ctx):
 	new_account = {
 		'info': {
