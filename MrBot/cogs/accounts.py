@@ -6,7 +6,7 @@ import os
 # noinspection PyMethodMayBeStatic
 class Accounts(commands.Cog):
 	"""
-	Account commands.
+	MrBot account management commands.
 	"""
 
 	def __init__(self, bot):
@@ -74,7 +74,7 @@ class Accounts(commands.Cog):
 	@account.command(name='create')
 	async def create_account(self, ctx):
 		"""
-		Creates an account with your user ID.
+		Creates an account.
 		"""
 		try:
 			return await file_handling.account_creation(ctx)

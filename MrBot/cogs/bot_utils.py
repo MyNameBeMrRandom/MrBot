@@ -1,18 +1,13 @@
 from discord.ext import commands
 import discord
-import asyncio
 
 
 class HelpCommand(commands.HelpCommand):
 
 	def __init__(self):
 		super().__init__(command_attrs={
-			'help': "Shows help about the bot, an Extension or a command.\n\n**<arguement>** means the arguement is **required.**\n**[arguement]** means the arguement is **optional.**\n**[a|b]** means it can be **'A' or 'B'.**\n**[arguement...]** means you can have **multiple arguements.**"
+			'help': "Shows help about the Bot, an Extension or a Command.\n\n**<arguement>** means the arguement is **required.**\n**[arguement]** means the arguement is **optional.**\n**[a|b]** means it can be **'A' or 'B'.**\n**[arguement...]** means you can have **multiple arguements.**"
 		})
-
-	async def on_help_command_error(self, ctx, error):
-		if isinstance(error, commands.CommandInvokeError):
-			await ctx.send(str(error.original))
 
 	def get_command_signature(self, command):
 		parent = command.full_parent_name
@@ -29,6 +24,10 @@ class HelpCommand(commands.HelpCommand):
 			else:
 				command_name = f'{self.context.prefix} {command.name}'
 		return command_name
+
+	async def on_help_command_error(self, ctx, error):
+		if isinstance(error, commands.CommandInvokeError):
+			await ctx.send(str(error.original))
 
 	async def send_bot_help(self, mapping):
 		owner = self.context.bot.get_user(238356301439041536)
@@ -174,23 +173,14 @@ class HelpCommand(commands.HelpCommand):
 
 class Help(commands.Cog):
 	"""
-	Help with how to understand and use the bots commands.
+	Help with how to understand and use MrBot.
 	"""
 
 	def __init__(self, bot):
 		self.bot = bot
-		self.presence_task = self.bot.loop.create_task(self.activity_changing())
 		self.old_help_command = bot.help_command
 		bot.help_command = HelpCommand()
 		bot.help_command.cog = self
-
-	async def activity_changing(self):
-		await self.bot.wait_until_ready()
-		while not self.bot.is_closed():
-			await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.bot.guilds)} Guilds'))
-			await asyncio.sleep(60)
-			await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.bot.users)} Members'))
-			await asyncio.sleep(60)
 
 
 def setup(bot):

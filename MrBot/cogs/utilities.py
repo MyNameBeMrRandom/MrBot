@@ -20,7 +20,7 @@ process = psutil.Process()
 # noinspection PyMethodMayBeStatic
 class Utilities(commands.Cog):
 	"""
-	Server/User/Bot Utility commands.
+	Server/user/bot utility commands.
 	"""
 
 	def __init__(self, bot):
@@ -139,7 +139,7 @@ class Utilities(commands.Cog):
 	@commands.command(name='info', aliases=['about'])
 	async def info(self, ctx):
 		"""
-		Display information about the bot.
+		Information about the bot.
 		"""
 		async with self.session.get(f"https://discordbots.org/api/widget/424637852035317770.png?certifiedcolor={random.randint(0, 999999)}") as req:
 			image = BytesIO(await req.read())
@@ -167,6 +167,9 @@ class Utilities(commands.Cog):
 
 	@commands.command(name='stats')
 	async def stats(self, ctx):
+		"""
+		Stats about the system MrBot is running on and other data.
+		"""
 		messages_seen = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages_seen')
 		commands_run = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'commands_run')
 		messages_sent = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages_sent')
@@ -191,7 +194,7 @@ class Utilities(commands.Cog):
 	@commands.command(name='serverinfo')
 	async def serverinfo(self, ctx):
 		"""
-		Display information about the current server.
+		Information about the current server.
 		"""
 		embed = discord.Embed(
 			colour=0xFF0000,
@@ -214,7 +217,7 @@ class Utilities(commands.Cog):
 	@commands.command(name='userinfo')
 	async def userinfo(self, ctx, user: typing.Union[discord.Member] = None):
 		"""
-		Display information about you, or a specified user.
+		Information about you, or a specified user.
 		"""
 		if not user:
 			user = ctx.author
@@ -236,7 +239,7 @@ class Utilities(commands.Cog):
 	@commands.command(name='avatar')
 	async def avatar(self, ctx, user: typing.Union[discord.Member, discord.User] = None):
 		"""
-		Display a large version of your avatar, and a link to it.
+		Get a users avatar.
 		"""
 		if not user:
 			user = ctx.author
@@ -287,10 +290,10 @@ class Utilities(commands.Cog):
 		"""
 		await ctx.send('https://github.com/MyNameBeMrRandom/MrBot')
 
-	@commands.command(name='command_source', aliases=['source', 'cs'])
-	async def command_source(self, ctx, *, command: str = None):
+	@commands.command(name='source')
+	async def source(self, ctx, *, command: str = None):
 		"""
-		Sends a github link to the source of a command.
+		Github link to the source of a command.
 		"""
 		github_url = 'https://github.com/MyNameBeMrRandom/MrBot'
 		if command is None:
@@ -309,7 +312,7 @@ class Utilities(commands.Cog):
 		final_url = f'<{github_url}/blob/master/MrBot/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
 		await ctx.send(final_url)
 
-	@commands.command(name='linecount')
+	@commands.command(name='linecount', aliases=['lc'])
 	async def linecount(self,ctx):
 		"""
 		Display how many lines of code the bot is made out of.
@@ -330,6 +333,9 @@ class Utilities(commands.Cog):
 
 	@commands.command(name='status_times', aliases=['st'])
 	async def status_times(self, ctx):
+		"""
+		Show how long you have been in each discord status.
+		"""
 		try:
 			# Get the times in seconds.
 			online_time, offline_time, idle_time, dnd_time = await self.bot.loop.run_in_executor(None, file_handling.get_status_times, ctx)
@@ -355,8 +361,11 @@ class Utilities(commands.Cog):
 			await ctx.send('You dont have an account.\n')
 			return await file_handling.account_creation(ctx)
 
-	@commands.command(name='screenshare', aliases=['screen_s', 'ss'])
+	@commands.command(name='screenshare', aliases=['ss'])
 	async def screenshare(self, ctx, channel: discord.VoiceChannel = None):
+		"""
+		Generate a link that allows for screenshare in voice channels.
+		"""
 		if not channel:
 			try:
 				channel = ctx.author.voice.channel
@@ -364,7 +373,6 @@ class Utilities(commands.Cog):
 				return await ctx.send('There is no voice channel to create a screenshare from, join one or specify one.')
 		link = f'http://www.discordapp.com/channels/{ctx.guild.id}/{channel.id}'
 		return await ctx.send(f'Clicking on this link while in the voice channel `{channel.name}` will start a guild screenshare in that channel.\n\n{link}')
-
 
 
 def setup(bot):

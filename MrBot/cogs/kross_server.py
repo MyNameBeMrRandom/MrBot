@@ -4,9 +4,10 @@ import discord
 import time
 
 
+# noinspection PyMethodMayBeStatic
 class KrossServer(commands.Cog):
 	"""
-	Server specific commands.
+	Custom server commands.
 	"""
 
 	def __init__(self, bot):
@@ -105,6 +106,9 @@ class KrossServer(commands.Cog):
 	@commands.command(name='house_members', aliases=['hm'], hidden=True)
 	@commands.has_role(548604302768209920)
 	async def houses(self, ctx):
+		"""
+		Display how many people are in a certain house.
+		"""
 		if ctx.guild.id == 491312179476299786:
 			kodama = discord.utils.get(ctx.guild.roles, name='Kodama')
 			sylph = discord.utils.get(ctx.guild.roles, name='Sylph')
@@ -127,6 +131,9 @@ class KrossServer(commands.Cog):
 	@commands.command(name='points', aliases=['p'], hidden=True)
 	@commands.has_role(548604302768209920)
 	async def points(self, ctx, house: str, operation: str, points: int):
+		"""
+		Add or subtract an amount of points from a house.
+		"""
 		if ctx.guild.id == 491312179476299786:
 			if house == 'kodama':
 				with open('data/kross_server/kodama.txt') as r:
@@ -138,16 +145,16 @@ class KrossServer(commands.Cog):
 							a.write(str(np))
 							a.close()
 						await ctx.send(f'Added {points} points to house Kodama. They now have {np} points!')
-						await self.refresh_points(ctx)
+						return await self.refresh_points(ctx)
 					elif operation == 'minus':
 						np = cp - points
 						with open('data/kross_server/sylph.txt', 'w') as m:
 							m.write(str(np))
 							m.close()
 						await ctx.send(f'Removed {points} points from house Kodama. They now have {np} points!')
-						await self.refresh_points(ctx)
+						return await self.refresh_points(ctx)
 					else:
-						await ctx.send('That operation was not recognised.')
+						return await ctx.send('That operation was not recognised.')
 			elif house == 'phoenix':
 				with open('data/kross_server/phoenix.txt') as r:
 					cp = r.readline()
@@ -158,16 +165,16 @@ class KrossServer(commands.Cog):
 							a.write(str(np))
 							a.close()
 						await ctx.send(f'Added {points} points to house Phoenix. They now have {np} points!')
-						await self.refresh_points(ctx)
+						return await self.refresh_points(ctx)
 					elif operation == 'minus':
 						np = cp - points
 						with open('data/kross_server/phoenix.txt', 'w') as m:
 							m.write(str(np))
 							m.close()
 						await ctx.send(f'Removed {points} points from house Phoenix. They now have {np} points!')
-						await self.refresh_points(ctx)
+						return await self.refresh_points(ctx)
 					else:
-						await ctx.send('That operation was not recognised.')
+						return await ctx.send('That operation was not recognised.')
 			elif house == 'leviathan':
 				with open('data/kross_server/leviathan.txt') as r:
 					cp = r.readline()
@@ -178,16 +185,16 @@ class KrossServer(commands.Cog):
 							a.write(str(np))
 							a.close()
 						await ctx.send(f'Added {points} points to house Leviathan. They now have {np} points!')
-						await self.refresh_points(ctx)
+						return await self.refresh_points(ctx)
 					elif operation == 'minus':
 						np = cp - points
 						with open('data/kross_server/sylph.txt', 'w') as m:
 							m.write(str(np))
 							m.close()
 						await ctx.send(f'Removed {points} points from house Leviathan. They now have {np} points!')
-						await self.refresh_points(ctx)
+						return await self.refresh_points(ctx)
 					else:
-						await ctx.send('That operation was not recognised.')
+						return await ctx.send('That operation was not recognised.')
 			elif house == 'sylph':
 				with open('data/kross_server/sylph.txt') as r:
 					cp = r.readline()
@@ -198,23 +205,26 @@ class KrossServer(commands.Cog):
 							a.write(str(np))
 							a.close()
 						await ctx.send(f'Added {points} points to house Sylph. They now have {np} points!')
-						await self.refresh_points(ctx)
+						return await self.refresh_points(ctx)
 					elif operation == 'minus':
 						np = cp - points
 						with open('data/kross_server/sylph.txt', 'w') as m:
 							m.write(str(np))
 							m.close()
 						await ctx.send(f'Removed {points} points from house Sylph. They now have {np} points!')
-						await self.refresh_points(ctx)
+						return await self.refresh_points(ctx)
 					else:
-						await ctx.send('That operation was not recognised.')
+						return await ctx.send('That operation was not recognised.')
 			else:
-				await ctx.send("That house wasn't recognised.")
+				return await ctx.send("That house wasn't recognised.")
 		else:
-			await ctx.send('This is a guild specific command.')
+			return await ctx.send('This is a guild specific command.')
 
 	@commands.command(name='points_pie', aliases=['point_p', 'pp'], hidden=True)
 	async def point_pie(self, ctx):
+		"""
+		Generate a pie chart based on how many points each house has
+		"""
 		if ctx.guild.id == 491312179476299786:
 			start = time.perf_counter()
 			await ctx.trigger_typing()

@@ -8,7 +8,7 @@ import os
 # noinspection PyMethodMayBeStatic
 class Admin(commands.Cog):
 	"""
-	Guild admininstation commands.
+	Guild administration commands.
 	"""
 
 	def __init__(self, bot):
@@ -68,7 +68,7 @@ class Admin(commands.Cog):
 					yaml.dump(data, w)
 					return f'Disabled logging in this guild.'
 
-	@commands.group(name='config', aliases=['cfg'])
+	@commands.group(name='config')
 	async def config(self, ctx):
 		"""
 		Display information about the current guilds config.
@@ -262,7 +262,7 @@ class Admin(commands.Cog):
 			await ctx.send(f'This guild does not have a config file.')
 			return await file_handling.config_creation(ctx)
 
-	@logging.command(name='set_channel', aliases=['set_c'])
+	@logging.command(name='set_channel', aliases=['set_c', 'sc'])
 	async def logging_set_channel(self, ctx, channel: discord.TextChannel = None):
 		"""
 		Set the guilds logging channel.
@@ -279,7 +279,7 @@ class Admin(commands.Cog):
 	@logging.command(name='enable')
 	async def logging_enable(self, ctx):
 		"""
-		Enable logging in this guild.
+		Enable logging in the current guild.
 		"""
 		try:
 			logging_enable = await ctx.bot.loop.run_in_executor(None, self.enable_logging, ctx)
@@ -291,7 +291,7 @@ class Admin(commands.Cog):
 	@logging.command(name='disable')
 	async def logging_disable(self, ctx):
 		"""
-		Disable logging in this guild.
+		Disable logging in the current guild.
 		"""
 		try:
 			logging_disable = await ctx.bot.loop.run_in_executor(None, self.disable_logging, ctx)

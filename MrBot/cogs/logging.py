@@ -8,7 +8,7 @@ import time
 import dbl
 
 
-# noinspection PyMethodMayBeStatic,PyMethodMayBeStatic,PyMethodMayBeStatic,PyMethodMayBeStatic,PyMethodMayBeStatic,PyMethodMayBeStatic,PyMethodMayBeStatic,PyMethodMayBeStatic,PyMethodMayBeStatic,PyMethodMayBeStatic,PyMethodMayBeStatic
+# noinspection PyMethodMayBeStatic
 class Logging(commands.Cog):
 	"""
 	Bot logging
@@ -18,9 +18,9 @@ class Logging(commands.Cog):
 		self.bot = bot
 		self.token = config.DBL_TOKEN
 		self.dblpy = dbl.Client(self.bot, self.token, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
-		self.updating = self.bot.loop.create_task(self.update_stats())
+		self.updating = self.bot.loop.create_task(self.update_guild_count())
 
-	async def update_stats(self):
+	async def update_guild_count(self):
 		await self.bot.wait_until_ready()
 		while self.bot.is_ready():
 			self.bot.logging.info('[SERVER_COUNT] - Attempting to post server count.')
@@ -136,31 +136,6 @@ class Logging(commands.Cog):
 			return "All members - Content filter enabled for all users"
 		else:
 			return "N/A"
-
-	def do_create_account(self, user):
-		new_account = {
-			'info': {
-				'name': f'{user.name}',
-				'votes': 0,
-				'birthday': None,
-				'timezone': None,
-			},
-			'economy': {
-				'bank': 500,
-				'cash': 500
-			},
-			'config': {
-				'background': 'default'
-			},
-			'status_times': {
-				'online': None,
-				'offline': None,
-				'idle': None,
-				'dnd': None
-			}
-		}
-		with open(f'data/accounts/{user.id}.yaml', 'x', encoding='utf8') as x:
-			yaml.dump(new_account, x)
 
 	def log_status(self, before, after):
 		with open(f'data/accounts/{before.id}.yaml', 'r', encoding='utf8') as r:
