@@ -82,7 +82,7 @@ class Player(wavelink.Player):
 # noinspection PyProtectedMember,PyProtectedMember,PyAttributeOutsideInit,PyMethodMayBeStatic,PyUnusedLocal
 class Voice(commands.Cog):
 	"""
-	Voice commands
+	Voice/music related commands.
 	"""
 
 	def __init__(self, bot):

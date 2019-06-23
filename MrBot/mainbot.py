@@ -1,7 +1,8 @@
 from discord.ext import commands
 import logging.handlers
-import config
+import discord
 import asyncio
+import config
 import yaml
 import time
 import os
@@ -55,6 +56,7 @@ class MrBot(commands.AutoShardedBot):
 			command_prefix=commands.when_mentioned_or(config.DISCORD_PREFIX),
 			reconnect=True,
 		)
+		self.presence_task = self.loop.create_task(self.activity_changing())
 		self.loop = asyncio.get_event_loop()
 		self.config = config
 		self.logging = logger
@@ -97,6 +99,14 @@ class MrBot(commands.AutoShardedBot):
 					yaml.dump(data, w)
 		except FileNotFoundError:
 			return
+
+	async def activity_changing(self):
+		await self.wait_until_ready()
+		while not self.is_closed():
+			await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.guilds)} Guilds'))
+			await asyncio.sleep(60)
+			await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.users)} Members'))
+			await asyncio.sleep(60)
 
 	async def bot_logout(self):
 		await super().logout()

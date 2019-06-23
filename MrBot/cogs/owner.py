@@ -9,7 +9,7 @@ import io
 # noinspection PyMethodMayBeStatic
 class Owner(commands.Cog):
 	"""
-	Bot owner commands.
+	Owner only commands.
 	"""
 
 	def __init__(self, bot):
@@ -26,7 +26,7 @@ class Owner(commands.Cog):
 	@commands.is_owner()
 	async def eval(self, ctx, *, body: str):
 		"""
-		Evaluate the entered code.
+		Evaluate python code.
 		"""
 
 		env = {
@@ -78,7 +78,7 @@ class Owner(commands.Cog):
 	@commands.is_owner()
 	async def say(self, ctx, *, content):
 		"""
-		Say whatever is inputed, as the bot.
+		Say whatever is inputed as the bot.
 		"""
 		return await ctx.send(f'{content}')
 

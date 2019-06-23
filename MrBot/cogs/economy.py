@@ -9,7 +9,7 @@ import dbl
 # noinspection PyMethodMayBeStatic
 class Economy(commands.Cog):
 	"""
-	Economy commands.
+	Economy management commands.
 	"""
 
 	def __init__(self, bot):
@@ -227,19 +227,6 @@ class Economy(commands.Cog):
 		Withdraw an amount of money from your bank.
 		"""
 		return await self.do_withdraw(ctx, amount)
-
-	@commands.command(hidden=True)
-	@commands.is_owner()
-	async def money(self, ctx, price: int):
-		try:
-			with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
-				data = yaml.load(r, Loader=yaml.FullLoader)
-				data['economy']['cash'] = price
-			with open(f'data/accounts/{ctx.author.id}.yaml', 'w', encoding='utf8') as w:
-				yaml.dump(data, w)
-		except Exception as e:
-			await ctx.send('You dont have an account, use `mb account create` to make one.')
-			await ctx.send(f'{e}')
 
 
 def setup(bot):
