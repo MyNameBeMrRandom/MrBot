@@ -177,9 +177,9 @@ class Utilities(commands.Cog):
 			description=""
 		)
 		embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-		embed.add_field(name="__**CPU:**__", value=f"**Count:** {psutil.cpu_count(logical=False)}\n**Usage:** {process.cpu_percent(interval=None)}%\n" \
+		embed.add_field(name="__**System CPU:**__", value=f"**Cores:** {psutil.cpu_count(logical=False)}\n**Usage:** {process.cpu_percent(interval=None)}%\n" \
 			                                       f"**Frequency:** {round(psutil.cpu_freq().current, 2)} Mhz", inline=False)
-		embed.add_field(name="__**Memory:**__", value=f"**Total:** {round(psutil.virtual_memory().total/1073741824, 2)} GB\n"
+		embed.add_field(name="__**System Memory:**__", value=f"**Total:** {round(psutil.virtual_memory().total/1073741824, 2)} GB\n"
 													  f"**Used:** {round(psutil.virtual_memory().used/1073741824, 2)} GB\n"
 													  f"**Available:** {round(psutil.virtual_memory().available/1073741824, 2)} GB", inline=False)
 		embed.add_field(name="__**Process information:**__", value=f"**Memory usage:** {process.memory_info().rss//(1024**2)}mb\n"
@@ -212,7 +212,7 @@ class Utilities(commands.Cog):
 		return await ctx.send(embed=embed)
 
 	@commands.command(name='userinfo')
-	async def userinfo(self, ctx, *, user: typing.Union[discord.Member] = None):
+	async def userinfo(self, ctx, user: typing.Union[discord.Member] = None):
 		"""
 		Display information about you, or a specified user.
 		"""
@@ -234,7 +234,7 @@ class Utilities(commands.Cog):
 		return await ctx.send(embed=embed)
 
 	@commands.command(name='avatar')
-	async def avatar(self, ctx, *, user: typing.Union[discord.Member, discord.User] = None):
+	async def avatar(self, ctx, user: typing.Union[discord.Member, discord.User] = None):
 		"""
 		Display a large version of your avatar, and a link to it.
 		"""
@@ -354,6 +354,18 @@ class Utilities(commands.Cog):
 		except FileNotFoundError:
 			await ctx.send('You dont have an account.\n')
 			return await file_handling.account_creation(ctx)
+
+	@commands.command(name='screenshare', aliases=['screen_s', 'ss'])
+	async def screenshare(self, ctx, channel: discord.VoiceChannel = None):
+		if not channel:
+			try:
+				channel = ctx.author.voice.channel
+			except AttributeError:
+				return await ctx.send('There is no voice channel to create a screenshare from, join one or specify one.')
+		link = f'http://www.discordapp.com/channels/{ctx.guild.id}/{channel.id}'
+		return await ctx.send(f'Clicking on this link while in the voice channel `{channel.name}` will start a guild screenshare in that channel.\n\n{link}')
+
+
 
 def setup(bot):
 	bot.add_cog(Utilities(bot))
