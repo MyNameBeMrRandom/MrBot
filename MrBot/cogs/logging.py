@@ -199,9 +199,9 @@ class Logging(commands.Cog):
 		try:
 			with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
 				data = yaml.load(r, Loader=yaml.FullLoader)
-				stat = data[f'{stat_type}']
-				data[f'{stat_type}'] = stat + 1
+				stat = int(data[f'{stat_type}'])
 				with open(f'data/stats/stats.yaml', 'w', encoding='utf8') as w:
+					data[f'{stat_type}'] = stat + 1
 					yaml.dump(data, w)
 		except FileNotFoundError:
 			return
@@ -247,7 +247,7 @@ class Logging(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_command_completion(self, ctx):
-		await self.bot.loop.run_in_executor(None, self.update_stat, 'commands')
+		await self.bot.loop.run_in_executor(None, self.update_stat, 'commands_run')
 		self.bot.logging.info(f'[COMMAND] - {ctx.author} used the command "{ctx.command}" in the guild {ctx.guild}.')
 
 	@commands.Cog.listener()

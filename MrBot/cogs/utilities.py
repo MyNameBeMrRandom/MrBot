@@ -167,8 +167,8 @@ class Utilities(commands.Cog):
 
 	@commands.command(name='stats')
 	async def stats(self, ctx):
-		messages_seen = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages')
-		commands_run = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'commands')
+		messages_seen = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages_seen')
+		commands_run = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'commands_run')
 		messages_sent = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages_sent')
 		embed = discord.Embed(
 			colour=0xFF0000,
