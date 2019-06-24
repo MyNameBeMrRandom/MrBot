@@ -198,8 +198,8 @@ class Economy(commands.Cog):
 		Display the amount of money you have.
 		"""
 		try:
-			bank = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'cash')
-			cash = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'bank')
+			bank = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'bank')
+			cash = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'cash')
 			embed = discord.Embed(
 				colour=0x57FFF5,
 				timestamp=ctx.message.created_at,
