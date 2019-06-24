@@ -72,7 +72,7 @@ class HelpCommand(commands.HelpCommand):
 						embed.description += f'**{command_name}**{command_help}\n'
 					else:
 						command_help = f' - No help provided for this command.'
-					embed.description += f'**{command_name}**{command_help}\n'
+						embed.description += f'**{command_name}**{command_help}\n'
 			else:
 				if command.help:
 					command_help = f' - ' + command.help.strip().split('\n')[0]
