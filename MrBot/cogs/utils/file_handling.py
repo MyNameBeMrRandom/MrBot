@@ -60,7 +60,7 @@ def get_guild_data(guild, data_1, data_2):
 def get_stat_data(data_1):
 	with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
-		return_data = data[f'{data_1}']
+		return_data = data[data_1]
 	return return_data
 
 def do_account_creation(ctx):

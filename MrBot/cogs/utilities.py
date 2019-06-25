@@ -1,5 +1,6 @@
 from discord.ext import commands
 from .utils import file_handling
+from .utils import calculations
 from io import BytesIO
 import inspect
 import pathlib
@@ -342,11 +343,11 @@ class Utilities(commands.Cog):
 			# Calculate the total time.
 			total_time = online_time + offline_time + idle_time + dnd_time
 			# Calculate and display each status in days, hour, minutes and seconds.
-			online = file_handling.calculate_status_times(online_time)
-			offline = file_handling.calculate_status_times(offline_time)
-			idle = file_handling.calculate_status_times(idle_time)
-			dnd = file_handling.calculate_status_times(dnd_time)
-			total = file_handling.calculate_status_times(total_time)
+			online = calculations.calculate_status_times(online_time)
+			offline = calculations.calculate_status_times(offline_time)
+			idle = calculations.calculate_status_times(idle_time)
+			dnd = calculations.calculate_status_times(dnd_time)
+			total = calculations.calculate_status_times(total_time)
 			# Calculate the percentages of each status and the total percent.
 			online_percent, offline_percent, idle_percent, dnd_percent = self.calculate_status_percentages(online_time, offline_time, idle_time, dnd_time)
 			total_percent = round(offline_percent + online_percent + idle_percent + dnd_percent, 2)
