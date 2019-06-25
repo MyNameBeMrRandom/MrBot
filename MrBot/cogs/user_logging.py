@@ -128,16 +128,15 @@ class UserLogging(commands.Cog):
 		await self.bot.loop.run_in_executor(None, self.update_bot_stats, 'commands_run')
 
 	def update_bot_stats(self, stat_type):
-		with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-			stat = int(data[stat_type])
-			with open(f'data/stats/stats.yaml', 'w', encoding='utf8') as w:
-				data[stat_type] = stat + 1
-				yaml.dump(data, w)
-
-
-
-
+		try:
+			with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
+				data = yaml.load(r, Loader=yaml.FullLoader)
+				stat = int(data[stat_type])
+				with open(f'data/stats/stats.yaml', 'w', encoding='utf8') as w:
+					data[stat_type] = stat + 1
+					yaml.dump(data, w)
+		except TypeError:
+			return
 
 
 def setup(bot):
