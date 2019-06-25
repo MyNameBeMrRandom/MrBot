@@ -1,35 +1,17 @@
 from discord.ext import commands
+from .utils import file_handling
 import traceback
-import asyncio
 import discord
-import config
-import yaml
-import time
-import dbl
 
 
 # noinspection PyMethodMayBeStatic
-class Logging(commands.Cog):
+class GuildLogging(commands.Cog):
 	"""
 	Bot logging
 	"""
 
 	def __init__(self, bot):
 		self.bot = bot
-		self.token = config.DBL_TOKEN
-		self.dblpy = dbl.Client(self.bot, self.token, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
-		self.updating = self.bot.loop.create_task(self.update_guild_count())
-
-	async def update_guild_count(self):
-		await self.bot.wait_until_ready()
-		while self.bot.is_ready():
-			self.bot.logging.info('[SERVER_COUNT] - Attempting to post server count.')
-			try:
-				await self.dblpy.post_guild_count()
-				self.bot.logging.info(f'[SERVER_COUNT] - Posted server count ({self.dblpy.guild_count()}).')
-			except Exception as e:
-				self.bot.logging.exception('[SERVER_COUNT] - Failed to post server count.\n{}: {}'.format(type(e).__name__, e))
-			await asyncio.sleep(21600)
 
 	def user_activity(self, user):
 		if user.status == user.status.offline:
@@ -137,50 +119,6 @@ class Logging(commands.Cog):
 		else:
 			return "N/A"
 
-	def log_status(self, before, after):
-		with open(f'data/accounts/{before.id}.yaml', 'r', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-			status_since = data['status_times'][f'{before.status}_since']
-			status_time_before = time.time() - status_since
-			status_time_after = data['status_times'][f'{before.status}_time']
-			status_time = status_time_before + status_time_after
-			data['status_times'][f'{before.status}_time'] = round(status_time)
-			with open(f'data/accounts/{before.id}.yaml', 'w', encoding='utf8') as w:
-				data['status_times'][f'{after.status}_since'] = time.time()
-				data['status_times'][f'{before.status}_since'] = None
-				yaml.dump(data, w)
-
-	def logging_check(self, guild, log_type):
-		try:
-			with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
-				data = yaml.load(r, Loader=yaml.FullLoader)
-				logging_channel = data['config']['logging_channel']
-				logging_enabled = data['config']['logging_enabled']
-				log_type = data['logging'][f'{log_type}']
-				if logging_channel is None or logging_enabled is False or log_type is False:
-					return False
-				else:
-					return True
-		except FileNotFoundError:
-			return False
-
-	def logging_channel(self, guild):
-		with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-			logging_channel = data['config']['logging_channel']
-			return logging_channel
-
-	def update_stat(self, stat_type):
-		try:
-			with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
-				data = yaml.load(r, Loader=yaml.FullLoader)
-				stat = int(data[f'{stat_type}'])
-				with open(f'data/stats/stats.yaml', 'w', encoding='utf8') as w:
-					data[f'{stat_type}'] = stat + 1
-					yaml.dump(data, w)
-		except FileNotFoundError:
-			return
-
 	@commands.Cog.listener()
 	async def on_command_error(self, ctx, error):
 		error = getattr(error, 'original', error)
@@ -222,7 +160,6 @@ class Logging(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_command_completion(self, ctx):
-		await self.bot.loop.run_in_executor(None, self.update_stat, 'commands_run')
 		self.bot.logging.info(f'[COMMAND] - {ctx.author} used the command "{ctx.command}" in the guild {ctx.guild}.')
 
 	@commands.Cog.listener()
@@ -250,10 +187,10 @@ class Logging(commands.Cog):
 		# If the guild name has changed
 		if not before.name == after.name:
 			# Check if this type of logging is enabled.
-			guild_name_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_name')
+			guild_name_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_name')
 			if guild_name_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -266,10 +203,10 @@ class Logging(commands.Cog):
 		# If the guilds region has changed.
 		if not before.region == after.region:
 			# Check if this type of logging is enabled.
-			guild_region_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_region')
+			guild_region_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_region')
 			if guild_region_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -282,10 +219,10 @@ class Logging(commands.Cog):
 		# If the guilds afk timout has changed.
 		if not before.afk_timeout == after.afk_timeout:
 			# Check if this type of logging is enabled.
-			guild_afk_timeout_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_afk_timeout')
+			guild_afk_timeout_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_afk_timeout')
 			if guild_afk_timeout_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -298,10 +235,10 @@ class Logging(commands.Cog):
 		# If the guilds afk channel has changed.
 		if not before.afk_channel == after.afk_channel:
 			# Check if this type of logging is enabled.
-			guild_afk_channel_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_afk_channel')
+			guild_afk_channel_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_afk_channel')
 			if guild_afk_channel_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -314,10 +251,10 @@ class Logging(commands.Cog):
 		# If the guilds system channel has changed.
 		if not before.system_channel == after.system_channel:
 			# Check if this type of logging is enabled.
-			guild_system_channel_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_system_channel')
+			guild_system_channel_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_system_channel')
 			if guild_system_channel_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -330,10 +267,10 @@ class Logging(commands.Cog):
 		# If the guilds icon has changed.
 		if not before.icon_url == after.icon_url:
 			# Check if this type of logging is enabled.
-			guild_icon_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_icon')
+			guild_icon_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_icon')
 			if guild_icon_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -346,10 +283,10 @@ class Logging(commands.Cog):
 		# If the guilds notification setting has changed.
 		if not before.default_notifications == after.default_notifications:
 			# Check if this type of logging is enabled.
-			guild_default_notifications_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_default_notifications')
+			guild_default_notifications_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_default_notifications')
 			if guild_default_notifications_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -362,10 +299,10 @@ class Logging(commands.Cog):
 		# If the guilds description has changed.
 		if not before.description == after.description:
 			# Check if this type of logging is enabled.
-			guild_description_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_description')
+			guild_description_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_description')
 			if guild_description_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -378,10 +315,10 @@ class Logging(commands.Cog):
 		# If the guilds mfa_level has changed.
 		if not before.mfa_level == after.mfa_level:
 			# Check if this type of logging is enabled.
-			guild_mfa_level_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_mfa_level')
+			guild_mfa_level_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_mfa_level')
 			if guild_mfa_level_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -394,10 +331,10 @@ class Logging(commands.Cog):
 		# If the guilds verification level has changed.
 		if not before.verification_level == after.verification_level:
 			# Check if this type of logging is enabled.
-			guild_mfa_level_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_verification_level')
+			guild_mfa_level_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_verification_level')
 			if guild_mfa_level_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -410,10 +347,10 @@ class Logging(commands.Cog):
 		# If the guilds explicit content filter has changed.
 		if not before.explicit_content_filter == after.explicit_content_filter:
 			# Check if this type of logging is enabled.
-			guild_explicit_content_filter_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_explicit_content_filter')
+			guild_explicit_content_filter_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_explicit_content_filter')
 			if guild_explicit_content_filter_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -426,10 +363,10 @@ class Logging(commands.Cog):
 		# If the guilds splash has changed.
 		if not before.splash == after.splash:
 			# Check if this type of logging is enabled.
-			guild_splash_check = await self.bot.loop.run_in_executor(None, self.logging_check, before, 'guild_splash')
+			guild_splash_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_splash')
 			if guild_splash_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, before))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
 				guild_name = before.name
 				guild_avatar = before.icon_url
 				embed = discord.Embed(
@@ -451,10 +388,10 @@ class Logging(commands.Cog):
 		# If message has been pinned/unpinned.
 		if not before.pinned == after.pinned:
 			# Check if this type of logging is enabled.
-			message_pin_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'message_pin')
+			message_pin_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'message_pin')
 			if message_pin_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 				author = after.author.name
 				useravatar = after.author.avatar_url
 				embed = discord.Embed(
@@ -471,10 +408,10 @@ class Logging(commands.Cog):
 		# If the message was edited.
 		if not before.content == after.content:
 			# Check if this type of logging is enabled.
-			message_edit_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'message_edit')
+			message_edit_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'message_edit')
 			if message_edit_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 				author = after.author.name
 				useravatar = after.author.avatar_url
 				embed = discord.Embed(
@@ -498,10 +435,10 @@ class Logging(commands.Cog):
 		if message.author.id == 424637852035317770:
 			return
 		# Check if this type of logging is enabled.
-		check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'message_delete')
+		check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'message_delete')
 		if check is True:
 			# Get the logging channel for the guild.
-			channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+			channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 			author = message.author.name
 			useravatar = message.author.avatar_url
 			embed = discord.Embed(
@@ -523,10 +460,10 @@ class Logging(commands.Cog):
 	async def on_member_join(self, member):
 		guild = member.guild
 		# Check if this type of logging is enabled.
-		check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'member_join')
+		check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_join')
 		if check is True:
 			# Get the logging channel for the guild.
-			channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+			channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 			author = member.name
 			useravatar = member.avatar_url
 			embed = discord.Embed(
@@ -544,10 +481,10 @@ class Logging(commands.Cog):
 	async def on_member_remove(self, member):
 		guild = member.guild
 		# Check if this type of logging is enabled.
-		check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'member_leave')
+		check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_leave')
 		if check is True:
 			# Get the logging channel for the guild.
-			channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+			channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 			author = member.name
 			useravatar = member.avatar_url
 			embed = discord.Embed(
@@ -570,10 +507,10 @@ class Logging(commands.Cog):
 		# If the members status has changed.
 		if not before.status == after.status:
 			# Check if this type of logging is enabled.
-			member_status_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'member_status')
+			member_status_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_status')
 			if member_status_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 				author = after.name
 				useravatar = after.avatar_url
 				embed = discord.Embed(
@@ -583,19 +520,13 @@ class Logging(commands.Cog):
 				embed.set_author(icon_url=useravatar, name=author)
 				embed.description += f'**Before:**\n{self.user_status(before)}\n**After:**\n{self.user_status(after)}'
 				return await channel.send(embed=embed)
-			try:
-				await self.bot.loop.run_in_executor(None, self.log_status, before, after)
-			except FileNotFoundError:
-				return
-			except TypeError:
-				return
 		# If the members nickname has changed.
 		if not before.nick == after.nick:
 			# Check if this type of logging is enabled.
-			member_nickname_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'member_nickname')
+			member_nickname_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_nickname')
 			if member_nickname_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 				author = after.name
 				useravatar = after.avatar_url
 				embed = discord.Embed(
@@ -608,10 +539,10 @@ class Logging(commands.Cog):
 		# If the members roles have changed.
 		if not before.roles == after.roles:
 			# Check if this type of logging is enabled.
-			member_role_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'member_role')
+			member_role_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_role')
 			if member_role_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 				author = after.name
 				useravatar = after.avatar_url
 				embed = discord.Embed(
@@ -629,10 +560,10 @@ class Logging(commands.Cog):
 			except AttributeError:
 				pass
 			# Check if this type of logging is enabled.
-			member_activity_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'member_activity')
+			member_activity_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_activity')
 			if member_activity_check is True:
 				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 				author = after.name
 				useravatar = after.avatar_url
 				embed = discord.Embed(
@@ -658,10 +589,10 @@ class Logging(commands.Cog):
 			# If the users username has changed.
 			if not before.name == after.name:
 				# Check if this type of logging is enabled.
-				user_name_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'user_username')
+				user_name_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'user_username')
 				if user_name_check is True:
 					# Get the logging channel for the guild.
-					channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+					channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 					author = after.name
 					useravatar = after.avatar_url
 					embed = discord.Embed(
@@ -674,10 +605,10 @@ class Logging(commands.Cog):
 			# If the users discriminator has changed.
 			elif not before.discriminator == after.discriminator:
 				# Check if this type of logging is enabled.
-				user_discriminator_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'user_discriminator')
+				user_discriminator_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'user_discriminator')
 				if user_discriminator_check is True:
 					# Get the logging channel for the guild.
-					channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+					channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 					author = after.name
 					useravatar = after.avatar_url
 					embed = discord.Embed(
@@ -690,10 +621,10 @@ class Logging(commands.Cog):
 			# If the users avatar has changed.
 			elif before.avatar != after.avatar:
 				# Check if this type of logging is enabled.
-				user_avatar_check = await self.bot.loop.run_in_executor(None, self.logging_check, guild, 'user_avatar')
+				user_avatar_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'user_avatar')
 				if user_avatar_check is True:
 					# Get the logging channel for the guild.
-					channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, self.logging_channel, guild))
+					channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
 					author = after.name
 					useravatar = after.avatar_url
 					embed = discord.Embed(
@@ -708,5 +639,5 @@ class Logging(commands.Cog):
 
 
 def setup(bot):
-	bot.add_cog(Logging(bot))
+	bot.add_cog(GuildLogging(bot))
 
