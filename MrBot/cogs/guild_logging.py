@@ -120,69 +120,6 @@ class GuildLogging(commands.Cog):
 			return "N/A"
 
 	@commands.Cog.listener()
-	async def on_command_error(self, ctx, error):
-		error = getattr(error, 'original', error)
-		if hasattr(ctx.command, 'on_error'):
-			return
-		elif isinstance(error, commands.NoPrivateMessage):
-			try:
-				return await ctx.send(f"The command `{ctx.command}` cannot be used in private messages.")
-			except Exception:
-				pass
-		elif isinstance(error, commands.DisabledCommand):
-			return await ctx.send(f"The command `{ctx.command}` is currently disabled.")
-		elif isinstance(error, commands.CommandNotFound):
-			return await ctx.send(f"The command `{ctx.message.clean_content}` was not found.")
-		elif isinstance(error, commands.CommandOnCooldown):
-			return await ctx.send(f"The command `{ctx.command}` is on cooldown, retry in {round(error.retry_after, 2)}s.")
-		elif isinstance(error, commands.MissingRequiredArgument):
-			return await ctx.send(f"You missed the `{error.param}` parameter.")
-		elif isinstance(error, commands.TooManyArguments):
-			return await ctx.send(f"Too many arguments were passed for the command `{ctx.command}`.")
-		elif isinstance(error, commands.BadArgument):
-			return await ctx.send(f"A bad argument was passed to the command `{ctx.command}`.")
-		elif isinstance(error, commands.MissingPermissions):
-			return await ctx.send(f"You dont have the permissions to run the `{ctx.command}` command.")
-		elif isinstance(error, commands.BotMissingPermissions):
-			return await ctx.send(f"I am missing the following permissions to run the command `{ctx.command}`.\n{error.missing_perms}")
-		elif isinstance(error, discord.HTTPException):
-			if isinstance(error, discord.Forbidden):
-				return await ctx.send(f"I am missing permissions to run the command `{ctx.command}`.")
-		elif isinstance(error, commands.CommandInvokeError):
-			return await ctx.send(f"There was an error while running that command")
-		else:
-			try:
-				print(f'{error.original.__class__.__name__}: {error.original}')
-				traceback.print_tb(error.original.__traceback__)
-			except AttributeError:
-				print(f'{error.__class__.__name__}: {error}')
-				traceback.print_tb(error.__traceback__)
-
-	@commands.Cog.listener()
-	async def on_command_completion(self, ctx):
-		self.bot.logging.info(f'[COMMAND] - {ctx.author} used the command "{ctx.command}" in the guild {ctx.guild}.')
-
-	@commands.Cog.listener()
-	async def on_guild_join(self, guild):
-		self.bot.logging.info(f'[GUILD] - Joined the guild {guild.name}.')
-		channel = self.bot.get_channel(516002789617434664)
-		embed = discord.Embed(
-			colour=0x57FFF5,
-		)
-		embed.add_field(name='Guild Join', value=f'MrBot joined a guild.\nName: **{guild.name}**', inline=False)
-		return await channel.send(embed=embed)
-
-	@commands.Cog.listener()
-	async def on_guild_remove(self, guild):
-		self.bot.logging.info(f'[GUILD] - Left the guild {guild.name}.')
-		channel = self.bot.get_channel(516002789617434664)
-		embed = discord.Embed(
-			colour=0x57FFF5,
-		)
-		embed.add_field(name='Guild Leave', value=f'MrBot left a guild.\nName: **{guild.name}**', inline=False)
-		return await channel.send(embed=embed)
-
-	@commands.Cog.listener()
 	async def on_guild_update(self, before, after):
 		# If the guild name has changed
 		if not before.name == after.name:
