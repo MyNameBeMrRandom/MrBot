@@ -171,6 +171,7 @@ class HelpCommand(commands.HelpCommand):
 				embed.description += f'{group_command_name}{group_command_help}\n'
 		return await self.context.send(embed=embed)
 
+
 class Help(commands.Cog):
 	"""
 	Help with how to understand and use MrBot.

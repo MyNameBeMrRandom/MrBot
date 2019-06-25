@@ -18,17 +18,19 @@ else:
 	asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 extensions = [
-	'jishaku',
-	'cogs.bot_utils',
+	'cogs.guild_logging',
+	'cogs.user_logging',
+	'cogs.kross_server',
+	'cogs.utilities',
+	'cogs.bg_tasks',
 	'cogs.accounts',
 	'cogs.economy',
-	'cogs.admin',
-	'cogs.logging',
 	'cogs.images',
-	'cogs.kross_server',
+	'cogs.admin',
 	'cogs.owner',
-	'cogs.utilities',
 	'cogs.voice',
+	'cogs.help',
+	'jishaku',
 
 ]
 
@@ -56,7 +58,6 @@ class MrBot(commands.AutoShardedBot):
 			command_prefix=commands.when_mentioned_or(config.DISCORD_PREFIX),
 			reconnect=True,
 		)
-		self.presence_task = self.loop.create_task(self.activity_changing())
 		self.loop = asyncio.get_event_loop()
 		self.config = config
 		self.logging = logger
@@ -71,61 +72,16 @@ class MrBot(commands.AutoShardedBot):
 				print(f'Failed - {ext}')
 				logger.warning(f'[EXT] - Failed to load - {ext}')
 
-	def update_data(self):
-		for guild in self.guilds:
-			for member in guild.members:
-				try:
-					if os.path.isfile(f'data/accounts/{member.id}.yaml'):
-						with open(f'data/accounts/{member.id}.yaml', 'r', encoding='utf8') as r:
-							data = yaml.load(r, Loader=yaml.FullLoader)
-							data['status_times'][f'online_since'] = None
-							data['status_times'][f'offline_since'] = None
-							data['status_times'][f'dnd_since'] = None
-							data['status_times'][f'idle_since'] = None
-							if data['status_times'][f'{member.status}_since'] is None:
-								data['status_times'][f'{member.status}_since'] = time.time()
-								with open(f'data/accounts/{member.id}.yaml', 'w', encoding='utf8') as w:
-									yaml.dump(data, w)
-				except FileNotFoundError:
-					return
-
-	def update_stat(self, stat_type):
-		try:
-			with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
-				data = yaml.load(r, Loader=yaml.FullLoader)
-				stat = int(data[f'{stat_type}'])
-				with open(f'data/stats/stats.yaml', 'w', encoding='utf8') as w:
-					data[f'{stat_type}'] = stat + 1
-					yaml.dump(data, w)
-		except FileNotFoundError:
-			return
-
-	async def activity_changing(self):
-		await self.wait_until_ready()
-		while not self.is_closed():
-			await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.guilds)} Guilds'))
-			await asyncio.sleep(60)
-			await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.users)} Members'))
-			await asyncio.sleep(60)
-
 	async def bot_logout(self):
 		await super().logout()
 
 	async def bot_start(self):
-		await self.loop.run_in_executor(None, self.update_data)
 		await self.login(config.DISCORD_TOKEN)
 		await self.connect()
 
 	async def on_ready(self):
 		logger.info(f'[BOT] Logged in as {self.user} - {self.user.id}')
 		print(f'\nLogged in as {self.user} - {self.user.id}')
-
-	async def on_message(self, message):
-		if message.author.id == self.user.id:
-			await self.loop.run_in_executor(None, self.update_stat, 'messages_sent')
-		if not message.author.bot:
-			await self.loop.run_in_executor(None, self.update_stat, 'messages_seen')
-		await self.process_commands(message)
 
 	def run(self):
 		loop = self.loop
