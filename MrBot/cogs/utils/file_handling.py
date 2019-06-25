@@ -3,6 +3,25 @@ import asyncio
 import yaml
 import time
 
+def logging_check(guild, log_type):
+	try:
+		with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
+			data = yaml.load(r, Loader=yaml.FullLoader)
+			logging_channel = data['config']['logging_channel']
+			logging_enabled = data['config']['logging_enabled']
+			log_type = data['logging'][f'{log_type}']
+			if logging_channel is None or logging_enabled is False or log_type is False:
+				return False
+			else:
+				return True
+	except FileNotFoundError:
+		return False
+
+def get_logging_channel(guild):
+	with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
+		data = yaml.load(r, Loader=yaml.FullLoader)
+		logging_channel = data['config']['logging_channel']
+		return logging_channel
 
 def get_status_times(ctx):
 	with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
@@ -24,26 +43,6 @@ def get_status_times(ctx):
 			return online_time, offline_time, idle_time, dnd_time + current_status
 		else:
 			return online_time, offline_time, idle_time, dnd_time
-
-def logging_check(guild, log_type):
-	try:
-		with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-			logging_channel = data['config']['logging_channel']
-			logging_enabled = data['config']['logging_enabled']
-			log_type = data['logging'][f'{log_type}']
-			if logging_channel is None or logging_enabled is False or log_type is False:
-				return False
-			else:
-				return True
-	except FileNotFoundError:
-		return False
-
-def get_logging_channel(guild):
-	with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
-		data = yaml.load(r, Loader=yaml.FullLoader)
-		logging_channel = data['config']['logging_channel']
-		return logging_channel
 
 def get_account_data(user, data_1, data_2):
 	with open(f'data/accounts/{user.id}.yaml', 'r', encoding='utf8') as r:

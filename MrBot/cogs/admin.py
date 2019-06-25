@@ -68,7 +68,7 @@ class Admin(commands.Cog):
 					yaml.dump(data, w)
 					return f'Disabled logging in this guild.'
 
-	@commands.group(name='config')
+	@commands.group(name='config', invoke_without_command=True)
 	async def config(self, ctx):
 		"""
 		Display information about the current guilds config.
@@ -249,7 +249,7 @@ class Admin(commands.Cog):
 		except FileNotFoundError:
 			return await ctx.send(f'This guild does not have a config')
 
-	@commands.group(name='logging')
+	@commands.group(name='logging', invoke_without_command=True)
 	async def logging(self, ctx):
 		"""
 		Get information about the guilds logging status.

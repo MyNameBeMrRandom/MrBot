@@ -13,7 +13,7 @@ class Accounts(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
-	@commands.group(name='account', aliases=['profile'])
+	@commands.group(name='account', aliases=['profile'], invoke_without_command=True)
 	async def account(self, ctx):
 		"""
 		Display information about your account.

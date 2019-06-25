@@ -91,6 +91,8 @@ class UserLogging(commands.Cog):
 				self.update_user_status(before, after)
 		except FileNotFoundError:
 			return
+		except TypeError:
+			return
 
 	def update_user_status(self, before, after):
 		with open(f'data/accounts/{before.id}.yaml', 'r', encoding='utf8') as r:
