@@ -26,7 +26,9 @@ extensions = [
 	'cogs.owner',
 	#'cogs.voice',
 	'cogs.help',
+	'cogs.fun',
 	'jishaku',
+
 
 ]
 
