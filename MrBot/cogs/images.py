@@ -366,7 +366,7 @@ class Images(commands.Cog):
 			return await file_handling.account_creation(ctx)
 
 	@commands.command(name='sharpen')
-	async def sharpen(self, ctx, amount: float, file: typing.Union[discord.User, discord.Member, str] = None):
+	async def sharpen(self, ctx, amount: float, file: typing.Union[discord.Member, str] = None):
 		"""
 		Sharpens an image by the factor specified.
 
@@ -377,18 +377,20 @@ class Images(commands.Cog):
 		await ctx.trigger_typing()
 		if not 0 <= amount <= 999999999:
 			return await ctx.send('That was not a valid amount.')
-		if ctx.message.attachments:
-			url = ctx.message.attachments[0].url
-			await self.get_image(ctx, url)
-		elif file == discord.User or discord.Member:
-			url = str(file.avatar_url_as(format="png"))
-			await self.get_image(ctx, url)
-		elif not file:
-			url = str(ctx.author.avatar_url_as(format="png"))
-			await self.get_image(ctx, url)
-		else:
-			await self.get_image(ctx, file)
 
+		if not file:
+			if ctx.message.attachments:
+				url = ctx.message.attachments[0].url
+				await self.get_image(ctx, url)
+			else:
+				url = str(ctx.author.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
+		else:
+			if file == discord.Member:
+				url = str(file.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
+			else:
+				await self.get_image(ctx, file)
 		await self.bot.loop.run_in_executor(None, self.do_sharpen, ctx, amount)
 		await ctx.send(f'Sharpened by a factor of `{amount}`.' ,file=discord.File(f'images/edited_images/{ctx.author.id}_sharpness_{amount}.png'))
 
@@ -396,7 +398,7 @@ class Images(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='contrast')
-	async def contrast(self, ctx, amount: float, file: typing.Union[discord.User, discord.Member, str] = None):
+	async def contrast(self, ctx, amount: float, file: typing.Union[discord.Member, str] = None):
 		"""
 		Changes the contrast of an image by the factor specified.
 
@@ -407,17 +409,20 @@ class Images(commands.Cog):
 		await ctx.trigger_typing()
 		if not 0 <= amount <= 999999999:
 			return await ctx.send('That was not a valid amount.')
-		if ctx.message.attachments:
-			url = ctx.message.attachments[0].url
-			await self.get_image(ctx, url)
-		elif file == discord.User or discord.Member:
-			url = str(file.avatar_url_as(format="png"))
-			await self.get_image(ctx, url)
-		elif not file:
-			url = str(ctx.author.avatar_url_as(format="png"))
-			await self.get_image(ctx, url)
+
+		if not file:
+			if ctx.message.attachments:
+				url = ctx.message.attachments[0].url
+				await self.get_image(ctx, url)
+			else:
+				url = str(ctx.author.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
 		else:
-			await self.get_image(ctx, file)
+			if file == discord.Member:
+				url = str(file.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
+			else:
+				await self.get_image(ctx, file)
 
 		await self.bot.loop.run_in_executor(None, self.do_contrast, ctx, amount)
 		await ctx.send(f'Contrast changed by a factor of `{amount}`.' ,file=discord.File(f'images/edited_images/{ctx.author.id}_contrast_{amount}.png'))
@@ -426,7 +431,7 @@ class Images(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='colour')
-	async def colour(self, ctx, amount: float, file: typing.Union[discord.User, discord.Member, str] = None):
+	async def colour(self, ctx, amount: float, file: typing.Union[discord.Member, str] = None):
 		"""
 		Changes the colour of an image by the factor specified.
 
@@ -437,17 +442,20 @@ class Images(commands.Cog):
 		await ctx.trigger_typing()
 		if not 0 <= amount <= 999999999:
 			return await ctx.send('That was not a valid amount.')
-		if ctx.message.attachments:
-			url = ctx.message.attachments[0].url
-			await self.get_image(ctx, url)
-		elif file == discord.User or discord.Member:
-			url = str(file.avatar_url_as(format="png"))
-			await self.get_image(ctx, url)
-		elif not file:
-			url = str(ctx.author.avatar_url_as(format="png"))
-			await self.get_image(ctx, url)
+
+		if not file:
+			if ctx.message.attachments:
+				url = ctx.message.attachments[0].url
+				await self.get_image(ctx, url)
+			else:
+				url = str(ctx.author.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
 		else:
-			await self.get_image(ctx, file)
+			if file == discord.Member:
+				url = str(file.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
+			else:
+				await self.get_image(ctx, file)
 
 		await self.bot.loop.run_in_executor(None, self.do_colour, ctx, amount)
 		await ctx.send(f'Colour shifted by a factor of `{amount}`.' ,file=discord.File(f'images/edited_images/{ctx.author.id}_colour_{amount}.png'))
@@ -456,7 +464,7 @@ class Images(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='brightness')
-	async def brightness(self, ctx, amount: float, file: typing.Union[discord.User, discord.Member, str] = None):
+	async def brightness(self, ctx, amount: float, file: typing.Union[discord.Member, str] = None):
 		"""
 		Changes the brightness of an image by the factor specified.
 
@@ -467,17 +475,20 @@ class Images(commands.Cog):
 		await ctx.trigger_typing()
 		if not 0 <= amount <= 999999999:
 			return await ctx.send('That was not a valid amount.')
-		if ctx.message.attachments:
-			url = ctx.message.attachments[0].url
-			await self.get_image(ctx, url)
-		elif file == discord.User or discord.Member:
-			url = str(file.avatar_url_as(format="png"))
-			await self.get_image(ctx, url)
-		elif not file:
-			url = str(ctx.author.avatar_url_as(format="png"))
-			await self.get_image(ctx, url)
+
+		if not file:
+			if ctx.message.attachments:
+				url = ctx.message.attachments[0].url
+				await self.get_image(ctx, url)
+			else:
+				url = str(ctx.author.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
 		else:
-			await self.get_image(ctx, file)
+			if file == discord.Member:
+				url = str(file.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
+			else:
+				await self.get_image(ctx, file)
 
 		await self.bot.loop.run_in_executor(None, self.do_brightness, ctx, amount)
 		await ctx.send(f'Brightness changed by a factor of `{amount}`.' ,file=discord.File(f'images/edited_images/{ctx.author.id}_brightness_{amount}.png'))
