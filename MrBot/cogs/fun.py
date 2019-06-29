@@ -32,15 +32,23 @@ class Fun(commands.Cog):
 		return ascii_image
 
 	@commands.command(name='ascii')
-	async def ascii(self, ctx, columns: int = None, rows: int = None, file: typing.Union[discord.User, discord.Member, str] = None):
+	async def ascii(self, ctx, columns: typing.Optional[int] = 50, rows: typing.Optional[int] = 25, file: typing.Union[discord.User, discord.Member, str] = None):
 		"""
-		Changes the brightness of an image by the factor specified.
+		Converts an image into ascii.
 
-		`amount` can be anything from 0 to 999999999. 0.00 to 1.00 will produce an image with less brightness and anything above 1 will increase the brightness.
+		`columns` can be anything from 0 to 1000, This will change how many rows the image is made from.
+		`rows` can be anything from 0 to 1000, This will change how many columns the image is made from.
 		`file` can be an attachment, url, or another discord user.
+
+		It is recommended to use twice the amount of rows for the columns paramater otherwise the image will appear distorted
 		"""
 		start = time.perf_counter()
 		await ctx.trigger_typing()
+
+		if rows > 1000:
+			return await ctx.send('That was not a valid number of rows, please enter something lower then `1000`')
+		if columns > 1000:
+			return await ctx.send('That was not a valid number of columns, please enter something lower then `1000`')
 
 		if not file:
 			if ctx.message.attachments:
@@ -50,11 +58,11 @@ class Fun(commands.Cog):
 				url = str(ctx.author.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 		else:
-			if file == discord.User or discord.Member:
+			if file.startswith('https://') or file.startswith('http://'):
+				await self.get_image(ctx, file)
+			elif file == discord.User or discord.Member:
 				url = str(file.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
-			else:
-				await self.get_image(ctx, file)
 
 		if rows and columns:
 			ascii_image = await self.bot.loop.run_in_executor(None, self.do_ascii, ctx, columns, rows)
