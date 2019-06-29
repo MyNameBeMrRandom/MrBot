@@ -7,6 +7,7 @@ import discord
 import typing
 import ascii
 import time
+import art
 
 
 # noinspection PyMethodMayBeStatic
@@ -32,13 +33,13 @@ class Fun(commands.Cog):
 		return ascii_image
 
 	@commands.command(name='ascii')
-	async def ascii(self, ctx, columns: typing.Optional[int] = 50, rows: typing.Optional[int] = 25, file: typing.Union[discord.User, discord.Member, str] = None):
+	async def ascii(self, ctx, columns: typing.Optional[int] = 50, rows: typing.Optional[int] = 25, image: typing.Union[discord.User, discord.Member, str] = None):
 		"""
 		Converts an image into ascii.
 
 		`columns` can be anything from 0 to 1000, This will change how many rows the image is made from.
 		`rows` can be anything from 0 to 1000, This will change how many columns the image is made from.
-		`file` can be an attachment, url, or another discord user.
+		`image` can be an attachment, url, or another discord user.
 
 		It is recommended to use twice the amount of rows for the columns paramater otherwise the image will appear distorted
 		"""
@@ -50,7 +51,7 @@ class Fun(commands.Cog):
 		if columns > 1000:
 			return await ctx.send('That was not a valid number of columns, please enter something lower then `1000`')
 
-		if not file:
+		if not image:
 			if ctx.message.attachments:
 				url = ctx.message.attachments[0].url
 				await self.get_image(ctx, url)
@@ -58,10 +59,10 @@ class Fun(commands.Cog):
 				url = str(ctx.author.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 		else:
-			if file.startswith('https://') or file.startswith('http://'):
-				await self.get_image(ctx, file)
-			elif file == discord.User or discord.Member:
-				url = str(file.avatar_url_as(format="png"))
+			if image.startswith('https://') or image.startswith('http://'):
+				await self.get_image(ctx, image)
+			elif image == discord.User or discord.Member:
+				url = str(image.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 
 		if rows and columns:
@@ -77,6 +78,11 @@ class Fun(commands.Cog):
 
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
+
+	@commands.command(name='font')
+	async def font(self, ctx):
+		print(0)
+
 
 def setup(bot):
 	bot.add_cog(Fun(bot))
