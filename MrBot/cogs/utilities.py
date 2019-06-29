@@ -48,7 +48,7 @@ class Utilities(commands.Cog):
 		seconds = round(second)
 		return f'{days} Days, {hours} Hours, {minutes} Minutes, {seconds} Seconds'
 
-	def guild_region(self, ctx):
+	def guild_region(self, guild):
 		guild = ctx.guild
 		if guild.region == discord.VoiceRegion.brazil:
 			return "Brazil"

@@ -3,6 +3,7 @@ import asyncio
 import yaml
 import time
 
+# Check to see what type of logging is enabled.
 def logging_check(guild, log_type):
 	try:
 		with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
@@ -17,12 +18,14 @@ def logging_check(guild, log_type):
 	except FileNotFoundError:
 		return False
 
+# Get a guilds logging channel.
 def get_logging_channel(guild):
 	with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		logging_channel = data['config']['logging_channel']
 		return logging_channel
 
+# Get a users status times.
 def get_status_times(ctx):
 	with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
@@ -44,24 +47,40 @@ def get_status_times(ctx):
 		else:
 			return online_time, offline_time, idle_time, dnd_time
 
+# Get information about someones account.
 def get_account_data(user, data_1, data_2):
 	with open(f'data/accounts/{user.id}.yaml', 'r', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		return_data = data[f'{data_1}'][f'{data_2}']
 	return return_data
 
+# Get information about a guild.
 def get_guild_data(guild, data_1, data_2):
 	with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		return_data = data[f'{data_1}'][f'{data_2}']
 	return return_data
 
+# Get bot stat information.
 def get_stat_data(data_1):
 	with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		return_data = data[data_1]
 	return return_data
 
+# Update a stat by 1.
+def update_stat_data(stat_type):
+	try:
+		with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
+			data = yaml.load(r, Loader=yaml.FullLoader)
+			stat = int(data[stat_type])
+			with open(f'data/stats/stats.yaml', 'w', encoding='utf8') as w:
+				data[stat_type] = stat + 1
+				yaml.dump(data, w)
+	except TypeError:
+		return
+
+# Create an account.
 def do_account_creation(ctx):
 	new_account = {
 		'info': {
@@ -96,6 +115,7 @@ def do_account_creation(ctx):
 		with open(f'data/accounts/{ctx.author.id}.yaml', 'w', encoding='utf8') as w:
 			yaml.dump(data, w)
 
+# Create a guild config
 def do_config_creation(ctx):
 	new_config = {
 		'config': {
@@ -132,6 +152,7 @@ def do_config_creation(ctx):
 	with open(f'data/guilds/{ctx.guild.id}.yaml', 'x', encoding='utf8') as x:
 		yaml.dump(new_config, x)
 
+# Interactice account creation.
 async def account_creation(ctx):
 	message = await ctx.send(f'\nWould you like to create an account? Type `yes` to continue account creation.')
 	def check(msg):
@@ -146,6 +167,7 @@ async def account_creation(ctx):
 	else:
 		return await message.edit(content='An account was not created.')
 
+# Interactive config creation.
 async def config_creation(ctx):
 	message = await ctx.send(f'Would you like to create a config for this guild? Type `yes` to continue config creation.')
 	def check(msg):
