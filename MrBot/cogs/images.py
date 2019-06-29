@@ -366,7 +366,7 @@ class Images(commands.Cog):
 			return await file_handling.account_creation(ctx)
 
 	@commands.command(name='sharpen')
-	async def sharpen(self, ctx, amount: float, file: typing.Union[discord.Member, str] = None):
+	async def sharpen(self, ctx, amount: float, file: typing.Union[discord.User, discord.Member, str] = None):
 		"""
 		Sharpens an image by the factor specified.
 
@@ -386,11 +386,12 @@ class Images(commands.Cog):
 				url = str(ctx.author.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 		else:
-			if file == discord.Member:
+			if file == discord.User or discord.Member:
 				url = str(file.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 			else:
 				await self.get_image(ctx, file)
+
 		await self.bot.loop.run_in_executor(None, self.do_sharpen, ctx, amount)
 		await ctx.send(f'Sharpened by a factor of `{amount}`.' ,file=discord.File(f'images/edited_images/{ctx.author.id}_sharpness_{amount}.png'))
 
@@ -398,7 +399,7 @@ class Images(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='contrast')
-	async def contrast(self, ctx, amount: float, file: typing.Union[discord.Member, str] = None):
+	async def contrast(self, ctx, amount: float, file: typing.Union[discord.User, discord.Member, str] = None):
 		"""
 		Changes the contrast of an image by the factor specified.
 
@@ -418,7 +419,7 @@ class Images(commands.Cog):
 				url = str(ctx.author.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 		else:
-			if file == discord.Member:
+			if file == discord.User or discord.Member:
 				url = str(file.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 			else:
@@ -431,7 +432,7 @@ class Images(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='colour')
-	async def colour(self, ctx, amount: float, file: typing.Union[discord.Member, str] = None):
+	async def colour(self, ctx, amount: float, file: typing.Union[discord.User, discord.Member, str] = None):
 		"""
 		Changes the colour of an image by the factor specified.
 
@@ -451,7 +452,7 @@ class Images(commands.Cog):
 				url = str(ctx.author.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 		else:
-			if file == discord.Member:
+			if file == discord.User or discord.Member:
 				url = str(file.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 			else:
@@ -464,7 +465,7 @@ class Images(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='brightness')
-	async def brightness(self, ctx, amount: float, file: typing.Union[discord.Member, str] = None):
+	async def brightness(self, ctx, amount: float, file: typing.Union[discord.User, discord.Member, str] = None):
 		"""
 		Changes the brightness of an image by the factor specified.
 
@@ -484,7 +485,7 @@ class Images(commands.Cog):
 				url = str(ctx.author.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 		else:
-			if file == discord.Member:
+			if file == discord.User or discord.Member:
 				url = str(file.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 			else:

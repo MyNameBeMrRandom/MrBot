@@ -602,8 +602,8 @@ class Events(commands.Cog):
 			return
 
 	# When a command errors. (Error handler)
-	@commands.Cog.listener()
-	async def on_command_error(self, ctx, error):
+	#@commands.Cog.listener()
+	#async def on_command_error(self, ctx, error):
 		error = getattr(error, 'original', error)
 		if hasattr(ctx.command, 'on_error'):
 			return
