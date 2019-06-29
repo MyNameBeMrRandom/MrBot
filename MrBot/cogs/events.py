@@ -598,7 +598,8 @@ class Events(commands.Cog):
 			return await self.bot.loop.run_in_executor(None, file_handling.update_stat_data, 'messages_sent')
 		if not message.author.bot:
 			return await self.bot.loop.run_in_executor(None, file_handling.update_stat_data, 'messages_seen')
-		await self.bot.process_commands(message)
+		if message.author.bot:
+			return
 
 	# When a command errors. (Error handler)
 	@commands.Cog.listener()
@@ -645,7 +646,6 @@ class Events(commands.Cog):
 	async def on_command_completion(self, ctx):
 		self.bot.logging.info(f'[COMMAND] - {ctx.author} used the command "{ctx.command}" in the guild "{ctx.guild}".')
 		return await self.bot.loop.run_in_executor(None, file_handling.update_stat_data, 'commands_run')
-
 
 
 def setup(bot):
