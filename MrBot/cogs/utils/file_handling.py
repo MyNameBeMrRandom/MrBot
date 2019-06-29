@@ -62,10 +62,10 @@ def get_guild_data(guild, data_1, data_2):
 	return return_data
 
 # Get bot stat information.
-def get_stat_data(data_1):
+def get_stat_data(stat_type):
 	with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
-		return_data = data[data_1]
+		return_data = data[f'{stat_type}']
 	return return_data
 
 # Update a stat by 1.
