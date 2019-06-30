@@ -16,9 +16,11 @@ class BgTasks(commands.Cog):
 	async def activity_changing(self):
 			await self.bot.wait_until_ready()
 			while not self.bot.is_closed():
-				await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.bot.guilds)} Guilds'))
+				await self.bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.bot.guilds)} Guilds.', ))
 				await asyncio.sleep(60)
-				await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.bot.users)} Members'))
+				await self.bot.change_presence(status=discord.Status.idle, activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.bot.users)} Users.'))
+				await asyncio.sleep(60)
+				await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Activity(type=discord.ActivityType.playing, name=f'Do "mb help"!'))
 				await asyncio.sleep(60)
 
 	async def update_guild_count(self):
