@@ -1,5 +1,5 @@
 from discord.ext import commands
-from .utils import get_user_info
+from .utils import get_information
 from .utils import file_handling
 import traceback
 import asyncio
@@ -156,7 +156,7 @@ class Events(commands.Cog):
 					description=f"This guilds region has changed.\n\n"
 				)
 				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{get_user_info.guild_region(before)}\n**After:**\n{get_user_info.guild_region(after)}'
+				embed.description += f'**Before:**\n{get_information.guild_region(before)}\n**After:**\n{get_information.guild_region(after)}'
 				return await channel.send(embed=embed)
 		# If the guilds afk timout has changed.
 		if not before.afk_timeout == after.afk_timeout:
@@ -236,7 +236,7 @@ class Events(commands.Cog):
 					description=f"This guilds default notification setting has changed.\n\n"
 				)
 				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{get_user_info.guild_notification_level(before)}\n**After:**\n{get_user_info.guild_notification_level(after)}'
+				embed.description += f'**Before:**\n{get_information.guild_notification_level(before)}\n**After:**\n{get_information.guild_notification_level(after)}'
 				return await channel.send(embed=embed)
 		# If the guilds description has changed.
 		if not before.description == after.description:
@@ -268,7 +268,7 @@ class Events(commands.Cog):
 					description=f"This guilds MFA level has changed.\n\n"
 				)
 				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{get_user_info.guild_mfa_level(before)}\n**After:**\n{get_user_info.guild_mfa_level(after)}'
+				embed.description += f'**Before:**\n{get_information.guild_mfa_level(before)}\n**After:**\n{get_information.guild_mfa_level(after)}'
 				return await channel.send(embed=embed)
 		# If the guilds verification level has changed.
 		if not before.verification_level == after.verification_level:
@@ -284,7 +284,7 @@ class Events(commands.Cog):
 					description=f"This guilds verification level has changed.\n\n"
 				)
 				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{get_user_info.guild_verification_level(before)}\n**After:**\n{get_user_info.guild_verification_level(after)}'
+				embed.description += f'**Before:**\n{get_information.guild_verification_level(before)}\n**After:**\n{get_information.guild_verification_level(after)}'
 				return await channel.send(embed=embed)
 		# If the guilds explicit content filter has changed.
 		if not before.explicit_content_filter == after.explicit_content_filter:
@@ -300,7 +300,7 @@ class Events(commands.Cog):
 					description=f"This guilds explicit content filter has changed.\n\n"
 				)
 				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{get_user_info.guild_content_filter_level(before)}\n**After:**\n{get_user_info.guild_content_filter_level(after)}'
+				embed.description += f'**Before:**\n{get_information.guild_content_filter_level(before)}\n**After:**\n{get_information.guild_content_filter_level(after)}'
 				return await channel.send(embed=embed)
 		# If the guilds splash has changed.
 		if not before.splash == after.splash:
@@ -386,7 +386,7 @@ class Events(commands.Cog):
 					description=f"**{before.name}**'s status has changed.\n\n"
 				)
 				embed.set_author(icon_url=useravatar, name=author)
-				embed.description += f'**Before:**\n{get_user_info.user_status(before)}\n**After:**\n{get_user_info.user_status(after)}'
+				embed.description += f'**Before:**\n{get_information.user_status(before)}\n**After:**\n{get_information.user_status(after)}'
 				return await channel.send(embed=embed)
 			try:
 				self.update_user_status(before, after)
@@ -445,7 +445,7 @@ class Events(commands.Cog):
 					description=f"**{before.name}**'s activity has changed.\n\n"
 				)
 				embed.set_author(icon_url=useravatar, name=author)
-				embed.description += f'**Before:**\n{get_user_info.user_activity(before)}\n**After:**\n{get_user_info.user_activity(after)}'
+				embed.description += f'**Before:**\n{get_information.user_activity(before)}\n**After:**\n{get_information.user_activity(after)}'
 				return await channel.send(embed=embed)
 		else:
 			return
