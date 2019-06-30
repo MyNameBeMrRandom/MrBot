@@ -1,3 +1,4 @@
+from .utils import get_information
 from discord.ext import commands
 from .utils import file_handling
 from .utils import calculations
@@ -48,52 +49,6 @@ class Utilities(commands.Cog):
 		seconds = round(second)
 		return f'{days} Days, {hours} Hours, {minutes} Minutes, {seconds} Seconds'
 
-	def guild_region(self, guild):
-		if guild.region == discord.VoiceRegion.brazil:
-			return "Brazil"
-		elif guild.region == discord.VoiceRegion.eu_central:
-			return "Central-Europe"
-		elif guild.region == discord.VoiceRegion.eu_west:
-			return "Western-Europe"
-		elif guild.region == discord.VoiceRegion.frankfurt:
-			return "Frankfurt"
-		elif guild.region == discord.VoiceRegion.hongkong:
-			return "Hong-Kong"
-		elif guild.region == discord.VoiceRegion.japan:
-			return "Japan"
-		elif guild.region == discord.VoiceRegion.london:
-			return "London"
-		elif guild.region == discord.VoiceRegion.russia:
-			return "Russia"
-		elif guild.region == discord.VoiceRegion.singapore:
-			return "Singapore"
-		elif guild.region == discord.VoiceRegion.southafrica:
-			return "South-Africa"
-		elif guild.region == discord.VoiceRegion.us_central:
-			return "Us-Central"
-		elif guild.region == discord.VoiceRegion.sydney:
-			return "Sydney"
-		elif guild.region == discord.VoiceRegion.us_east:
-			return "Us-East"
-		elif guild.region == discord.VoiceRegion.us_south:
-			return "Us-South"
-		elif guild.region == discord.VoiceRegion.us_west:
-			return "Us-West"
-		else:
-			return "N/A"
-
-	def user_status(self, user):
-		if user.status == discord.Status.online:
-			return "Online"
-		elif user.status == discord.Status.idle:
-			return "Idle"
-		elif user.status == discord.Status.dnd:
-			return "Do not Disturb"
-		elif user.status == discord.Status.offline:
-			return "Offline"
-		else:
-			return "Offline"
-
 	def user_color(self, user):
 		if user.status == discord.Status.online:
 			return 0x008000
@@ -105,24 +60,6 @@ class Utilities(commands.Cog):
 			return 0x808080
 		else:
 			return 0xFF8000
-
-	def user_activity(self, user):
-		if user.status == discord.Status.offline:
-			return 'N/A'
-		else:
-			try:
-				if user.activity.type == user.activity.type.playing:
-					return f'Playing: **{user.activity.name}**'
-				elif user.activity.type == user.activity.type.streaming:
-					return f'Streaming [{user.activity.name}]({user.activity.url})'
-				elif user.activity.type == user.activity.type.listening:
-					return f'Listening to {user.activity.name}: {user.activity.title}  *by*  {user.activity.artist}'
-				elif user.activity.type == user.activity.type.watching:
-					return f'Watching: {user.activity.name}'
-			except NameError:
-				return 'N/A'
-			except AttributeError:
-				return 'N/A'
 
 	def calculate_status_percentages(self, online_time, offline_time, idle_time, dnd_time):
 		total = online_time + offline_time + idle_time + dnd_time
@@ -206,10 +143,10 @@ class Utilities(commands.Cog):
 		embed.add_field(name='__**General information:**__', value=f'**Owner:** {ctx.guild.owner}\n'
 															       f'**Server created at:** {ctx.guild.created_at.__format__("%A %d %B %Y at %H:%M")}\n'
 															       f'**Members:** {ctx.guild.member_count}', inline=False)
-		embed.add_field(name='__**Voice channels:**__', value=f'**Region:** {self.guild_region(ctx.guild)}\n**Count:** {len(ctx.guild.voice_channels)}\n'
+		embed.add_field(name='__**Voice channels:**__', value=f'**Region:** {get_information.guild_region(ctx.guild)}\n**Count:** {len(ctx.guild.voice_channels)}\n'
 															  f'**AFK timeout:** {int(ctx.guild.afk_timeout/60)} minutes\n**AFK channel:** {ctx.guild.afk_channel}\n'
 															  f'', inline=False)
-		embed.add_field(name='__**Text channels:**__',value=f'**Region:** {self.guild_region(ctx)}\n**Count:** {len(ctx.guild.text_channels)}\n', inline=False)
+		embed.add_field(name='__**Text channels:**__',value=f'**Count:** {len(ctx.guild.text_channels)}\n', inline=False)
 		embed.add_field(name='__**Role information:**__',value=f'**Roles:** {", ".join([r.mention for r in ctx.guild.roles])}\n**Count:** {len(ctx.guild.roles)}\n', inline=False)
 		embed.set_thumbnail(url=ctx.guild.icon_url)
 		return await ctx.send(embed=embed)
@@ -230,7 +167,7 @@ class Utilities(commands.Cog):
 		embed.set_footer(text=f'ID: {user.id}')
 		embed.add_field(name='__**General information:**__', value=f'**Discord Name:** {user}\n**Nickname:** {user.nick}\n'
 																   f'**Account created at:** {user.created_at.__format__("%A %d %B %Y at %H:%M")}\n'
-																   f'**Status:** {self.user_status(user)}\n**Activity:** {self.user_activity(user)}', inline=False)
+																   f'**Status:** {get_information.user_status(user)}\n**Activity:** {get_information.user_activity(user)}', inline=False)
 		embed.add_field(name='__**Server-related information:**__', value=f'**Joined server at:** {user.joined_at.__format__("%A %d %B %Y at %H:%M")}\n'
 																		  f'**Roles:** {", ".join([r.mention for r in user.roles])}')
 		embed.set_thumbnail(url=user.avatar_url)
