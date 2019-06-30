@@ -1,4 +1,3 @@
-from itertools import zip_longest
 from discord.ext import commands
 from io import BytesIO
 from PIL import Image
@@ -9,6 +8,7 @@ import typing
 import ascii
 import time
 import art
+import re
 
 
 # noinspection PyMethodMayBeStatic
@@ -42,7 +42,7 @@ class Fun(commands.Cog):
 		return newline_text
 
 	@commands.command(name='ascii')
-	async def ascii(self, ctx, columns: typing.Optional[int] = 50, rows: typing.Optional[int] = 25, image: typing.Union[discord.User, discord.Member, str] = None):
+	async def ascii(self, ctx, columns: typing.Optional[int] = 50, rows: typing.Optional[int] = 25, image: typing.Union[discord.Member, discord.User, str] = None):
 		"""
 		Converts an image into ascii.
 
@@ -50,7 +50,7 @@ class Fun(commands.Cog):
 		`rows` can be anything from 0 to 1000, This will change how many columns the image is made from.
 		`image` can be an attachment, url, or another discord user.
 
-		It is recommended to use twice the amount of rows for the columns paramater otherwise the image will appear distorted
+		- When defining the amount of rows or columns, be sure to try and keep the aspect ratio of the image the same. For example if the image is square shaped, use twice the amount of columns as rows (1000, 500), if it is a rectangle use three times as many rows as columns (900, 300).
 		"""
 		start = time.perf_counter()
 		await ctx.trigger_typing()
@@ -60,18 +60,23 @@ class Fun(commands.Cog):
 		if columns > 1000:
 			return await ctx.send('That was not a valid number of columns, please enter something lower then `1000`')
 
-		if not image:
+		if image:
+			if isinstance(image, discord.Member or discord.User):
+				url = str(image.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
+			else:
+				match_url = re.compile('https?://(?:www\.)?.+/?')
+				check = match_url.match(image)
+				if check:
+					await self.get_image(ctx, image)
+				else:
+					return await ctx.send('That URL was not recognised.')
+		else:
 			if ctx.message.attachments:
 				url = ctx.message.attachments[0].url
 				await self.get_image(ctx, url)
 			else:
 				url = str(ctx.author.avatar_url_as(format="png"))
-				await self.get_image(ctx, url)
-		else:
-			if image.startswith('https://') or image.startswith('http://'):
-				await self.get_image(ctx, image)
-			elif image == discord.User or discord.Member:
-				url = str(image.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 
 		if rows and columns:
@@ -81,7 +86,7 @@ class Fun(commands.Cog):
 		if len(ascii_image) > 2000:
 			async with aiofiles.open(f'images/ascii/{ctx.author.id}_ascii.txt', mode='w') as f:
 				await f.write(ascii_image)
-			await ctx.send('The resulting art was too long, so i put it in this text file!', file=discord.File(f'images/ascii/{ctx.author.id}_ascii.txt'))
+			await ctx.send('The resulting art was too long, so i put it in this text file.', file=discord.File(f'images/ascii/{ctx.author.id}_ascii.txt'))
 		else:
 			await ctx.send(f'```{ascii_image}```')
 
@@ -89,7 +94,16 @@ class Fun(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='font')
-	async def font(self, ctx, font: str = None, *, text: str):
+	async def font(self, ctx, font: typing.Optional[str] = 'random', *, text: str):
+		"""
+		Generate ascii text with different fonts.
+
+		`font` can be anything from `mb fonts`.
+		`text` is the text you want the art to say.
+
+		- If you spell the fonts name wrong the bot will pick the closest matching one and use that, if you do not specify the font, a random font will be used.
+		- If the art generated is over 2000 characters, it will be put into a .txt file.
+		"""
 
 		start = time.perf_counter()
 		await ctx.trigger_typing()
@@ -99,7 +113,7 @@ class Fun(commands.Cog):
 			if len(ascii_text) > 2000:
 				async with aiofiles.open(f'images/ascii/{ctx.author.id}_font.txt', mode='w') as f:
 					await f.write(ascii_text)
-				await ctx.send('The resulting art was too long, so i put it in this text file!', file=discord.File(f'images/ascii/{ctx.author.id}_font.txt'))
+				await ctx.send('The resulting art was too long, so i put it in this text file.', file=discord.File(f'images/ascii/{ctx.author.id}_font.txt'))
 			else:
 				await ctx.send(f'```{ascii_text}```')
 		else:
@@ -108,7 +122,7 @@ class Fun(commands.Cog):
 				if len(ascii_text) > 2000:
 					async with aiofiles.open(f'images/ascii/{ctx.author.id}_font.txt', mode='w') as f:
 						await f.write(ascii_text)
-					await ctx.send('The resulting art was too long, so i put it in this text file!', file=discord.File(f'images/ascii/{ctx.author.id}_font.txt'))
+					await ctx.send('The resulting art was too long, so i put it in this text file.', file=discord.File(f'images/ascii/{ctx.author.id}_font.txt'))
 				else:
 					await ctx.send(f'```{ascii_text}```')
 			except art.artError:

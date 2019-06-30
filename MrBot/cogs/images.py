@@ -15,6 +15,7 @@ import typing
 import time
 import yaml
 import os
+import re
 
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
@@ -366,7 +367,7 @@ class Images(commands.Cog):
 			return await file_handling.account_creation(ctx)
 
 	@commands.command(name='sharpen')
-	async def sharpen(self, ctx, amount: float, image: typing.Union[discord.User, discord.Member, str] = None):
+	async def sharpen(self, ctx, amount: float, image: typing.Union[discord.Member, discord.User, str] = None):
 		"""
 		Sharpens an image by the factor specified.
 
@@ -378,18 +379,23 @@ class Images(commands.Cog):
 		if not 0 <= amount <= 999999999:
 			return await ctx.send('That was not a valid amount.')
 
-		if not image:
+		if image:
+			if isinstance(image, discord.Member or discord.User):
+				url = str(image.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
+			else:
+				match_url = re.compile('https?://(?:www\.)?.+/?')
+				check = match_url.match(image)
+				if check:
+					await self.get_image(ctx, image)
+				else:
+					return await ctx.send('That URL was not recognised.')
+		else:
 			if ctx.message.attachments:
 				url = ctx.message.attachments[0].url
 				await self.get_image(ctx, url)
 			else:
 				url = str(ctx.author.avatar_url_as(format="png"))
-				await self.get_image(ctx, url)
-		else:
-			if image.startswith('https://') or image.startswith('http://'):
-				await self.get_image(ctx, image)
-			elif image == discord.User or discord.Member:
-				url = str(image.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 
 		await self.bot.loop.run_in_executor(None, self.do_sharpen, ctx, amount)
@@ -399,7 +405,7 @@ class Images(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='contrast')
-	async def contrast(self, ctx, amount: float, image: typing.Union[discord.User, discord.Member, str] = None):
+	async def contrast(self, ctx, amount: float, image: typing.Union[discord.Member, discord.User, str] = None):
 		"""
 		Changes the contrast of an image by the factor specified.
 
@@ -411,18 +417,23 @@ class Images(commands.Cog):
 		if not 0 <= amount <= 999999999:
 			return await ctx.send('That was not a valid amount.')
 
-		if not image:
+		if image:
+			if isinstance(image, discord.Member or discord.User):
+				url = str(image.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
+			else:
+				match_url = re.compile('https?://(?:www\.)?.+/?')
+				check = match_url.match(image)
+				if check:
+					await self.get_image(ctx, image)
+				else:
+					return await ctx.send('That URL was not recognised.')
+		else:
 			if ctx.message.attachments:
 				url = ctx.message.attachments[0].url
 				await self.get_image(ctx, url)
 			else:
 				url = str(ctx.author.avatar_url_as(format="png"))
-				await self.get_image(ctx, url)
-		else:
-			if image.startswith('https://') or image.startswith('http://'):
-				await self.get_image(ctx, image)
-			elif image == discord.User or discord.Member:
-				url = str(image.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 
 		await self.bot.loop.run_in_executor(None, self.do_contrast, ctx, amount)
@@ -432,7 +443,7 @@ class Images(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='colour')
-	async def colour(self, ctx, amount: float, image: typing.Union[discord.User, discord.Member, str] = None):
+	async def colour(self, ctx, amount: float, image: typing.Union[discord.Member, discord.User, str] = None):
 		"""
 		Changes the colour of an image by the factor specified.
 
@@ -444,18 +455,23 @@ class Images(commands.Cog):
 		if not 0 <= amount <= 999999999:
 			return await ctx.send('That was not a valid amount.')
 
-		if not image:
+		if image:
+			if isinstance(image, discord.Member or discord.User):
+				url = str(image.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
+			else:
+				match_url = re.compile('https?://(?:www\.)?.+/?')
+				check = match_url.match(image)
+				if check:
+					await self.get_image(ctx, image)
+				else:
+					return await ctx.send('That URL was not recognised.')
+		else:
 			if ctx.message.attachments:
 				url = ctx.message.attachments[0].url
 				await self.get_image(ctx, url)
 			else:
 				url = str(ctx.author.avatar_url_as(format="png"))
-				await self.get_image(ctx, url)
-		else:
-			if image.startswith('https://') or image.startswith('http://'):
-				await self.get_image(ctx, image)
-			elif image == discord.User or discord.Member:
-				url = str(image.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 
 		await self.bot.loop.run_in_executor(None, self.do_colour, ctx, amount)
@@ -465,7 +481,7 @@ class Images(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='brightness')
-	async def brightness(self, ctx, amount: float, image: typing.Union[discord.User, discord.Member, str] = None):
+	async def brightness(self, ctx, amount: float, image: typing.Union[discord.Member, discord.User, str] = None):
 		"""
 		Changes the brightness of an image by the factor specified.
 
@@ -477,18 +493,23 @@ class Images(commands.Cog):
 		if not 0 <= amount <= 999999999:
 			return await ctx.send('That was not a valid amount.')
 
-		if not image:
+		if image:
+			if isinstance(image, discord.Member or discord.User):
+				url = str(image.avatar_url_as(format="png"))
+				await self.get_image(ctx, url)
+			else:
+				match_url = re.compile('https?://(?:www\.)?.+/?')
+				check = match_url.match(image)
+				if check:
+					await self.get_image(ctx, image)
+				else:
+					return await ctx.send('That URL was not recognised.')
+		else:
 			if ctx.message.attachments:
 				url = ctx.message.attachments[0].url
 				await self.get_image(ctx, url)
 			else:
 				url = str(ctx.author.avatar_url_as(format="png"))
-				await self.get_image(ctx, url)
-		else:
-			if image.startswith('https://') or image.startswith('http://'):
-				await self.get_image(ctx, image)
-			elif image == discord.User or discord.Member:
-				url = str(image.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 
 		await self.bot.loop.run_in_executor(None, self.do_brightness, ctx, amount)
