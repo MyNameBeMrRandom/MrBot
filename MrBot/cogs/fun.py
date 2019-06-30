@@ -118,8 +118,5 @@ class Fun(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 
-
-
-
 def setup(bot):
 	bot.add_cog(Fun(bot))

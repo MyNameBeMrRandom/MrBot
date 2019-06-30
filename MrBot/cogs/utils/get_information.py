@@ -3,15 +3,15 @@ import discord
 # Get a users activity.
 def user_activity(user):
 	try:
-		if user.status == user.status.offline:
+		if user.status == discord.Status.offline:
 			return 'N/A'
-		if user.activity.type == user.activity.type.playing:
+		if user.activity == discord.ActivityType.playing:
 			return f'Playing: **{user.activity.name}**'
-		elif user.activity.type == user.activity.type.streaming:
+		elif user.activity == discord.ActivityType.streaming:
 			return f'Streaming [{user.activity.name}]({user.activity.url})'
-		elif user.activity.type == user.activity.type.listening:
+		elif user.activity == discord.ActivityType.listening:
 			return f'Listening to {user.activity.name}: **{user.activity.title}**  by  **{user.activity.artist}**'
-		elif user.activity.type == user.activity.type.watching:
+		elif user.activity == discord.ActivityType.watching:
 			return f'Watching: {user.activity.name}'
 	except TypeError:
 		return 'N/A'
