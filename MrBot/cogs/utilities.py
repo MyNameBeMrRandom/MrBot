@@ -49,7 +49,6 @@ class Utilities(commands.Cog):
 		return f'{days} Days, {hours} Hours, {minutes} Minutes, {seconds} Seconds'
 
 	def guild_region(self, guild):
-		guild = ctx.guild
 		if guild.region == discord.VoiceRegion.brazil:
 			return "Brazil"
 		elif guild.region == discord.VoiceRegion.eu_central:
@@ -207,7 +206,7 @@ class Utilities(commands.Cog):
 		embed.add_field(name='__**General information:**__', value=f'**Owner:** {ctx.guild.owner}\n'
 															       f'**Server created at:** {ctx.guild.created_at.__format__("%A %d %B %Y at %H:%M")}\n'
 															       f'**Members:** {ctx.guild.member_count}', inline=False)
-		embed.add_field(name='__**Voice channels:**__', value=f'**Region:** {self.guild_region(ctx)}\n**Count:** {len(ctx.guild.voice_channels)}\n'
+		embed.add_field(name='__**Voice channels:**__', value=f'**Region:** {self.guild_region(ctx.guild)}\n**Count:** {len(ctx.guild.voice_channels)}\n'
 															  f'**AFK timeout:** {int(ctx.guild.afk_timeout/60)} minutes\n**AFK channel:** {ctx.guild.afk_channel}\n'
 															  f'', inline=False)
 		embed.add_field(name='__**Text channels:**__',value=f'**Region:** {self.guild_region(ctx)}\n**Count:** {len(ctx.guild.text_channels)}\n', inline=False)
