@@ -1,4 +1,5 @@
 from discord.ext import commands
+from discord.ext import buttons
 from io import BytesIO
 from PIL import Image
 import aiofiles
@@ -9,6 +10,12 @@ import ascii
 import time
 import art
 import re
+
+
+class MyPaginator(buttons.Paginator):
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
 
 # noinspection PyMethodMayBeStatic
@@ -55,10 +62,10 @@ class Fun(commands.Cog):
 		start = time.perf_counter()
 		await ctx.trigger_typing()
 
-		if rows > 1000:
-			return await ctx.send('That was not a valid number of rows, please enter something lower then `1000`')
-		if columns > 1000:
-			return await ctx.send('That was not a valid number of columns, please enter something lower then `1000`')
+		if 0 >= rows or rows > 1000:
+			return await ctx.send('That was not a valid number of rows, please enter something lower then `1000` and higher then `0`')
+		if 0 >= columns or columns > 1000:
+			return await ctx.send('That was not a valid number of columns, please enter something lower then `1000` and higher then `0`')
 
 		if image:
 			if isinstance(image, discord.Member or discord.User):
@@ -68,9 +75,12 @@ class Fun(commands.Cog):
 				match_url = re.compile('https?://(?:www\.)?.+/?')
 				check = match_url.match(image)
 				if check:
-					await self.get_image(ctx, image)
+					try:
+						await self.get_image(ctx, image)
+					except OSError:
+						return await ctx.send('That URL was not an image.')
 				else:
-					return await ctx.send('That URL was not recognised.')
+					return await ctx.send('That was not recognised as a URL.')
 		else:
 			if ctx.message.attachments:
 				url = ctx.message.attachments[0].url
@@ -86,7 +96,7 @@ class Fun(commands.Cog):
 		if len(ascii_image) > 2000:
 			async with aiofiles.open(f'images/ascii/{ctx.author.id}_ascii.txt', mode='w') as f:
 				await f.write(ascii_image)
-			await ctx.send('The resulting art was too long, so i put it in this text file.', file=discord.File(f'images/ascii/{ctx.author.id}_ascii.txt'))
+			await ctx.send('The resulting art was too long, so I put it in this text file.', file=discord.File(f'images/ascii/{ctx.author.id}_ascii.txt'))
 		else:
 			await ctx.send(f'```{ascii_image}```')
 
@@ -94,7 +104,7 @@ class Fun(commands.Cog):
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.command(name='font')
-	async def font(self, ctx, font: typing.Optional[str] = 'random', *, text: str):
+	async def font(self, ctx, font: str, *, text: str):
 		"""
 		Generate ascii text with different fonts.
 
@@ -113,11 +123,13 @@ class Fun(commands.Cog):
 			if len(ascii_text) > 2000:
 				async with aiofiles.open(f'images/ascii/{ctx.author.id}_font.txt', mode='w') as f:
 					await f.write(ascii_text)
-				await ctx.send('The resulting art was too long, so i put it in this text file.', file=discord.File(f'images/ascii/{ctx.author.id}_font.txt'))
+				await ctx.send('The resulting art was too long, so I put it in this text file.', file=discord.File(f'images/ascii/{ctx.author.id}_font.txt'))
 			else:
 				await ctx.send(f'```{ascii_text}```')
 		else:
 			try:
+				if isinstance(text, discord.Emoji):
+					return await ctx.send(f'Do not use emojis in the text')
 				ascii_text = art.text2art(self.do_newline(text, 3),font=font, chr_ignore=True)
 				if len(ascii_text) > 2000:
 					async with aiofiles.open(f'images/ascii/{ctx.author.id}_font.txt', mode='w') as f:
@@ -130,6 +142,14 @@ class Fun(commands.Cog):
 
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
+
+	@commands.command(name='fonts')
+	async def fonts(self, ctx):
+
+		pagey = MyPaginator(title='Silly Paginator', colour=0xc67862, embed=True, timeout=90, use_defaults=True,
+		                    entries=art.font_list(), length=1, format='**')
+
+		await pagey.start(ctx)
 
 
 def setup(bot):
