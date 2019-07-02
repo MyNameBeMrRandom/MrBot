@@ -114,7 +114,7 @@ class Events(commands.Cog):
 	async def on_guild_join(self, guild):
 		self.bot.logging.info(f'[GUILD] - Joined the guild {guild.name}.')
 		channel = self.bot.get_channel(516002789617434664)
-		return await channel.send(f'{self.bot.name} joined a guild called `{guild.name}`')
+		return await channel.send(f'{self.bot} joined a guild called `{guild.name}`')
 
 	# When the bot leaves the guild.
 	@commands.Cog.listener()
@@ -559,6 +559,8 @@ class Events(commands.Cog):
 				else:
 					embed.description += f'**Before:**\n{before.content}\n**After:**\n{after.content}'
 				return await channel.send(embed=embed)
+		if not after.embeds and not after.pinned:
+			await self.bot.process_commands(after)
 		else:
 			return
 
@@ -615,7 +617,7 @@ class Events(commands.Cog):
 		elif isinstance(error, commands.DisabledCommand):
 			return await ctx.send(f"The command `{ctx.command}` is currently disabled.")
 		elif isinstance(error, commands.CommandNotFound):
-			return await ctx.send(f"The command `{ctx.message.clean_content}` was not found.")
+			return
 		elif isinstance(error, commands.CommandOnCooldown):
 			return await ctx.send(f"The command `{ctx.command}` is on cooldown, retry in {round(error.retry_after, 2)}s.")
 		elif isinstance(error, commands.MissingRequiredArgument):
