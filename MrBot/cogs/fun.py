@@ -89,10 +89,8 @@ class Fun(commands.Cog):
 				url = str(ctx.author.avatar_url_as(format="png"))
 				await self.get_image(ctx, url)
 
-		if rows and columns:
-			ascii_image = await self.bot.loop.run_in_executor(None, self.do_ascii, ctx, columns, rows)
-		else:
-			ascii_image = await self.bot.loop.run_in_executor(None, self.do_ascii, ctx, 50, 25)
+		ascii_image = await self.bot.loop.run_in_executor(None, self.do_ascii, ctx, columns, rows)
+
 		if len(ascii_image) > 2000:
 			async with aiofiles.open(f'images/ascii/{ctx.author.id}_ascii.txt', mode='w') as f:
 				await f.write(ascii_image)

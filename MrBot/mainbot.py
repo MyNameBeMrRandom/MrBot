@@ -24,7 +24,7 @@ extensions = [
 	'cogs.images',
 	'cogs.admin',
 	'cogs.owner',
-	#'cogs.voice',
+	'cogs.voice',
 	'cogs.help',
 	'cogs.fun',
 	'jishaku',

@@ -74,7 +74,7 @@ class KrossServer(commands.Cog):
 		axs.legend(labels, loc="best")
 		axs.axis('equal')
 		plt.tight_layout()
-		plt.savefig(f'images/pie_charts/point_pie.png', transparent=True)
+		plt.savefig(f'images/charts/point_pie.png', transparent=True)
 		plt.close()
 
 	@commands.Cog.listener()
@@ -229,7 +229,7 @@ class KrossServer(commands.Cog):
 			start = time.perf_counter()
 			await ctx.trigger_typing()
 			await self.bot.loop.run_in_executor(None, self.do_point_pie, ctx)
-			await ctx.send(file=discord.File(f'images/pie_charts/point_pie.png'))
+			await ctx.send(file=discord.File(f'images/charts/point_pie.png'))
 			end = time.perf_counter()
 			return await ctx.send(f'That took {end - start:.3f}sec to complete')
 		else:
