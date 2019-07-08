@@ -114,7 +114,7 @@ class Events(commands.Cog):
 	async def on_guild_join(self, guild):
 		self.bot.logging.info(f'[GUILD] - Joined the guild {guild.name}.')
 		channel = self.bot.get_channel(516002789617434664)
-		return await channel.send(f'{self.bot} joined a guild called `{guild.name}`')
+		return await channel.send(f'{self.bot.name} joined a guild called `{guild.name}`')
 
 	# When the bot leaves the guild.
 	@commands.Cog.listener()
