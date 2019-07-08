@@ -29,7 +29,6 @@ extensions = [
 	'cogs.fun',
 	'jishaku',
 
-
 ]
 
 logger = logging.getLogger('MrBot')
@@ -66,8 +65,8 @@ class MrBot(commands.AutoShardedBot):
 				self.load_extension(ext)
 				print(f'Success - {ext}')
 				logger.info(f'[EXT] - Successfully loaded - {ext}')
-			except Exception:
-				print(f'Failed - {ext}')
+			except Exception as e :
+				print(f'Failed - {ext}\n\n{e}\n')
 				logger.warning(f'[EXT] - Failed to load - {ext}')
 
 	async def bot_logout(self):

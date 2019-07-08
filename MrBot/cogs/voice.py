@@ -27,6 +27,7 @@ class Player(andesite.Player):
 		self.queue = asyncio.Queue()
 		self.volume = 50
 		self.paused = False
+		self.bot.loop_queue = False
 
 	async def player_loop(self):
 		await self.bot.wait_until_ready()
@@ -41,6 +42,8 @@ class Player(andesite.Player):
 			await self.play(song)
 			await self.invoke_controller()
 			await self.bot.wait_for("andesite_track_end", check=lambda p: p.player.guild_id == self.guild_id)
+			if self.bot.loop_queue is True:
+				await self.queue.put(self.current)
 
 	async def invoke_controller(self, track: andesite.Track = None):
 		if not track:
@@ -49,13 +52,14 @@ class Player(andesite.Player):
 		embed.set_thumbnail(url=f'https://img.youtube.com/vi/{track.yt_id}/hqdefault.jpg')
 		embed.add_field(name=f'Now playing:', value=f'**[{track.title}]({track.uri})**', inline=False)
 		if track.is_stream:
-			embed.add_field(name='Time:', value='Live stream')
+			embed.add_field(name='Time:', value='`Live stream`')
 		else:
 			embed.add_field(name='Time:', value=f'{str(datetime.timedelta(milliseconds=int(self.last_position))).split(".")[0]}/{str(datetime.timedelta(milliseconds=int(track.length)))}')
 		embed.add_field(name='Requester:', value=track.requester.mention)
 		embed.add_field(name='Volume:', value=f'{self.volume}%')
+		# embed.add_field(name=f'Filter:', value=f'Current: {self.filter}')
 		embed.add_field(name='Queue Length:', value=str(len(self.queue._queue)))
-		#embed.add_field(name=f'Filter:', value=f'Current: {self.filter}')
+		embed.add_field(name='Queue looped:', value=self.bot.loop_queue)
 		await track.channel.send(embed=embed)
 
 
@@ -84,10 +88,61 @@ class Voice(commands.Cog):
 				identifier=n['identifier']
 				)
 
+	@commands.command(name='now_playing', aliases=['np'])
+	async def now_playing(self, ctx):
+		"""
+		Display information about the current song/queue status.
+		"""
+
+		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		useravatar = ctx.author.avatar_url
+		author = ctx.author.name
+
+		if player.is_connected:
+			if not player.current:
+				return await ctx.send('No video/songs currently playing.')
+			await player.invoke_controller()
+		else:
+			return await ctx.send(f'MrBot is not currently in any voice channels.')
+
+	@commands.command(name='play')
+	async def play(self, ctx, *, search: str):
+		"""
+		Plays a song using a link or search query.
+
+		`search` will default to a Youtube search however it also accepts links from SoundCloud and Twitch.
+		"""
+
+		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		useravatar = ctx.author.avatar_url
+		author = ctx.author.name
+
+		try:
+			await self.do_join(player, ctx.author.voice.channel)
+		except AttributeError:
+			return await ctx.send(f'You must be in a voice channel to use this command.')
+
+		if not player.is_connected:
+			return await ctx.send(f'Something went wrong! You should not see this.')
+
+		await ctx.trigger_typing()
+		tracks = await player.node.get_tracks(f"{search}")
+		if not tracks:
+			return await ctx.send(f'No results were found for the search term `{search}`.')
+
+		if isinstance(tracks, andesite.Playlist):
+			for t in tracks.tracks:
+				await player.queue.put(Track(t.id, t.data, ctx=ctx))
+			await ctx.send(f'Added the playlist **{tracks.name}** to the queue with a total of **{len(tracks.tracks)}** entries.')
+		else:
+			track = tracks[0]
+			await player.queue.put(Track(track.id, track.data, ctx=ctx))
+			await ctx.send(f'Added the video **{track.title}** to the queue.')
+
 	@commands.command(name='join', aliases=['connect'])
 	async def join(self, ctx):
 		"""
-		Joins or moves to the users or a specified channel.
+		Joins or moves to the users voice channel.
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
@@ -97,20 +152,16 @@ class Voice(commands.Cog):
 		try:
 			channel = ctx.author.voice.channel
 		except AttributeError:
-			return await ctx.send('No voice channel found. Please join a voice channel and reuse this command.')
+			return await ctx.send('Join the same voice channel as MrBot to use this command.')
 
 		if player.is_connected:
-			if not ctx.guild.me.voice.channel.id == channel.id:
-				await self.do_join(player, channel)
-				return await ctx.send(f'MrBot moved to the voice channel `{channel}`')
-			else:
+			if ctx.guild.me.voice.channel.id == channel.id:
 				return await ctx.send('I am already in that voice channel.')
+			await self.do_join(player, channel)
+			return await ctx.send(f'MrBot moved to the voice channel `{channel}`')
 		else:
-			try:
-				await self.do_join(player, channel)
-				return await ctx.send(f'MrBot joined the voice channel `{channel}`')
-			except Exception as e:
-				print(e)
+			await self.do_join(player, channel)
+			return await ctx.send(f'MrBot joined the voice channel `{channel}`')
 
 	async def do_join(self, player, channel):
 		await player.connect(channel.id)
@@ -129,12 +180,11 @@ class Voice(commands.Cog):
 			try:
 				channel = ctx.author.voice.channel
 			except AttributeError:
-				return await ctx.send(f'You are not in a voice channel, join the same voice channel as the bot to use this command.')
-			if channel == ctx.guild.me.voice.channel:
-				await ctx.send(f'Left the voice channel `{ctx.guild.me.voice.channel}`.')
-				return await self.do_leave(player)
-			else:
-				return await ctx.send(f'You need to be in the same voice channel as MrBot to use this command.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not channel == ctx.guild.me.voice.channel:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			await ctx.send(f'Left the voice channel `{ctx.guild.me.voice.channel}`.')
+			return await self.do_leave(player)
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
@@ -142,42 +192,10 @@ class Voice(commands.Cog):
 		await player.disconnect()
 		await player.destroy()
 
-	@commands.command(name='play')
-	async def play(self, ctx, *, search: str):
-		"""
-		Plays a song using a link or search query.
-		"""
-
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
-
-		try:
-			await self.do_join(player, ctx.author.voice.channel)
-		except AttributeError:
-			return await ctx.send(f'You must be in a voice channel to use this command.')
-
-		if not player.is_connected:
-			return await ctx.send(f'Something went wrong! You should not see this.')
-
-		await ctx.trigger_typing()
-		tracks = await player.node.get_tracks(f"{search}")
-		if not tracks:
-			return await ctx.send(f'No results were found for the search term {search}.')
-
-		if isinstance(tracks, andesite.Playlist):
-			for t in tracks.tracks:
-				await player.queue.put(Track(t.id, t.data, ctx=ctx))
-			await ctx.send(f'Added the playlist **{tracks.name}** to the queue with a total of **{len(tracks.tracks)}** entries.')
-		else:
-			track = tracks[0]
-			await player.queue.put(Track(track.id, track.data, ctx=ctx))
-			await ctx.send(f'Added the video **{track.title}** to the queue.')
-
 	@commands.command(name='pause')
 	async def pause(self, ctx):
 		"""
-		Pause the current song.
+		Pauses the current song.
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
@@ -188,17 +206,16 @@ class Voice(commands.Cog):
 			try:
 				channel = ctx.author.voice.channel
 			except AttributeError:
-				return await ctx.send(f'You are not in a voice channel, join the same voice channel as the bot to use this command.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if not player.current:
-				return await ctx.send('No songs/videos currently playing')
+				return await ctx.send('No songs/videos currently playing.')
 			if not channel == ctx.guild.me.voice.channel:
-				return await ctx.send(f'You need to be in the same voice channel as MrBot to use this command.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if not player.paused:
 				await ctx.send(f'Paused the current video/song.')
 				return await self.do_pause(player)
 			else:
 				return await ctx.send('The video/song is already paused.')
-
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
@@ -219,13 +236,13 @@ class Voice(commands.Cog):
 			try:
 				channel = ctx.author.voice.channel
 			except AttributeError:
-				return await ctx.send(f'You are not in a voice channel, join the same voice channel as the bot to use this command.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if not player.current:
-				return await ctx.send('No songs/videos currently playing')
+				return await ctx.send('No songs/videos currently playing.')
 			if not channel == ctx.guild.me.voice.channel:
-				return await ctx.send(f'You need to be in the same voice channel as MrBot to use this command.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if player.paused:
-				await ctx.send(f'Resumed the current video/song.')
+				await ctx.send(f'Resumed playback of the current video/song.')
 				return await self.do_resume(player)
 			else:
 				return await ctx.send('The video/song is not paused.')
@@ -250,13 +267,13 @@ class Voice(commands.Cog):
 			try:
 				channel = ctx.author.voice.channel
 			except AttributeError:
-				return await ctx.send(f'You are not in a voice channel, join the same voice channel as the bot to use this command.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if not player.current:
-				return await ctx.send('No songs/videos currently playing')
+				return await ctx.send('No songs/videos currently playing.')
 			if not channel == ctx.guild.me.voice.channel:
-				return await ctx.send(f'You need to be in the same voice channel as MrBot to use this command.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if player.current.requester.id == ctx.author.id:
-				await ctx.send(f'The requester of the current song has skipped the current song.')
+				await ctx.send(f'The requester of the current song has skipped the song.')
 				return await self.do_skip(player)
 			else:
 				await ctx.send('Vote skipping coming soon.')
@@ -266,17 +283,10 @@ class Voice(commands.Cog):
 	async def do_skip(self, player):
 		await player.stop()
 
-	@commands.command(name='eq', aliases=['set_eq'])
-	async def eq(self, ctx):
+	@commands.command(name='volume', aliases=['vol'])
+	async def volume(self, ctx, volume: int):
 		"""
-		Change the equalizer of the player.
-		"""
-		return await ctx.send('Waiting on lib updates to make this work.')
-
-	@commands.command(name='now_playing', aliases=['np'])
-	async def now_playing(self, ctx):
-		"""
-		Display information about the current song.
+		Changes the volume of the player.
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
@@ -284,16 +294,34 @@ class Voice(commands.Cog):
 		author = ctx.author.name
 
 		if player.is_connected:
-			if not player.current:
-				return await ctx.send('No video/songs currently playing.')
-			await player.invoke_controller()
+			try:
+				channel = ctx.author.voice.channel
+			except AttributeError:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not channel == ctx.guild.me.voice.channel:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not 0 < volume < 101:
+				return await ctx.send(f'Please enter a value between 1 and 100.')
+			await ctx.send(f'Changed the players volume to `{volume}%`.')
+			return await self.do_volume(player, volume)
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
-	@commands.command(name='queue', aliases=['q'])
+	async def do_volume(self, player, volume):
+		await player.set_volume(volume)
+		player.volume = volume
+
+	# @commands.command(name='eq', aliases=['set_eq'])
+	# async def eq(self, ctx):
+	#   """
+	#   Change the equalizer of the player.
+	#   """
+	#   return await ctx.send('Waiting on lib updates to make this work.')
+
+	@commands.group(name='queue', aliases=['q'], invoke_without_command=True)
 	async def queue(self, ctx):
 		"""
-		Display a list of upcoming songs.
+		Display a list of the current queue.
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
@@ -307,8 +335,8 @@ class Voice(commands.Cog):
 			else:
 				message = ""
 				counter = 1
-				for song in upcoming:
-					message += f'**{counter}.** {str(song)}\n'
+				for track in upcoming:
+					message += f'**{counter}.** {str(track)}\n'
 					counter += 1
 				embed = discord.Embed(
 					colour=0x57FFF5,
@@ -319,7 +347,7 @@ class Voice(commands.Cog):
 				embed.set_author(icon_url=useravatar, name=author)
 				return await ctx.send(embed=embed)
 
-	@commands.command(name='shuffle')
+	@queue.command(name='shuffle')
 	async def shuffle(self, ctx):
 		"""
 		Shuffle the queue.
@@ -333,23 +361,23 @@ class Voice(commands.Cog):
 			try:
 				channel = ctx.author.voice.channel
 			except AttributeError:
-				return await ctx.send(f'You are not in a voice channel, join the same voice channel as the bot to use this command.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if len(player.queue._queue) <= 1:
-				return await ctx.send('Please add more songs to the queue to shuffle.')
+				return await ctx.send('Add videos/songs to the queue to enable queue shuffling.')
 			if not channel == ctx.guild.me.voice.channel:
-				return await ctx.send(f'You need to be in the same voice channel as MrBot to use this command.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			await self.do_shuffle(player)
-			return await ctx.send(f'Randomly shuffled the queue.')
+			return await ctx.send(f'The queue has been shuffled.')
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
 	async def do_shuffle(self, player):
 		random.shuffle(player.queue._queue)
 
-	@commands.command(name='loop')
+	@queue.command(name='loop')
 	async def loop(self, ctx):
 		"""
-		Repeat the queue once.
+		Loop the queue.
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
@@ -360,22 +388,78 @@ class Voice(commands.Cog):
 			try:
 				channel = ctx.author.voice.channel
 			except AttributeError:
-				return await ctx.send(f'You are not in a voice channel, join the same voice channel as the bot to use this command.')
-			if len(player.queue._queue) <= 0:
-				return await ctx.send('Please add more songs to the queue to loop.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not player.current and not player.queue._queue:
+				return await ctx.send('Add videos/songs to the queue to enable queue looping.')
 			if not channel == ctx.guild.me.voice.channel:
-				return await ctx.send(f'You need to be in the same voice channel as MrBot to use this command.')
-			await self.do_loop(player)
-			return await ctx.send(f'The queue will now loop.')
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			await self.do_loop()
+			if self.bot.loop_queue is True:
+				return await ctx.send(f'The queue will now loop.')
+			else:
+				return await ctx.send(f'The queue will stop looping.')
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
-	async def do_loop(self, player):
-		if not player.queue._queue:
-			await player.queue.put(player.current)
+	async def do_loop(self):
+		if self.bot.loop_queue is False:
+			self.bot.loop_queue = True
 		else:
-			player.queue._queue.appendleft(player.current)
-		player.update = True
+			self.bot.loop_queue = False
+
+	@queue.command(name='clear')
+	async def clear(self, ctx):
+		"""
+		Clear the queue of all entries.
+		"""
+
+		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		useravatar = ctx.author.avatar_url
+		author = ctx.author.name
+
+		if player.is_connected:
+			try:
+				channel = ctx.author.voice.channel
+			except AttributeError:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not player.current and not player.queue._queue:
+				return await ctx.send('Add videos/songs to the queue to enable queue clearing.')
+			if not channel == ctx.guild.me.voice.channel:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			await self.do_clear(player)
+			return await ctx.send(f'Cleared the queue.')
+		else:
+			return await ctx.send(f'MrBot is not currently in any voice channels.')
+
+	async def do_clear(self, player):
+		await player.queue.clear()
+
+	@queue.command(name='remove')
+	async def remove(self, ctx, entry: int):
+		"""
+		Remove an entry from the queue.
+		"""
+
+		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		useravatar = ctx.author.avatar_url
+		author = ctx.author.name
+
+		if player.is_connected:
+			try:
+				channel = ctx.author.voice.channel
+			except AttributeError:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not player.current and not player.queue._queue:
+				return await ctx.send('Add videos/songs to the queue to enable queue entry removing.')
+			if not channel == ctx.guild.me.voice.channel:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			await self.do_remove(player)
+			return await ctx.send(f'Cleared the queue.')
+		else:
+			return await ctx.send(f'MrBot is not currently in any voice channels.')
+
+	async def do_remove(self, player):
+		await player.queue.clear()
 
 
 def setup(bot):
