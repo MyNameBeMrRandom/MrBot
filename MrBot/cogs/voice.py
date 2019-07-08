@@ -432,7 +432,7 @@ class Voice(commands.Cog):
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
 	async def do_clear(self, player):
-		await player.queue.clear()
+		player.queue._queue.clear()
 
 	@queue.command(name='remove')
 	async def remove(self, ctx, entry: int):
@@ -453,13 +453,13 @@ class Voice(commands.Cog):
 				return await ctx.send('Add videos/songs to the queue to enable queue entry removing.')
 			if not channel == ctx.guild.me.voice.channel:
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-			await self.do_remove(player)
+			await self.do_remove(player, entry)
 			return await ctx.send(f'Cleared the queue.')
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
-	async def do_remove(self, player):
-		await player.queue.clear()
+	async def do_remove(self, player, entry):
+		player.queue.pop(entry)
 
 
 def setup(bot):
