@@ -1,8 +1,8 @@
 *.pyc
-MrBot/config.py
-MrBot/logs/mrbot.log
 *.png
 *.yaml
 *.txt
-avatar1_gWK_icon.ico
 *.ini
+MrBot/config.py
+MrBot/logs/mrbot.log
+MrBot.ico

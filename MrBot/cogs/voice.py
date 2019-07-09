@@ -1,6 +1,5 @@
 from discord.ext import commands
 import itertools
-import datetime
 import andesite
 import asyncio
 import discord
@@ -29,6 +28,36 @@ class Player(andesite.Player):
 		self.paused = False
 		self.bot.loop_queue = False
 
+	def get_time(self, second):
+		minute, second = divmod(second, 60)
+		hour, minute = divmod(minute, 60)
+		hours = round(hour)
+		minutes = round(minute)
+		seconds = round(second)
+		message = ""
+		if not hours == 0:
+			if hours < 10:
+				message += f'0{hours}:'
+			else:
+				message += f'{hours}:'
+		else:
+			message += '00:'
+		if not minutes == 0:
+			if minutes < 10:
+				message += f'0{minutes}:'
+			else:
+				message += f'{minutes}:'
+		else:
+			message += '00:'
+		if not seconds == 0:
+			if seconds < 10:
+				message += f'0{seconds}'
+			else:
+				message += f'{seconds}'
+		else:
+			message += '00'
+		return message
+
 	async def player_loop(self):
 		await self.bot.wait_until_ready()
 		await self.set_volume(self.volume)
@@ -54,12 +83,12 @@ class Player(andesite.Player):
 		if track.is_stream:
 			embed.add_field(name='Time:', value='`Live stream`')
 		else:
-			embed.add_field(name='Time:', value=f'{str(datetime.timedelta(milliseconds=int(self.last_position))).split(".")[0]}/{str(datetime.timedelta(milliseconds=int(track.length)))}')
+			embed.add_field(name='Time:', value=f'`{self.get_time(self.last_position / 1000)}` / `{self.get_time(track.length / 1000)}`')
+		embed.add_field(name='Volume:', value=f'`{self.volume}%`')
+		embed.add_field(name='Queue Length:', value=f'`{str(len(self.queue._queue))}`')
+		embed.add_field(name='Queue looped:', value=f'`{self.bot.loop_queue}`')
 		embed.add_field(name='Requester:', value=track.requester.mention)
-		embed.add_field(name='Volume:', value=f'{self.volume}%')
 		# embed.add_field(name=f'Filter:', value=f'Current: {self.filter}')
-		embed.add_field(name='Queue Length:', value=str(len(self.queue._queue)))
-		embed.add_field(name='Queue looped:', value=self.bot.loop_queue)
 		await track.channel.send(embed=embed)
 
 
@@ -87,6 +116,36 @@ class Voice(commands.Cog):
 				password=n['password'],
 				identifier=n['identifier']
 				)
+
+	def get_time(self, second):
+		minute, second = divmod(second, 60)
+		hour, minute = divmod(minute, 60)
+		hours = round(hour)
+		minutes = round(minute)
+		seconds = round(second)
+		message = ""
+		if not hours == 0:
+			if hours < 10:
+				message += f'0{hours}:'
+			else:
+				message += f'{hours}:'
+		else:
+			message += '00:'
+		if not minutes == 0:
+			if minutes < 10:
+				message += f'0{minutes}:'
+			else:
+				message += f'{minutes}:'
+		else:
+			message += '00:'
+		if not seconds == 0:
+			if seconds < 10:
+				message += f'0{seconds}'
+			else:
+				message += f'{seconds}'
+		else:
+			message += '00'
+		return message
 
 	@commands.command(name='now_playing', aliases=['np'])
 	async def now_playing(self, ctx):
@@ -301,7 +360,7 @@ class Voice(commands.Cog):
 			if not channel == ctx.guild.me.voice.channel:
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if not 0 < volume < 101:
-				return await ctx.send(f'Please enter a value between 1 and 100.')
+				return await ctx.send(f'Please enter a value between `1` and and `100`.')
 			await ctx.send(f'Changed the players volume to `{volume}%`.')
 			return await self.do_volume(player, volume)
 		else:
@@ -310,6 +369,40 @@ class Voice(commands.Cog):
 	async def do_volume(self, player, volume):
 		await player.set_volume(volume)
 		player.volume = volume
+
+	@commands.command(name='seek')
+	async def seek(self, ctx, position: int):
+		"""
+		Changes the postion of the player.
+
+		`position` can be the time you want to skip to in seconds.
+		"""
+
+		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		useravatar = ctx.author.avatar_url
+		author = ctx.author.name
+
+		milliseconds = position * 1000
+
+		if player.is_connected:
+			try:
+				channel = ctx.author.voice.channel
+			except AttributeError:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not channel == ctx.guild.me.voice.channel:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not player.current:
+				return await ctx.send('No songs/videos currently playing.')
+			if not 0 <= milliseconds <= player.current.length:
+				return await ctx.send(f'Please enter a value between `1` and and `{round(player.current.length / 1000)}`.')
+			await self.do_seek(player, milliseconds)
+			return await ctx.send(f'Changed the players position to `{self.get_time(milliseconds / 1000)}`.')
+		else:
+			return await ctx.send(f'MrBot is not currently in any voice channels.')
+
+	async def do_seek(self, player, milliseconds):
+		await player.seek(milliseconds)
+
 
 	# @commands.command(name='eq', aliases=['set_eq'])
 	# async def eq(self, ctx):
@@ -434,11 +527,13 @@ class Voice(commands.Cog):
 	async def do_clear(self, player):
 		player.queue._queue.clear()
 
+	"""
 	@queue.command(name='remove')
 	async def remove(self, ctx, entry: int):
-		"""
+	
+	
 		Remove an entry from the queue.
-		"""
+
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
 		useravatar = ctx.author.avatar_url
@@ -460,6 +555,7 @@ class Voice(commands.Cog):
 
 	async def do_remove(self, player, entry):
 		player.queue.pop(entry)
+	"""
 
 
 def setup(bot):
