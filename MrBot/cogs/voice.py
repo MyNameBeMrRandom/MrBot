@@ -7,7 +7,45 @@ import config
 import random
 
 
+def get_time(second):
+	"""
+	Converts an amount of seconds into a readable format.
+	"""
+
+	minute, second = divmod(second, 60)
+	hour, minute = divmod(minute, 60)
+	hours = round(hour)
+	minutes = round(minute)
+	seconds = round(second)
+	message = ""
+	if not hours == 0:
+		if hours < 10:
+			message += f'0{hours}:'
+		else:
+			message += f'{hours}:'
+	else:
+		message += '00:'
+	if not minutes == 0:
+		if minutes < 10:
+			message += f'0{minutes}:'
+		else:
+			message += f'{minutes}:'
+	else:
+		message += '00:'
+	if not seconds == 0:
+		if seconds < 10:
+			message += f'0{seconds}'
+		else:
+			message += f'{seconds}'
+	else:
+		message += '00'
+	return message
+
+
 class Track(andesite.Track):
+	"""
+	Andesite track class.
+	"""
 
 	def __init__(self, id_, info, *, ctx=None):
 		super(Track, self).__init__(id_, info)
@@ -16,7 +54,11 @@ class Track(andesite.Track):
 		self.requester = ctx.author
 
 
+# noinspection PyProtectedMember
 class Player(andesite.Player):
+	"""
+	Andesite player class.
+	"""
 
 	def __init__(self, bot, guild_id: int, node):
 		super(Player, self).__init__(bot, guild_id, node)
@@ -27,36 +69,6 @@ class Player(andesite.Player):
 		self.volume = 50
 		self.paused = False
 		self.bot.loop_queue = False
-
-	def get_time(self, second):
-		minute, second = divmod(second, 60)
-		hour, minute = divmod(minute, 60)
-		hours = round(hour)
-		minutes = round(minute)
-		seconds = round(second)
-		message = ""
-		if not hours == 0:
-			if hours < 10:
-				message += f'0{hours}:'
-			else:
-				message += f'{hours}:'
-		else:
-			message += '00:'
-		if not minutes == 0:
-			if minutes < 10:
-				message += f'0{minutes}:'
-			else:
-				message += f'{minutes}:'
-		else:
-			message += '00:'
-		if not seconds == 0:
-			if seconds < 10:
-				message += f'0{seconds}'
-			else:
-				message += f'{seconds}'
-		else:
-			message += '00'
-		return message
 
 	async def player_loop(self):
 		await self.bot.wait_until_ready()
@@ -83,7 +95,7 @@ class Player(andesite.Player):
 		if track.is_stream:
 			embed.add_field(name='Time:', value='`Live stream`')
 		else:
-			embed.add_field(name='Time:', value=f'`{self.get_time(self.last_position / 1000)}` / `{self.get_time(track.length / 1000)}`')
+			embed.add_field(name='Time:', value=f'`{get_time(self.last_position / 1000)}` / `{get_time(track.length / 1000)}`')
 		embed.add_field(name='Volume:', value=f'`{self.volume}%`')
 		embed.add_field(name='Queue Length:', value=f'`{str(len(self.queue._queue))}`')
 		embed.add_field(name='Queue looped:', value=f'`{self.bot.loop_queue}`')
@@ -92,7 +104,11 @@ class Player(andesite.Player):
 		await track.channel.send(embed=embed)
 
 
+# noinspection PyAttributeOutsideInit,PyProtectedMember
 class Voice(commands.Cog):
+	"""
+	Music/Video playing commands.
+	"""
 
 	def __init__(self, bot):
 		self.bot = bot
@@ -100,6 +116,10 @@ class Voice(commands.Cog):
 		bot.loop.create_task(self.initiate_nodes())
 
 	async def initiate_nodes(self):
+		"""
+		Initiate nodes, allows for initiating multiple nodes.
+		"""
+
 		nodes = {'MAIN_NODE': { 'ip': config.IP_1,
 		                        'port': config.PORT_1,
 		                        'rest_uri': config.ADRESS_1,
@@ -109,7 +129,7 @@ class Voice(commands.Cog):
 		         }
 
 		for n in nodes.values():
-			node = await self.andesite.start_node(
+			await self.andesite.start_node(
 				n['ip'],
 				n['port'],
 				rest_uri=n['rest_uri'],
@@ -117,35 +137,11 @@ class Voice(commands.Cog):
 				identifier=n['identifier']
 				)
 
-	def get_time(self, second):
-		minute, second = divmod(second, 60)
-		hour, minute = divmod(minute, 60)
-		hours = round(hour)
-		minutes = round(minute)
-		seconds = round(second)
-		message = ""
-		if not hours == 0:
-			if hours < 10:
-				message += f'0{hours}:'
-			else:
-				message += f'{hours}:'
-		else:
-			message += '00:'
-		if not minutes == 0:
-			if minutes < 10:
-				message += f'0{minutes}:'
-			else:
-				message += f'{minutes}:'
-		else:
-			message += '00:'
-		if not seconds == 0:
-			if seconds < 10:
-				message += f'0{seconds}'
-			else:
-				message += f'{seconds}'
-		else:
-			message += '00'
-		return message
+	@commands.command(name='mi', aliases=['music_i'])
+	async def music_info(self, ctx):
+		"""
+		Display information about how MrBots Music works.
+		"""
 
 	@commands.command(name='now_playing', aliases=['np'])
 	async def now_playing(self, ctx):
@@ -154,8 +150,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		if player.is_connected:
 			if not player.current:
@@ -173,8 +167,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		try:
 			await self.do_join(player, ctx.author.voice.channel)
@@ -198,6 +190,13 @@ class Voice(commands.Cog):
 			await player.queue.put(Track(track.id, track.data, ctx=ctx))
 			await ctx.send(f'Added the video **{track.title}** to the queue.')
 
+	@commands.command(name='eq', aliases=['set_eq'])
+	async def eq(self, ctx):
+		"""
+		Change the equalizer of the player.
+		"""
+		return await ctx.send('Waiting on lib updates to make this work.')
+
 	@commands.command(name='join', aliases=['connect'])
 	async def join(self, ctx):
 		"""
@@ -205,8 +204,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		try:
 			channel = ctx.author.voice.channel
@@ -222,7 +219,12 @@ class Voice(commands.Cog):
 			await self.do_join(player, channel)
 			return await ctx.send(f'MrBot joined the voice channel `{channel}`')
 
-	async def do_join(self, player, channel):
+	@staticmethod
+	async def do_join(player, channel):
+		"""
+		Join a voice channel.
+		"""
+
 		await player.connect(channel.id)
 
 	@commands.command(name='leave', aliases=['disconnect', 'stop'])
@@ -232,8 +234,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		if player.is_connected:
 			try:
@@ -247,7 +247,11 @@ class Voice(commands.Cog):
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
-	async def do_leave(self, player):
+	@staticmethod
+	async def do_leave(player):
+		"""
+		Leave a voice channel.
+		"""
 		await player.disconnect()
 		await player.destroy()
 
@@ -258,8 +262,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		if player.is_connected:
 			try:
@@ -279,6 +281,11 @@ class Voice(commands.Cog):
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
 	async def do_pause(self, player):
+		"""
+		Pause the current track.
+		"""
+
+		self.paused = True
 		await player.set_pause(True)
 
 	@commands.command(name='resume')
@@ -288,8 +295,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		if player.is_connected:
 			try:
@@ -309,6 +314,10 @@ class Voice(commands.Cog):
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
 	async def do_resume(self, player):
+		"""
+		Resumes the player
+		"""
+
 		self.paused = False
 		await player.set_pause(False)
 
@@ -319,8 +328,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		if player.is_connected:
 			try:
@@ -339,7 +346,12 @@ class Voice(commands.Cog):
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
-	async def do_skip(self, player):
+	@staticmethod
+	async def do_skip(player):
+		"""
+		Skip the current track
+		"""
+
 		await player.stop()
 
 	@commands.command(name='volume', aliases=['vol'])
@@ -349,8 +361,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		if player.is_connected:
 			try:
@@ -366,7 +376,12 @@ class Voice(commands.Cog):
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
-	async def do_volume(self, player, volume):
+	@staticmethod
+	async def do_volume(player, volume):
+		"""
+		Changes the volume of the player.
+		"""
+
 		await player.set_volume(volume)
 		player.volume = volume
 
@@ -379,8 +394,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		milliseconds = position * 1000
 
@@ -396,20 +409,17 @@ class Voice(commands.Cog):
 			if not 0 <= milliseconds <= player.current.length:
 				return await ctx.send(f'Please enter a value between `1` and and `{round(player.current.length / 1000)}`.')
 			await self.do_seek(player, milliseconds)
-			return await ctx.send(f'Changed the players position to `{self.get_time(milliseconds / 1000)}`.')
+			return await ctx.send(f'Changed the players position to `{get_time(milliseconds / 1000)}`.')
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
-	async def do_seek(self, player, milliseconds):
+	@staticmethod
+	async def do_seek(player, milliseconds):
+		"""
+		Seek to a postion in a track.
+		"""
+
 		await player.seek(milliseconds)
-
-
-	# @commands.command(name='eq', aliases=['set_eq'])
-	# async def eq(self, ctx):
-	#   """
-	#   Change the equalizer of the player.
-	#   """
-	#   return await ctx.send('Waiting on lib updates to make this work.')
 
 	@commands.group(name='queue', aliases=['q'], invoke_without_command=True)
 	async def queue(self, ctx):
@@ -447,8 +457,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		if player.is_connected:
 			try:
@@ -464,8 +472,43 @@ class Voice(commands.Cog):
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
-	async def do_shuffle(self, player):
+	@staticmethod
+	async def do_shuffle(player):
+		"""
+		Shuffle the queue.
+		"""
+
 		random.shuffle(player.queue._queue)
+
+	@queue.command(name='clear')
+	async def clear(self, ctx):
+		"""
+		Clear the queue of all entries.
+		"""
+
+		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+
+		if player.is_connected:
+			try:
+				channel = ctx.author.voice.channel
+			except AttributeError:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not player.current and not player.queue._queue:
+				return await ctx.send('Add videos/songs to the queue to enable queue clearing.')
+			if not channel == ctx.guild.me.voice.channel:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			await self.do_clear(player)
+			return await ctx.send(f'Cleared the queue.')
+		else:
+			return await ctx.send(f'MrBot is not currently in any voice channels.')
+
+	@staticmethod
+	async def do_clear(player):
+		"""
+		Clear the queue.
+		"""
+
+		player.queue._queue.clear()
 
 	@queue.command(name='loop')
 	async def loop(self, ctx):
@@ -474,8 +517,6 @@ class Voice(commands.Cog):
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		if player.is_connected:
 			try:
@@ -495,37 +536,14 @@ class Voice(commands.Cog):
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
 	async def do_loop(self):
+		"""
+		Loop the queue.
+		"""
+
 		if self.bot.loop_queue is False:
 			self.bot.loop_queue = True
 		else:
 			self.bot.loop_queue = False
-
-	@queue.command(name='clear')
-	async def clear(self, ctx):
-		"""
-		Clear the queue of all entries.
-		"""
-
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
-
-		if player.is_connected:
-			try:
-				channel = ctx.author.voice.channel
-			except AttributeError:
-				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-			if not player.current and not player.queue._queue:
-				return await ctx.send('Add videos/songs to the queue to enable queue clearing.')
-			if not channel == ctx.guild.me.voice.channel:
-				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-			await self.do_clear(player)
-			return await ctx.send(f'Cleared the queue.')
-		else:
-			return await ctx.send(f'MrBot is not currently in any voice channels.')
-
-	async def do_clear(self, player):
-		player.queue._queue.clear()
 
 	"""
 	@queue.command(name='remove')
@@ -559,5 +577,9 @@ class Voice(commands.Cog):
 
 
 def setup(bot):
+	"""
+	Setup function
+	"""
+	
 	bot.add_cog(Voice(bot))
 

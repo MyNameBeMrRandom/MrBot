@@ -117,7 +117,7 @@ class Fun(commands.Cog):
 		await ctx.trigger_typing()
 
 		if not font:
-			ascii_text = art.text2art(self.do_newline(text, 3), chr_ignore=True)
+			ascii_text = art.text2art(self.do_newline(text, 3))
 			if len(ascii_text) > 2000:
 				async with aiofiles.open(f'images/ascii/{ctx.author.id}_font.txt', mode='w') as f:
 					await f.write(ascii_text)
@@ -128,7 +128,7 @@ class Fun(commands.Cog):
 			try:
 				if isinstance(text, discord.Emoji):
 					return await ctx.send(f'Do not use emojis in the text')
-				ascii_text = art.text2art(self.do_newline(text, 3),font=font, chr_ignore=True)
+				ascii_text = art.text2art(self.do_newline(text, 3), font=font)
 				if len(ascii_text) > 2000:
 					async with aiofiles.open(f'images/ascii/{ctx.author.id}_font.txt', mode='w') as f:
 						await f.write(ascii_text)
