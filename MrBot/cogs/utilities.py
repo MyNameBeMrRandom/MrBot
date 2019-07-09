@@ -30,14 +30,7 @@ class Utilities(commands.Cog):
 		self._last_result = None
 		self.session = aiohttp.ClientSession(loop=bot.loop)
 
-	async def get_ping(self, ctx):
-		start = time.perf_counter()
-		await ctx.trigger_typing()
-		end = time.perf_counter()
-		duration = (end - start) * 1000
-		return f'{duration:.2f}ms'
-
-	def get_uptime(self):
+	def get_bot_uptime(self):
 		current_time = time.time()
 		second = current_time - start_time
 		minute, second = divmod(second, 60)
@@ -48,30 +41,6 @@ class Utilities(commands.Cog):
 		minutes = round(minute)
 		seconds = round(second)
 		return f'{days} Days, {hours} Hours, {minutes} Minutes, {seconds} Seconds'
-
-	def user_color(self, user):
-		if user.status == discord.Status.online:
-			return 0x008000
-		elif user.status == discord.Status.idle:
-			return 0xFF8000
-		elif user.status == discord.Status.dnd:
-			return 0xFF0000
-		elif user.status == discord.Status.offline:
-			return 0x808080
-		else:
-			return 0xFF8000
-
-	def calculate_status_percentages(self, online_time, offline_time, idle_time, dnd_time):
-		total = online_time + offline_time + idle_time + dnd_time
-		online_p = online_time / total
-		offline_p = offline_time / total
-		idle_p = idle_time / total
-		dnd_p = dnd_time / total
-		online_percent = round(online_p * 100, 3)
-		offline_percent = round(offline_p * 100, 3)
-		idle_percent = round(idle_p * 100, 3)
-		dnd_percent = round(dnd_p * 100, 3)
-		return online_percent, offline_percent, idle_percent, dnd_percent
 
 	@commands.command(name='info', aliases=['about'])
 	async def info(self, ctx):
@@ -93,7 +62,7 @@ class Utilities(commands.Cog):
 		                                                           f"and quite a few unique ones. MrBot is still being actively worked on "
 		                                                           f"and new features are being added all the time so be sure to join the "
 		                                                           f"bot's support server [here](https://discord.gg/fKbeTr4).", inline=False)
-		embed.add_field(name="__**Stats:**__", value=f"**Ping:** {await self.get_ping(ctx)}\n**Uptime:** {self.get_uptime()}\n" \
+		embed.add_field(name="__**Stats:**__", value=f"**Ping:** {await get_information.get_ping(ctx)}\n**Uptime:** {self.get_bot_uptime()}\n" \
 							                         f"**Guilds:** {len(self.bot.guilds)}\n**Total users:** {len(self.bot.users)}\n"
 													 f"**Extensions:** {len(self.bot.cogs)}\n**Commands:** {len(self.bot.commands)}\n"
 													 f"**Discord.py Version:** {str(discord.__version__)}", inline=False)
@@ -159,7 +128,7 @@ class Utilities(commands.Cog):
 		if not user:
 			user = ctx.author
 		embed = discord.Embed(
-			colour=self.user_color(user),
+			colour=get_information.embed_color(user),
 			timestamp=ctx.message.created_at,
 			title=f"{user.name}'s Stats and Information."
 		)
@@ -199,7 +168,7 @@ class Utilities(commands.Cog):
 			timestamp=ctx.message.created_at
 		)
 		embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-		embed.add_field(name=f"Ping:", value=f'{await self.get_ping(ctx)}', inline=False)
+		embed.add_field(name=f"Ping:", value=f'{await get_information.get_ping(ctx)}', inline=False)
 		return await ctx.send(embed=embed)
 
 	@commands.command(name='upvote')
@@ -260,7 +229,7 @@ class Utilities(commands.Cog):
 			for name in files:
 				if name.endswith('.py'):
 					file_amount += 1
-					with codecs.open('./' + str(pathlib.PurePath(path, name)), 'utf-8') as f:
+					with codecs.open('./' + str(pathlib.PurePath(path, name)), 'r', 'utf-8') as f:
 						for i, l in enumerate(f):
 							if l.strip().startswith('#') or len(l.strip()) is 0:  # skip commented lines.
 								pass
@@ -279,14 +248,13 @@ class Utilities(commands.Cog):
 			# Calculate the total time.
 			total_time = online_time + offline_time + idle_time + dnd_time
 			# Calculate and display each status in days, hour, minutes and seconds.
-			online = calculations.calculate_status_times(online_time)
-			offline = calculations.calculate_status_times(offline_time)
-			idle = calculations.calculate_status_times(idle_time)
-			dnd = calculations.calculate_status_times(dnd_time)
-			total = calculations.calculate_status_times(total_time)
+			online = calculations.get_time_friendly(online_time)
+			offline = calculations.get_time_friendly(offline_time)
+			idle = calculations.get_time_friendly(idle_time)
+			dnd = calculations.get_time_friendly(dnd_time)
+			total = calculations.get_time_friendly(total_time)
 			# Calculate the percentages of each status and the total percent.
-			online_percent, offline_percent, idle_percent, dnd_percent = self.calculate_status_percentages(online_time, offline_time, idle_time, dnd_time)
-			total_percent = round(offline_percent + online_percent + idle_percent + dnd_percent, 2)
+			online_percent, offline_percent, idle_percent, dnd_percent, total_percent = calculations.calculate_status_percentages(online_time, offline_time, idle_time, dnd_time)
 			# Send the message.
 			return await ctx.send(f'__**Status times for {ctx.author}**__\n\n'
 			                      f'**Online:**  | {online} | {online_percent}%\n'

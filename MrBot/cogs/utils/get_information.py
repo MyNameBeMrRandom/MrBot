@@ -1,4 +1,26 @@
 import discord
+import time
+
+# Get the bots ping.
+async def get_ping(ctx):
+	start = time.perf_counter()
+	await ctx.trigger_typing()
+	end = time.perf_counter()
+	duration = (end - start) * 1000
+	return f'{duration:.2f}ms'
+
+# Get a color for embeds based on users status.
+def embed_color(user):
+	if user.status == discord.Status.online:
+		return 0x008000
+	elif user.status == discord.Status.idle:
+		return 0xFF8000
+	elif user.status == discord.Status.dnd:
+		return 0xFF0000
+	elif user.status == discord.Status.offline:
+		return 0x808080
+	else:
+		return 0xFF8000
 
 # Get a users activity.
 def user_activity(user):
