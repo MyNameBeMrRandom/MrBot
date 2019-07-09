@@ -49,6 +49,9 @@ logger.addHandler(handler)
 
 # noinspection PyMethodMayBeStatic
 class MrBot(commands.AutoShardedBot):
+	"""
+	Main bot class.
+	"""
 
 	def __init__(self):
 		super().__init__(
@@ -70,17 +73,32 @@ class MrBot(commands.AutoShardedBot):
 				logger.warning(f'[EXT] - Failed to load - {ext}')
 
 	async def bot_logout(self):
+		"""
+		Logout from discord.
+		"""
+
 		await super().logout()
 
 	async def bot_start(self):
+		"""
+        Start the discord bot.
+		"""
 		await self.login(config.DISCORD_TOKEN)
 		await self.connect()
 
 	async def on_ready(self):
+		"""
+		Allow for processing when the bot is ready.
+		"""
+
 		logger.info(f'[BOT] Logged in as {self.user} - {self.user.id}')
 		print(f'\nLogged in as {self.user} - {self.user.id}')
 
 	def run(self):
+		"""
+		Run the bot.
+		"""
+
 		loop = self.loop
 		try:
 			loop.run_until_complete(self.bot_start())

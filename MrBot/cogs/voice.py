@@ -580,6 +580,6 @@ def setup(bot):
 	"""
 	Setup function
 	"""
-	
+
 	bot.add_cog(Voice(bot))
 
