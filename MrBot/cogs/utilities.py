@@ -117,13 +117,13 @@ class Utilities(commands.Cog):
 			description=""
 		)
 		embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-		embed.add_field(name="__**System CPU:**__", value=f"**Cores:** {psutil.cpu_count(logical=False)}\n**Usage:** {process.cpu_percent(interval=None)}%\n" \
+		embed.add_field(name="__**System CPU:**__", value=f"**Cores:** {psutil.cpu_count(logical=False)}\n**Usage:** {process.cpu_percent()}%\n" \
 			                                       f"**Frequency:** {round(psutil.cpu_freq().current, 2)} Mhz", inline=False)
 		embed.add_field(name="__**System Memory:**__", value=f"**Total:** {round(psutil.virtual_memory().total/1073741824, 2)} GB\n"
 													  f"**Used:** {round(psutil.virtual_memory().used/1073741824, 2)} GB\n"
 													  f"**Available:** {round(psutil.virtual_memory().available/1073741824, 2)} GB", inline=False)
 		embed.add_field(name="__**Process information:**__", value=f"**Memory usage:** {process.memory_info().rss//(1024**2)}mb\n"
-																   f"**CPU usage:** {process.cpu_percent(interval=None)}%", inline=False)
+																   f"**CPU usage:** {process.cpu_percent()}%", inline=False)
 		embed.add_field(name="__**Bot Information:**__", value=f"**Messages seen:** {messages_seen}\n**Commands run:** {commands_run}\n"
 															   f"**Messages sent:** {messages_sent}", inline=False)
 		return await ctx.send(embed=embed)
@@ -260,7 +260,7 @@ class Utilities(commands.Cog):
 			for name in files:
 				if name.endswith('.py'):
 					file_amount += 1
-					with codecs.open('./' + str(pathlib.PurePath(path, name)), 'r', 'utf-8') as f:
+					with codecs.open('./' + str(pathlib.PurePath(path, name)), 'utf-8') as f:
 						for i, l in enumerate(f):
 							if l.strip().startswith('#') or len(l.strip()) is 0:  # skip commented lines.
 								pass

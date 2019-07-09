@@ -49,7 +49,7 @@ class KrossServer(commands.Cog):
 		sylph_percent = round(sylph_p * 100, 1)
 		return kodama_percent, phoenix_percent, leviathan_percent, sylph_percent
 
-	def do_point_pie(self, ctx):
+	def do_point_pie(self):
 
 		with open('data/kross_server/kodama.txt') as r:
 			kp = r.readline()

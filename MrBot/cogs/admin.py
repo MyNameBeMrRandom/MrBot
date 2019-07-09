@@ -15,7 +15,7 @@ class Admin(commands.Cog):
 		self.bot = bot
 
 	def get_logging_channel(self, ctx):
-		with open(f'data/guilds/{ctx.guild.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/guilds/{ctx.guild.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			logging_channel = data['config']['logging_channel']
 			if logging_channel is None:
@@ -24,7 +24,7 @@ class Admin(commands.Cog):
 				return f'<#{logging_channel}>'
 
 	def get_logging_status(self, ctx):
-		with open(f'data/guilds/{ctx.guild.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/guilds/{ctx.guild.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			logging_status = data['config']['logging_enabled']
 			if logging_status is False:
@@ -33,7 +33,7 @@ class Admin(commands.Cog):
 				return f'Enabled'
 
 	def set_logging_channel(self, ctx, channel):
-		with open(f'data/guilds/{ctx.guild.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/guilds/{ctx.guild.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			logging_channel = data['config']['logging_channel']
 			if logging_channel == channel.id:
@@ -45,7 +45,7 @@ class Admin(commands.Cog):
 					return f'Changed this guilds logging channel to <#{channel.id}>.'
 
 	def enable_logging(self, ctx):
-		with open(f'data/guilds/{ctx.guild.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/guilds/{ctx.guild.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			logging_enabled = data['config']['logging_enabled']
 			if logging_enabled is True:
@@ -57,7 +57,7 @@ class Admin(commands.Cog):
 					return f'Enabled logging in this guild.'
 
 	def disable_logging(self, ctx):
-		with open(f'data/guilds/{ctx.guild.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/guilds/{ctx.guild.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			logging_enabled = data['config']['logging_enabled']
 			if logging_enabled is False:
@@ -210,8 +210,9 @@ class Admin(commands.Cog):
 					f'**Message pins:** {message_pin}\n' \
 					f'**User avatar:** {user_avatar}\n' \
 					f'**User discriminator:** {user_discriminator}\n' \
-					f'**User username:** {user_discriminator}\n' \
+					f'**User username:** {user_username}\n' \
 					f'**Guild name:** {guild_name}\n' \
+					f'**Guild region:** {guild_region}\n' \
 					f'**Guild AFK timeout time:** {guild_afk_timeout}\n' \
 					f'**Guild AFK voice channel:** {guild_afk_channel}\n' \
 					f'**Guild system channel:** {guild_system_channel}\n' \

@@ -6,7 +6,7 @@ import time
 # Check to see what type of logging is enabled.
 def logging_check(guild, log_type):
 	try:
-		with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/guilds/{guild.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			logging_channel = data['config']['logging_channel']
 			logging_enabled = data['config']['logging_enabled']
@@ -20,14 +20,14 @@ def logging_check(guild, log_type):
 
 # Get a guilds logging channel.
 def get_logging_channel(guild):
-	with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
+	with open(f'data/guilds/{guild.id}.yaml', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		logging_channel = data['config']['logging_channel']
 		return logging_channel
 
 # Get a users status times.
 def get_status_times(ctx):
-	with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
+	with open(f'data/accounts/{ctx.author.id}.yaml', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		status_since = data['status_times'][f'{ctx.author.status}_since']
 		status_time_before = time.time() - status_since
@@ -49,21 +49,21 @@ def get_status_times(ctx):
 
 # Get information about someones account.
 def get_account_data(user, data_1, data_2):
-	with open(f'data/accounts/{user.id}.yaml', 'r', encoding='utf8') as r:
+	with open(f'data/accounts/{user.id}.yaml', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		return_data = data[f'{data_1}'][f'{data_2}']
 	return return_data
 
 # Get information about a guild.
 def get_guild_data(guild, data_1, data_2):
-	with open(f'data/guilds/{guild.id}.yaml', 'r', encoding='utf8') as r:
+	with open(f'data/guilds/{guild.id}.yaml', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		return_data = data[f'{data_1}'][f'{data_2}']
 	return return_data
 
 # Get bot stat information.
 def get_stat_data(stat_type):
-	with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
+	with open(f'data/stats/stats.yaml', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		return_data = data[f'{stat_type}']
 	return return_data
@@ -71,7 +71,7 @@ def get_stat_data(stat_type):
 # Update a stat by 1.
 def update_stat_data(stat_type):
 	try:
-		with open(f'data/stats/stats.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/stats/stats.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			stat = int(data[stat_type])
 			with open(f'data/stats/stats.yaml', 'w', encoding='utf8') as w:
@@ -109,7 +109,7 @@ def do_account_creation(ctx):
 	}
 	with open(f'data/accounts/{ctx.author.id}.yaml', 'x', encoding='utf8') as x:
 		yaml.dump(new_account, x)
-	with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
+	with open(f'data/accounts/{ctx.author.id}.yaml', encoding='utf8') as r:
 		data = yaml.load(r, Loader=yaml.FullLoader)
 		data['status_times'][f'{ctx.author.status}_since'] = time.time()
 		with open(f'data/accounts/{ctx.author.id}.yaml', 'w', encoding='utf8') as w:

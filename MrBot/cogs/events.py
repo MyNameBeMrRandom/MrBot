@@ -9,7 +9,7 @@ import time
 import os
 
 
-# noinspection PyMethodMayBeStatic
+# noinspection PyMethodMayBeStatic,PyBroadException
 class Events(commands.Cog):
 	"""
 	Bot related events.
@@ -33,7 +33,7 @@ class Events(commands.Cog):
 			await asyncio.sleep(300)
 
 	def do_check_user_status(self, member):
-		with open(f'data/accounts/{member.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/accounts/{member.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			if data['status_times'][f'online_since'] is not None:
 				# Get the time since the user was in previous state.
@@ -90,7 +90,7 @@ class Events(commands.Cog):
 
 	# Updates as users status.
 	def update_user_status(self, before, after):
-		with open(f'data/accounts/{before.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/accounts/{before.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			# Get the time since the user was in previous state.
 			before_status_since = data['status_times'][f'{before.status}_since']

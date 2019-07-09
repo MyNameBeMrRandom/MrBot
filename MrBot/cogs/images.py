@@ -37,7 +37,7 @@ class Images(commands.Cog):
 		file.close()
 
 	def round_corners(self, image, rad):
-		circle = Image.new('L', (rad * 2, rad * 2), 0)
+		circle = Image.new('L', (rad * 2, rad * 2))
 		draw = ImageDraw.Draw(circle)
 		draw.ellipse((0, 0, rad * 2, rad * 2), fill=255)
 		alpha = Image.new('L', image.size, 255)
@@ -58,7 +58,7 @@ class Images(commands.Cog):
 
 		#Open the background images.
 		try:
-			with open(f'data/accounts/{ctx.author.id}.yaml', 'r', encoding='utf8') as r:
+			with open(f'data/accounts/{ctx.author.id}.yaml', encoding='utf8') as r:
 				data = yaml.load(r, Loader=yaml.FullLoader)
 				background = data['config']['background']
 				if background == 'bg_1':
@@ -197,7 +197,7 @@ class Images(commands.Cog):
 		example.close()
 
 	def do_bg_change(self, user, new_background):
-		with open(f'data/accounts/{user.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/accounts/{user.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			old_background = data['config']['background']
 			data['config']['background'] = new_background

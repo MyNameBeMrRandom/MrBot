@@ -18,7 +18,7 @@ class Economy(commands.Cog):
 		self.dblpy = dbl.Client(self.bot, self.token, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
 
 	def do_add_money(self, user, money_type, amount):
-		with open(f'data/accounts/{user.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/accounts/{user.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			money = int(data['economy'][f'{money_type}'])
 			data['economy'][f'{money_type}'] = money + amount
@@ -26,7 +26,7 @@ class Economy(commands.Cog):
 				yaml.dump(data, w)
 
 	def do_remove_money(self, user, money_type, amount):
-		with open(f'data/accounts/{user.id}.yaml', 'r', encoding='utf8') as r:
+		with open(f'data/accounts/{user.id}.yaml', encoding='utf8') as r:
 			data = yaml.load(r, Loader=yaml.FullLoader)
 			money = int(data['economy'][f'{money_type}'])
 			data['economy'][f'{money_type}'] = money - amount
