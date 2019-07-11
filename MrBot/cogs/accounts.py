@@ -25,11 +25,11 @@ class Accounts(commands.Cog):
 			# Calculate the total time.
 			total_time = online_time + offline_time + idle_time + dnd_time
 			# Calculate and display each status in days, hour, minutes and seconds.
-			online = calculations.calculate_status_times(online_time)
-			offline = calculations.calculate_status_times(offline_time)
-			idle = calculations.calculate_status_times(idle_time)
-			dnd = calculations.calculate_status_times(dnd_time)
-			total = calculations.calculate_status_times(total_time)
+			online = calculations.get_time_friendly(online_time)
+			offline = calculations.get_time_friendly(offline_time)
+			idle = calculations.get_time_friendly(idle_time)
+			dnd = calculations.get_time_friendly(dnd_time)
+			total = calculations.get_time_friendly(total_time)
 			# Calculate the percentages of each status and the total percent.
 			online_percent, offline_percent, idle_percent, dnd_percent, total_percent = calculations.calculate_status_percentages(online_time, offline_time, idle_time, dnd_time)
 			# Append to the message.
