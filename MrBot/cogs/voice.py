@@ -7,45 +7,7 @@ import config
 import random
 
 
-def get_time(second):
-	"""
-	Converts an amount of seconds into a readable format.
-	"""
-
-	minute, second = divmod(second, 60)
-	hour, minute = divmod(minute, 60)
-	hours = round(hour)
-	minutes = round(minute)
-	seconds = round(second)
-	message = ""
-	if not hours == 0:
-		if hours < 10:
-			message += f'0{hours}:'
-		else:
-			message += f'{hours}:'
-	else:
-		message += '00:'
-	if not minutes == 0:
-		if minutes < 10:
-			message += f'0{minutes}:'
-		else:
-			message += f'{minutes}:'
-	else:
-		message += '00:'
-	if not seconds == 0:
-		if seconds < 10:
-			message += f'0{seconds}'
-		else:
-			message += f'{seconds}'
-	else:
-		message += '00'
-	return message
-
-
 class Track(andesite.Track):
-	"""
-	Andesite track class.
-	"""
 
 	def __init__(self, id_, info, *, ctx=None):
 		super(Track, self).__init__(id_, info)
@@ -56,9 +18,6 @@ class Track(andesite.Track):
 
 # noinspection PyProtectedMember
 class Player(andesite.Player):
-	"""
-	Andesite player class.
-	"""
 
 	def __init__(self, bot, guild_id: int, node):
 		super(Player, self).__init__(bot, guild_id, node)
@@ -106,9 +65,6 @@ class Player(andesite.Player):
 
 # noinspection PyAttributeOutsideInit,PyProtectedMember
 class Voice(commands.Cog):
-	"""
-	Music/Video playing commands.
-	"""
 
 	def __init__(self, bot):
 		self.bot = bot
@@ -116,9 +72,6 @@ class Voice(commands.Cog):
 		bot.loop.create_task(self.initiate_nodes())
 
 	async def initiate_nodes(self):
-		"""
-		Initiate nodes, allows for initiating multiple nodes.
-		"""
 
 		nodes = {'MAIN_NODE': { 'ip': config.IP_1,
 		                        'port': config.PORT_1,
@@ -577,9 +530,5 @@ class Voice(commands.Cog):
 
 
 def setup(bot):
-	"""
-	Setup function
-	"""
-
 	bot.add_cog(Voice(bot))
 

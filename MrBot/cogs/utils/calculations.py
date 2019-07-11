@@ -86,6 +86,9 @@ def get_time_friendly(second):
 	return message
 
 def calculate_status_percentages(online_time, offline_time, idle_time, dnd_time):
+	"""
+	Convets times in percents out the total.
+	"""
 	total = online_time + offline_time + idle_time + dnd_time
 	online_p = online_time / total
 	offline_p = offline_time / total
