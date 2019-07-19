@@ -1,10 +1,219 @@
 from discord.ext import commands
+from .utils import calculations
+import collections
 import itertools
 import andesite
 import asyncio
 import discord
 import config
 import random
+
+class Queue:
+
+	def __init__(self, maxsize=0, *, loop=None):
+		if loop is None:
+			self._loop = asyncio.events.get_event_loop()
+		else:
+			self._loop = loop
+		self._maxsize = maxsize
+
+		# Futures.
+		self._getters = collections.deque()
+		# Futures.
+		self._putters = collections.deque()
+		self._unfinished_tasks = 0
+		self._finished = asyncio.locks.Event(loop=self._loop)
+		self._finished.set()
+		self.queue = []
+
+	def _wakeup_next(self, waiters):
+		# Wake up the next waiter (if any) that isn't cancelled.
+		while waiters:
+			waiter = waiters.popleft()
+			if not waiter.done():
+				waiter.set_result(None)
+				break
+
+	def __repr__(self):
+		return f'<{type(self).__name__} at {id(self):#x} {self._format()}>'
+
+	def __str__(self):
+		return f'<{type(self).__name__} {self._format()}>'
+
+	def _format(self):
+		result = f'maxsize={self._maxsize!r}'
+		if getattr(self, '_queue', None):
+			result += f' _queue={list(self.queue)!r}'
+		if self._getters:
+			result += f' _getters[{len(self._getters)}]'
+		if self._putters:
+			result += f' _putters[{len(self._putters)}]'
+		if self._unfinished_tasks:
+			result += f' tasks={self._unfinished_tasks}'
+		return result
+
+	@property
+	def maxsize(self):
+		"""Number of items allowed in the queue."""
+		return self._maxsize
+
+	def empty(self):
+		"""Return True if the queue is empty, False otherwise."""
+		return not self.queue
+
+	def full(self):
+		"""Return True if there are maxsize items in the queue.
+
+		Note: if the Queue was initialized with maxsize=0 (the default),
+		then full() is never True.
+		"""
+		if self._maxsize <= 0:
+			return False
+		else:
+			return self.qsize() >= self._maxsize
+
+	def task_done(self):
+		"""Indicate that a formerly enqueued task is complete.
+
+		Used by queue consumers. For each get() used to fetch a task,
+		a subsequent call to task_done() tells the queue that the processing
+		on the task is complete.
+
+		If a join() is currently blocking, it will resume when all items have
+		been processed (meaning that a task_done() call was received for every
+		item that had been put() into the queue).
+
+		Raises ValueError if called more times than there were items placed in
+		the queue.
+		"""
+		if self._unfinished_tasks <= 0:
+			raise ValueError('task_done() called too many times')
+		self._unfinished_tasks -= 1
+		if self._unfinished_tasks == 0:
+			self._finished.set()
+
+	def qsize(self):
+		"""Number of items in the queue."""
+		return len(self.queue)
+
+	async def put(self, item):
+		"""Put an item into the queue.
+
+		Put an item into the queue. If the queue is full, wait until a free
+		slot is available before adding item.
+		"""
+		while self.full():
+			putter = self._loop.create_future()
+			self._putters.append(putter)
+			try:
+				await putter
+			except:
+				putter.cancel()  # Just in case putter is not done yet.
+				try:
+					# Clean self._putters from canceled putters.
+					self._putters.remove(putter)
+				except ValueError:
+					# The putter could be removed from self._putters by a
+					# previous get_nowait call.
+					pass
+				if not self.full() and not putter.cancelled():
+					# We were woken up by get_nowait(), but can't take
+					# the call.  Wake up the next in line.
+					self._wakeup_next(self._putters)
+				raise
+		self._unfinished_tasks += 1
+		self._finished.clear()
+		self._wakeup_next(self._getters)
+		return self.queue.append(item)
+
+	async def put_pos(self, item, pos):
+		"""Put an item into the queue.
+
+		Put an item into the queue. If the queue is full, wait until a free
+		slot is available before adding item.
+		"""
+		while self.full():
+			putter = self._loop.create_future()
+			self._putters.append(putter)
+			try:
+				await putter
+			except:
+				putter.cancel()  # Just in case putter is not done yet.
+				try:
+					# Clean self._putters from canceled putters.
+					self._putters.remove(putter)
+				except ValueError:
+					# The putter could be removed from self._putters by a
+					# previous get_nowait call.
+					pass
+				if not self.full() and not putter.cancelled():
+					# We were woken up by get_nowait(), but can't take
+					# the call.  Wake up the next in line.
+					self._wakeup_next(self._putters)
+				raise
+		self._unfinished_tasks += 1
+		self._finished.clear()
+		self._wakeup_next(self._getters)
+		return self.queue.insert(pos, item)
+
+	async def get(self):
+		"""Remove and return an item from the queue.
+
+		If queue is empty, wait until an item is available.
+		"""
+		while self.empty():
+			getter = self._loop.create_future()
+			self._getters.append(getter)
+			try:
+				await getter
+			except:
+				getter.cancel()  # Just in case getter is not done yet.
+				try:
+					# Clean self._getters from canceled getters.
+					self._getters.remove(getter)
+				except ValueError:
+					# The getter could be removed from self._getters by a
+					# previous put_nowait call.
+					pass
+				if not self.empty() and not getter.cancelled():
+					# We were woken up by put_nowait(), but can't take
+					# the call.  Wake up the next in line.
+					self._wakeup_next(self._getters)
+				raise
+		item = self.queue.pop(0)
+		self._wakeup_next(self._putters)
+		return item
+
+	async def get_pos(self, pos):
+		"""Remove and return an item from the queue.
+
+		If queue is empty, wait until an item is available.
+		"""
+		while self.empty():
+			getter = self._loop.create_future()
+			self._getters.append(getter)
+			try:
+				await getter
+			except:
+				getter.cancel()  # Just in case getter is not done yet.
+				try:
+					# Clean self._getters from canceled getters.
+					self._getters.remove(getter)
+				except ValueError:
+					# The getter could be removed from self._getters by a
+					# previous put_nowait call.
+					pass
+				if not self.empty() and not getter.cancelled():
+					# We were woken up by put_nowait(), but can't take
+					# the call.  Wake up the next in line.
+					self._wakeup_next(self._getters)
+				raise
+		item = self.queue.pop(pos)
+		self._wakeup_next(self._putters)
+		return item
+
+	def reverse(self):
+		self.queue.reverse()
 
 
 class Track(andesite.Track):
@@ -21,13 +230,13 @@ class Player(andesite.Player):
 
 	def __init__(self, bot, guild_id: int, node):
 		super(Player, self).__init__(bot, guild_id, node)
-		self.filter = andesite.Timescale(speed=1, pitch=1000, rate=1)
+		self.filter = andesite.Timescale(speed=1, pitch=1, rate=1)
 		self.bot.loop.create_task(self.player_loop())
 		self.next_event = asyncio.Event()
-		self.queue = asyncio.Queue()
+		self.queue = Queue()
 		self.volume = 50
 		self.paused = False
-		self.bot.loop_queue = False
+		self.loop_queue = False
 
 	async def player_loop(self):
 		await self.bot.wait_until_ready()
@@ -42,7 +251,7 @@ class Player(andesite.Player):
 			await self.play(song)
 			await self.invoke_controller()
 			await self.bot.wait_for("andesite_track_end", check=lambda p: p.player.guild_id == self.guild_id)
-			if self.bot.loop_queue is True:
+			if self.loop_queue is True:
 				await self.queue.put(self.current)
 
 	async def invoke_controller(self, track: andesite.Track = None):
@@ -54,10 +263,10 @@ class Player(andesite.Player):
 		if track.is_stream:
 			embed.add_field(name='Time:', value='`Live stream`')
 		else:
-			embed.add_field(name='Time:', value=f'`{get_time(self.last_position / 1000)}` / `{get_time(track.length / 1000)}`')
+			embed.add_field(name='Time:', value=f'`{calculations.get_time(self.last_position / 1000)}` / `{calculations.get_time(track.length / 1000)}`')
 		embed.add_field(name='Volume:', value=f'`{self.volume}%`')
-		embed.add_field(name='Queue Length:', value=f'`{str(len(self.queue._queue))}`')
-		embed.add_field(name='Queue looped:', value=f'`{self.bot.loop_queue}`')
+		embed.add_field(name='Queue Length:', value=f'`{str(self.queue.qsize())}`')
+		embed.add_field(name='Queue looped:', value=f'`{self.loop_queue}`')
 		embed.add_field(name='Requester:', value=track.requester.mention)
 		# embed.add_field(name=f'Filter:', value=f'Current: {self.filter}')
 		await track.channel.send(embed=embed)
@@ -359,10 +568,13 @@ class Voice(commands.Cog):
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if not player.current:
 				return await ctx.send('No songs/videos currently playing.')
+			if not player.current.is_seekable:
+				return await ctx.send('This track is not seekable.')
+
 			if not 0 <= milliseconds <= player.current.length:
 				return await ctx.send(f'Please enter a value between `1` and and `{round(player.current.length / 1000)}`.')
 			await self.do_seek(player, milliseconds)
-			return await ctx.send(f'Changed the players position to `{get_time(milliseconds / 1000)}`.')
+			return await ctx.send(f'Changed the players position to `{calculations.get_time(milliseconds / 1000)}`.')
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
@@ -385,7 +597,7 @@ class Voice(commands.Cog):
 		author = ctx.author.name
 
 		if player.is_connected:
-			upcoming = list(itertools.islice(player.queue._queue, 0, 15))
+			upcoming = list(itertools.islice(player.queue.queue, 0, 15))
 			if not upcoming:
 				return await ctx.send('The queue is empty.')
 			else:
@@ -397,7 +609,7 @@ class Voice(commands.Cog):
 				embed = discord.Embed(
 					colour=0x57FFF5,
 					timestamp=ctx.message.created_at,
-					title=f'Displaying the next **{len(upcoming)}** out of **{len(player.queue._queue)}** entries in the queue.',
+					title=f'Displaying the next **{len(upcoming)}** out of **{player.queue.qsize()}** entries in the queue.',
 					description=message
 				)
 				embed.set_author(icon_url=useravatar, name=author)
@@ -480,35 +692,31 @@ class Voice(commands.Cog):
 				return await ctx.send('Add videos/songs to the queue to enable queue looping.')
 			if not channel == ctx.guild.me.voice.channel:
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-			await self.do_loop()
-			if self.bot.loop_queue is True:
+			await self.do_loop(player)
+			if player.loop_queue is True:
 				return await ctx.send(f'The queue will now loop.')
 			else:
 				return await ctx.send(f'The queue will stop looping.')
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
-	async def do_loop(self):
+	async def do_loop(self, player):
 		"""
 		Loop the queue.
 		"""
 
-		if self.bot.loop_queue is False:
-			self.bot.loop_queue = True
+		if player.loop_queue is False:
+			player.loop_queue = True
 		else:
-			self.bot.loop_queue = False
+			player.loop_queue = False
 
-	"""
 	@queue.command(name='remove')
 	async def remove(self, ctx, entry: int):
-	
-	
+		"""
 		Remove an entry from the queue.
-
+		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
-		useravatar = ctx.author.avatar_url
-		author = ctx.author.name
 
 		if player.is_connected:
 			try:
@@ -519,14 +727,74 @@ class Voice(commands.Cog):
 				return await ctx.send('Add videos/songs to the queue to enable queue entry removing.')
 			if not channel == ctx.guild.me.voice.channel:
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-			await self.do_remove(player, entry)
-			return await ctx.send(f'Cleared the queue.')
+			if not 0 < entry <= player.queue.qsize():
+				return await ctx.send(f'That was not a valid track position.')
+			item = await self.do_remove(player, entry)
+			return await ctx.send(f'Removed `{item}` from the queue.')
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
 	async def do_remove(self, player, entry):
-		player.queue.pop(entry)
-	"""
+		item = await player.queue.get_pos(entry - 1)
+		return item
+
+	@queue.command(name='move')
+	async def move(self, ctx, pos1: int, pos2: int):
+		"""
+		Remove an entry from the queue.
+		"""
+
+		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+
+		if player.is_connected:
+			try:
+				channel = ctx.author.voice.channel
+			except AttributeError:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not player.current and not player.queue._queue:
+				return await ctx.send('Add videos/songs to the queue to enable queue entry removing.')
+			if not channel == ctx.guild.me.voice.channel:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not 0 < pos1 <= player.queue.qsize():
+				return await ctx.send(f'That was not a valid track position to move from.')
+			if not 0 < pos2 <= player.queue.qsize():
+				return await ctx.send(f'That was not a valid track position to move too.')
+			item = await self.do_move(ctx, player, pos1, pos2)
+			return await ctx.send(f'Moved `{item}` from position `{pos1}` to position `{pos2}`.')
+		else:
+			return await ctx.send(f'MrBot is not currently in any voice channels.')
+
+	async def do_move(self, ctx, player, pos1, pos2):
+		item = await player.queue.get_pos(pos1 - 1)
+		tracks = await player.node.get_tracks(f"{item}")
+		track = tracks[0]
+		await player.queue.put_pos(Track(track.id, track.data, ctx=ctx), pos2 - 1)
+		return item
+
+	@queue.command(name='reverse')
+	async def reverse(self, ctx):
+		"""
+		Remove an entry from the queue.
+		"""
+
+		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+
+		if player.is_connected:
+			try:
+				channel = ctx.author.voice.channel
+			except AttributeError:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not player.current and not player.queue._queue:
+				return await ctx.send('Add videos/songs to the queue to enable queue entry removing.')
+			if not channel == ctx.guild.me.voice.channel:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			await self.do_reverse(player)
+			return await ctx.send(f'Reversed the queue.')
+		else:
+			return await ctx.send(f'MrBot is not currently in any voice channels.')
+
+	async def do_reverse(self, player):
+		return player.queue.reverse()
 
 
 def setup(bot):
