@@ -9,3 +9,5 @@ To invite the bot to your server please click the link [here](https://discordapp
 
 ## Self-hosting
 If you would like to host this bot for youself, please make sure to make a file called `mrbot.log` in the `mrbot/logs/` folder. You will also need to make a `config.py` file in the root directory, this file should have `DISCORD_TOKEN`, `DISCORD_PREFIX` and `DBL_TOKEN` fields.
+
+#Cool
