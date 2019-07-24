@@ -17,8 +17,9 @@ class Events(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
-		self.user_status = self.bot.loop.create_task(self.check_user_status())
+		#self.user_status = self.bot.loop.create_task(self.check_user_status())
 
+	"""
 	# Task to check the users status every so often and update it if its changed
 	async def check_user_status(self):
 		await self.bot.wait_until_ready()
@@ -108,6 +109,8 @@ class Events(commands.Cog):
 				# Set the old status since to null
 				data['status_times'][f'{before.status}_since'] = None
 				yaml.dump(data, w)
+				
+	"""
 
 	# When the bot joins a guild.
 	@commands.Cog.listener()
@@ -388,12 +391,12 @@ class Events(commands.Cog):
 				embed.set_author(icon_url=useravatar, name=author)
 				embed.description += f'**Before:**\n{get_information.user_status(before)}\n**After:**\n{get_information.user_status(after)}'
 				return await channel.send(embed=embed)
-			try:
-				self.update_user_status(before, after)
-			except FileNotFoundError:
-				return
-			except TypeError:
-				return
+			#try:
+				#self.update_user_status(before, after)
+			#except FileNotFoundError:
+			#	return
+			#except TypeError:
+			#	return
 		# If the members nickname has changed.
 		if not before.nick == after.nick:
 			# Check if this type of logging is enabled.
@@ -616,8 +619,6 @@ class Events(commands.Cog):
 				pass
 		elif isinstance(error, commands.DisabledCommand):
 			return await ctx.send(f"The command `{ctx.command}` is currently disabled.")
-		elif isinstance(error, commands.CommandNotFound):
-			return
 		elif isinstance(error, commands.CommandOnCooldown):
 			return await ctx.send(f"The command `{ctx.command}` is on cooldown, retry in {round(error.retry_after, 2)}s.")
 		elif isinstance(error, commands.MissingRequiredArgument):
@@ -629,7 +630,10 @@ class Events(commands.Cog):
 		elif isinstance(error, commands.MissingPermissions):
 			return await ctx.send(f"You dont have the permissions to run the `{ctx.command}` command.")
 		elif isinstance(error, commands.BotMissingPermissions):
-			return await ctx.send(f"I am missing the following permissions to run the command `{ctx.command}`.\n{error.missing_perms}")
+			missing_perms = ""
+			for perms in error.missing_perms:
+				missing_perms += f"\n>{perms}"
+			return await ctx.send(f"I am missing the following permissions to run the command `{ctx.command}`.{missing_perms}")
 		elif isinstance(error, discord.HTTPException):
 			if isinstance(error, discord.Forbidden):
 				return await ctx.send(f"I am missing permissions to run the command `{ctx.command}`.")

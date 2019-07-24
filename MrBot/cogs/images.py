@@ -518,7 +518,7 @@ class Images(commands.Cog):
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
-	@commands.command(name='status_pie', aliases=['status_p', 'sp'])
+	@commands.command(name='status_pie', aliases=['status_p', 'sp'], enabled=False)
 	async def status_pie(self, ctx):
 		"""
 		Generates a pie chart with values corresponding to the amount of time you have been online, offline, dnd, idle.

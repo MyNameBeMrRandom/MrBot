@@ -237,7 +237,7 @@ class Utilities(commands.Cog):
 								total += 1
 		await ctx.send(f'MrBot is made of {total:,} lines of code, spread out across {file_amount:,} files.')
 
-	@commands.command(name='status_times', aliases=['st'])
+	@commands.command(name='status_times', aliases=['st'], enabled=False)
 	async def status_times(self, ctx):
 		"""
 		Show how long you have been in each discord status.
