@@ -1,7 +1,5 @@
 from .utils import get_information
 from discord.ext import commands
-from .utils import file_handling
-from .utils import calculations
 from io import BytesIO
 import inspect
 import pathlib
@@ -9,7 +7,6 @@ import aiohttp
 import discord
 import codecs
 import random
-import typing
 import psutil
 import time
 import os
@@ -19,7 +16,6 @@ start_time = time.time()
 process = psutil.Process()
 
 
-# noinspection PyMethodMayBeStatic
 class Utilities(commands.Cog):
 	"""
 	Server/user/bot utility commands.
@@ -76,9 +72,9 @@ class Utilities(commands.Cog):
 		"""
 		Stats about the system MrBot is running on and other data.
 		"""
-		messages_seen = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages_seen')
-		commands_run = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'commands_run')
-		messages_sent = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages_sent')
+		#messages_seen = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages_seen')
+		#commands_run = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'commands_run')
+		#messages_sent = await self.bot.loop.run_in_executor(None, file_handling.get_stat_data, 'messages_sent')
 		embed = discord.Embed(
 			colour=0xFF0000,
 			timestamp=ctx.message.created_at,
@@ -93,8 +89,8 @@ class Utilities(commands.Cog):
 													  f"**Available:** {round(psutil.virtual_memory().available/1073741824, 2)} GB", inline=False)
 		embed.add_field(name="__**Process information:**__", value=f"**Memory usage:** {process.memory_info().rss//(1024**2)}mb\n"
 																   f"**CPU usage:** {process.cpu_percent()}%", inline=False)
-		embed.add_field(name="__**Bot Information:**__", value=f"**Messages seen:** {messages_seen}\n**Commands run:** {commands_run}\n"
-															   f"**Messages sent:** {messages_sent}", inline=False)
+		#embed.add_field(name="__**Bot Information:**__", value=f"**Messages seen:** {messages_seen}\n**Commands run:** {commands_run}\n"
+															   #f"**Messages sent:** {messages_sent}", inline=False)
 		return await ctx.send(embed=embed)
 
 	@commands.command(name='serverinfo')
@@ -121,7 +117,7 @@ class Utilities(commands.Cog):
 		return await ctx.send(embed=embed)
 
 	@commands.command(name='userinfo')
-	async def userinfo(self, ctx, user: typing.Union[discord.Member] = None):
+	async def userinfo(self, ctx, user: discord.Member = None):
 		"""
 		Information about you, or a specified user.
 		"""
@@ -143,7 +139,7 @@ class Utilities(commands.Cog):
 		return await ctx.send(embed=embed)
 
 	@commands.command(name='avatar')
-	async def avatar(self, ctx, user: typing.Union[discord.Member, discord.User] = None):
+	async def avatar(self, ctx, user: discord.Member = None):
 		"""
 		Get a users avatar.
 		"""
@@ -163,13 +159,11 @@ class Utilities(commands.Cog):
 		"""
 		Display the bots ping.
 		"""
-		embed = discord.Embed(
-			colour=0xFF0000,
-			timestamp=ctx.message.created_at
-		)
-		embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-		embed.add_field(name=f"Ping:", value=f'{await get_information.get_ping(ctx)}', inline=False)
-		return await ctx.send(embed=embed)
+		start = time.perf_counter()
+		message = await ctx.send("Ping...")
+		end = time.perf_counter()
+		duration = (end - start) * 1000
+		await message.edit(content='Pong! {:.2f}ms'.format(duration))
 
 	@commands.command(name='upvote')
 	async def upvote(self, ctx):
@@ -218,6 +212,7 @@ class Utilities(commands.Cog):
 		final_url = f'<{github_url}/blob/master/MrBot/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
 		await ctx.send(final_url)
 
+	# noinspection PyArgumentEqualDefault
 	@commands.command(name='linecount', aliases=['lc'])
 	async def linecount(self,ctx):
 		"""
@@ -225,46 +220,20 @@ class Utilities(commands.Cog):
 		"""
 		total = 0
 		file_amount = 0
+		comments = 0
 		for path, subdirs, files in os.walk('.'):
 			for name in files:
 				if name.endswith('.py'):
 					file_amount += 1
 					with codecs.open('./' + str(pathlib.PurePath(path, name)), 'r', 'utf-8') as f:
 						for i, l in enumerate(f):
-							if l.strip().startswith('#') or len(l.strip()) is 0:  # skip commented lines.
+							if l.strip().startswith('#'):
+								comments += 1
+							if len(l.strip()) is 0:
 								pass
 							else:
 								total += 1
-		await ctx.send(f'MrBot is made of {total:,} lines of code, spread out across {file_amount:,} files.')
-
-	@commands.command(name='status_times', aliases=['st'], enabled=False)
-	async def status_times(self, ctx):
-		"""
-		Show how long you have been in each discord status.
-		"""
-		try:
-			# Get the times in seconds.
-			online_time, offline_time, idle_time, dnd_time = await self.bot.loop.run_in_executor(None, file_handling.get_status_times, ctx)
-			# Calculate the total time.
-			total_time = online_time + offline_time + idle_time + dnd_time
-			# Calculate and display each status in days, hour, minutes and seconds.
-			online = calculations.get_time_friendly(online_time)
-			offline = calculations.get_time_friendly(offline_time)
-			idle = calculations.get_time_friendly(idle_time)
-			dnd = calculations.get_time_friendly(dnd_time)
-			total = calculations.get_time_friendly(total_time)
-			# Calculate the percentages of each status and the total percent.
-			online_percent, offline_percent, idle_percent, dnd_percent, total_percent = calculations.calculate_status_percentages(online_time, offline_time, idle_time, dnd_time)
-			# Send the message.
-			return await ctx.send(f'__**Status times for {ctx.author}**__\n\n'
-			                      f'**Online:**  | {online} | {online_percent}%\n'
-			                      f'**Offline:** | {offline} | {offline_percent}%\n'
-			                      f'**Idle:**       | {idle} | {idle_percent}%\n'
-			                      f'**DnD:**      | {dnd} | {dnd_percent}%\n'
-			                      f'**Total:**     | {total} | {total_percent}%')
-		except FileNotFoundError:
-			await ctx.send('You dont have an account.\n')
-			return await file_handling.account_creation(ctx)
+		await ctx.send(f'MrBot is made of {total:,} lines of code and {comments:,} comments. Spread out across {file_amount:,} files.')
 
 	@commands.command(name='screenshare', aliases=['ss'])
 	async def screenshare(self, ctx, channel: discord.VoiceChannel = None):

@@ -1,10 +1,7 @@
 from discord.ext import commands
-from .utils import file_handling
-from .utils import calculations
-import os
+import asyncpg
 
 
-# noinspection PyMethodMayBeStatic
 class Accounts(commands.Cog):
 	"""
 	MrBot account management commands.
@@ -18,67 +15,39 @@ class Accounts(commands.Cog):
 		"""
 		Display information about your account.
 		"""
-		try:
-			message = f"__**Information about {ctx.author.name}'s account.**__\n\n"
-			# Get the times in seconds.
-			online_time, offline_time, idle_time, dnd_time = await self.bot.loop.run_in_executor(None, file_handling.get_status_times, ctx)
-			# Calculate the total time.
-			total_time = online_time + offline_time + idle_time + dnd_time
-			# Calculate and display each status in days, hour, minutes and seconds.
-			online = calculations.get_time_friendly(online_time)
-			offline = calculations.get_time_friendly(offline_time)
-			idle = calculations.get_time_friendly(idle_time)
-			dnd = calculations.get_time_friendly(dnd_time)
-			total = calculations.get_time_friendly(total_time)
-			# Calculate the percentages of each status and the total percent.
-			online_percent, offline_percent, idle_percent, dnd_percent, total_percent = calculations.calculate_status_percentages(online_time, offline_time, idle_time, dnd_time)
-			# Append to the message.
-			message += (f'**Status times:**\n'
-			            f'**Online:**  | {online} | {online_percent}%\n'
-			            f'**Offline:** | {offline} | {offline_percent}%\n'
-			            f'**Idle:**       | {idle} | {idle_percent}%\n'
-			            f'**DnD:**      | {dnd} | {dnd_percent}%\n'
-			            f'**Total:**     | {total} | {total_percent}%\n\n')
-			# Get different data for the command.
-			background = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'config', 'background')
-			bank = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'bank')
-			cash = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'cash')
-			timezone = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'info', 'timezone')
-			votes = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'info', 'votes')
-			# Append to the message
-			message += (f'**Configuration:**\n'
-			            f'**Background:** {background}\n\n')
-			message += (f'**Economy information:**\n'
-			            f'**Bank:** £{bank}\n'
-			            f'**Cash:** £{cash}\n\n')
-			message += (f'**General information:**\n'
-			            f'**Timezone:** {timezone}\n'
-			            f'**Votes:** {votes}\n')
-			return await ctx.send(message)
-		except FileNotFoundError:
-			await ctx.send('You dont have an account.\n')
-			return await file_handling.account_creation(ctx)
+
+		if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", ctx.author.id):
+			return await ctx.send('You dont have an account.')
+		message = f">>> __**Information about {ctx.author.name}'s account.**__\n\n"
+		data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
+		message += f'**Configuration:**\n    **Background:** {data["background"]}\n\n'
+		message += f'**Economy information:**\n    **Bank:** £{data["bank"]}\n    **Cash:** £{data["cash"]}\n\n'
+		message += f'**General information:**\n    **Timezone:** {data["timezone"]}\n    **Last vote time:** {data["vote_time"]}\n    **Votes:** {data["vote_count"]}\n'
+		return await ctx.send(message)
 
 	@account.command(name='create')
 	async def create_account(self, ctx):
 		"""
 		Creates an account.
 		"""
+
 		try:
-			return await file_handling.account_creation(ctx)
-		except FileExistsError:
-			return await ctx.send(f'You already have an account.')
+			await self.bot.pool.execute(f"INSERT INTO user_config VALUES ($1, 'default', NULL, NULL, 0, 500, 500)", ctx.author.id)
+			return await ctx.send(f'Account created with ID `{ctx.author.id}`')
+		except asyncpg.UniqueViolationError:
+			return await ctx.send('You already have an account.')
 
 	@account.command(name='delete')
 	async def delete_account(self, ctx):
 		"""
 		Deletes your account.
 		"""
-		try:
-			os.remove(f'data/accounts/{ctx.author.id}.yaml')
-			return await ctx.send('Deleted your account.')
-		except FileNotFoundError:
-			return await ctx.send(f'You dont have an account.')
+
+		if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", ctx.author.id):
+			return await ctx.send('You dont have an account.')
+		await self.bot.pool.execute(f"DELETE FROM user_config WHERE key = $1", ctx.author.id)
+		return await ctx.send('Deleted your account.')
+
 
 
 def setup(bot):

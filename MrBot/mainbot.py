@@ -1,8 +1,10 @@
 from discord.ext import commands
 import logging.handlers
+import asyncpg
 import asyncio
 import config
 import os
+
 
 os.environ['JISHAKU_HIDE'] = 'True'
 
@@ -48,7 +50,7 @@ logger.addHandler(handler)
 
 
 # noinspection PyMethodMayBeStatic
-class MrBot(commands.AutoShardedBot):
+class MrBot(commands.Bot):
 	"""
 	Main bot class.
 	"""
@@ -61,22 +63,51 @@ class MrBot(commands.AutoShardedBot):
 		self.loop = asyncio.get_event_loop()
 		self.config = config
 		self.logging = logger
+		self.pool = None
 
 		for ext in extensions:
 			# noinspection PyBroadException
 			try:
 				self.load_extension(ext)
-				print(f'Success - {ext}')
-				logger.info(f'[EXT] - Successfully loaded - {ext}')
-			except Exception as e :
-				print(f'Failed - {ext}\n\n{e}\n')
-				logger.warning(f'[EXT] - Failed to load - {ext}')
+				print(f'[EXT] Success - {ext}')
+				logger.info(f'[EXT] Success - {ext}')
+			except Exception:
+				print(f'[EXT] Failed - {ext}')
+				logger.warning(f'[EXT] Failed - {ext}')
+
+	async def db_start(self):
+		try:
+			self.pool = await asyncpg.create_pool(**config.DB_CONN_INFO)
+			print('\n[DB] Successfully connected to database.\n')
+			print('[DB] Creating tables.')
+			with open("data/schema.sql") as f:
+				await self.pool.execute(f.read())
+			print('[DB] Done creating tables.\n')
+			print('[DB] Adding guilds.')
+			for guild in self.guilds:
+				try:
+					await self.pool.execute(
+						"INSERT INTO guild_config VALUES" 
+						"($1, NULL, FALSE, FALSE, FALSE," 
+						"FALSE, FALSE, FALSE, FALSE, FALSE," 
+						"FALSE, FALSE, FALSE, FALSE, FALSE," 
+						"FALSE, FALSE, FALSE, FALSE, FALSE," 
+						"FALSE, FALSE, FALSE, FALSE, FALSE," 
+						"FALSE, FALSE)", guild.id)
+					print(f'[DB] Created config for guild - {guild.name}.')
+				except asyncpg.UniqueViolationError:
+					pass
+			print('[DB] Done adding guilds.\n')
+		except ConnectionRefusedError:
+			print('\n[DB] Connection to db was denied.')
+		except Exception as e:
+			print(f'\n[DB] An error occured: {e}')
 
 	async def bot_logout(self):
 		"""
 		Logout from discord.
 		"""
-
+		await self.pool.close()
 		await super().logout()
 
 	async def bot_start(self):
@@ -92,7 +123,8 @@ class MrBot(commands.AutoShardedBot):
 		"""
 
 		logger.info(f'[BOT] Logged in as {self.user} - {self.user.id}')
-		print(f'\nLogged in as {self.user} - {self.user.id}')
+		print(f'\n[BOT] Logged in as {self.user} - {self.user.id}')
+		await self.db_start()
 
 	def run(self):
 		"""

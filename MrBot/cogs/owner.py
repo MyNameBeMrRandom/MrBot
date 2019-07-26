@@ -5,8 +5,6 @@ import textwrap
 import io
 
 
-
-# noinspection PyMethodMayBeStatic
 class Owner(commands.Cog):
 	"""
 	Owner only commands.

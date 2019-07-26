@@ -558,7 +558,7 @@ class Images(commands.Cog):
 				return await ctx.send('Ended pie chart creation.')
 			number_of_values = int(number_of_values.content)
 			if number_of_values <= 0 or number_of_values >= 51:
-				return await ctx.send(f'{ctx.author.mention}, That is not avalid number of values, please choose a value between 1 and 50.')
+				return await ctx.send(f'{ctx.author.mention}, That is not a valid number of values, please choose a value between 1 and 50.')
 		except asyncio.TimeoutError:
 			return await ctx.send(f'{ctx.author.mention}, You took to long to respond, ending pie chart creation.')
 		except ValueError:

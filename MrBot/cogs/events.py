@@ -9,7 +9,7 @@ import time
 import os
 
 
-# noinspection PyMethodMayBeStatic,PyBroadException
+
 class Events(commands.Cog):
 	"""
 	Bot related events.
@@ -17,114 +17,20 @@ class Events(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
-		#self.user_status = self.bot.loop.create_task(self.check_user_status())
-
-	"""
-	# Task to check the users status every so often and update it if its changed
-	async def check_user_status(self):
-		await self.bot.wait_until_ready()
-		while not self.bot.is_closed():
-			for guild in self.bot.guilds:
-				for member in guild.members:
-					if os.path.isfile(f'data/accounts/{member.id}.yaml'):
-						try:
-							await self.bot.loop.run_in_executor(None, self.do_check_user_status, member)
-						except FileNotFoundError:
-							continue
-			await asyncio.sleep(300)
-
-	def do_check_user_status(self, member):
-		with open(f'data/accounts/{member.id}.yaml', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-			if data['status_times'][f'online_since'] is not None:
-				# Get the time since the user was in previous state.
-				status_since = data['status_times'][f'online_since']
-				# Calculate how long they were in that status for.
-				status_time_1 = time.time() - status_since
-				# Get the amount of time they have already been in the previous status.
-				status_time_2 = data['status_times'][f'online_time']
-				# Calculate the total time.
-				status_time = status_time_1 + status_time_2
-				# Round it and set it as the before status time.
-				data['status_times'][f'online_time'] = round(status_time)
-			if data['status_times'][f'offline_since'] is not None:
-				# Get the time since the user was in previous state.
-				status_since = data['status_times'][f'offline_since']
-				# Calculate how long they were in that status for.
-				status_time_1 = time.time() - status_since
-				# Get the amount of time they have already been in the previous status.
-				status_time_2 = data['status_times'][f'offline_time']
-				# Calculate the total time.
-				status_time = status_time_1 + status_time_2
-				# Round it and set it as the before status time.
-				data['status_times'][f'offline_time'] = round(status_time)
-			if data['status_times'][f'dnd_since'] is not None:
-				# Get the time since the user was in previous state.
-				status_since = data['status_times'][f'dnd_since']
-				# Calculate how long they were in that status for.
-				status_time_1 = time.time() - status_since
-				# Get the amount of time they have already been in the previous status.
-				status_time_2 = data['status_times'][f'dnd_time']
-				# Calculate the total time.
-				status_time = status_time_1 + status_time_2
-				# Round it and set it as the before status time.
-				data['status_times'][f'dnd_time'] = round(status_time)
-			if data['status_times'][f'idle_since'] is not None:
-				# Get the time since the user was in previous state.
-				status_since = data['status_times'][f'idle_since']
-				# Calculate how long they were in that status for.
-				status_time_1 = time.time() - status_since
-				# Get the amount of time they have already been in the previous status.
-				status_time_2 = data['status_times'][f'idle_time']
-				# Calculate the total time.
-				status_time = status_time_1 + status_time_2
-				# Round it and set it as the before status time.
-				data['status_times'][f'idle_time'] = round(status_time)
-			with open(f'data/accounts/{member.id}.yaml', 'w', encoding='utf8') as w:
-				data['status_times'][f'online_since'] = None
-				data['status_times'][f'offline_since'] = None
-				data['status_times'][f'dnd_since'] = None
-				data['status_times'][f'idle_since'] = None
-				if data['status_times'][f'{member.status}_since'] is None:
-					data['status_times'][f'{member.status}_since'] = time.time()
-				yaml.dump(data, w)
-
-	# Updates as users status.
-	def update_user_status(self, before, after):
-		with open(f'data/accounts/{before.id}.yaml', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-			# Get the time since the user was in previous state.
-			before_status_since = data['status_times'][f'{before.status}_since']
-			# Calculate how long they were in that status for.
-			before_status_time_1 = time.time() - before_status_since
-			# Get the amount of time they have already been in the previous status.
-			before_status_time_2 = data['status_times'][f'{before.status}_time']
-			# Calculate the total time.
-			status_time = before_status_time_1 + before_status_time_2
-			# Round it and set it as the before status time.
-			data['status_times'][f'{before.status}_time'] = round(status_time)
-			with open(f'data/accounts/{before.id}.yaml', 'w', encoding='utf8') as w:
-				# Set the new status since to the current time
-				data['status_times'][f'{after.status}_since'] = time.time()
-				# Set the old status since to null
-				data['status_times'][f'{before.status}_since'] = None
-				yaml.dump(data, w)
-				
-	"""
 
 	# When the bot joins a guild.
 	@commands.Cog.listener()
 	async def on_guild_join(self, guild):
 		self.bot.logging.info(f'[GUILD] - Joined the guild {guild.name}.')
 		channel = self.bot.get_channel(516002789617434664)
-		return await channel.send(f'{self.bot.name} joined a guild called `{guild.name}`')
+		return await channel.send(f'{guild.me.name} joined a guild called `{guild.name}`')
 
 	# When the bot leaves the guild.
 	@commands.Cog.listener()
 	async def on_guild_remove(self, guild):
 		self.bot.logging.info(f'[GUILD] - Left the guild {guild.name}.')
 		channel = self.bot.get_channel(516002789617434664)
-		return await channel.send(f'{self.bot.name} left a guild called `{guild.name}`')
+		return await channel.send(f'{guild.me.name} left a guild called `{guild.name}`')
 
 	# When a guild is updated
 	@commands.Cog.listener()
