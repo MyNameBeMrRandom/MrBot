@@ -85,18 +85,20 @@ def get_time_friendly(second):
 		message += '00s'
 	return message
 
-def calculate_status_percentages(online_time, offline_time, idle_time, dnd_time):
+def calculate_percentages(numbers, decimal):
 	"""
-	Convets times in percents out the total.
+	Takes a list of numbers and calculate the percatage of each one out the total.
 	"""
-	total = online_time + offline_time + idle_time + dnd_time
-	online_p = online_time / total
-	offline_p = offline_time / total
-	idle_p = idle_time / total
-	dnd_p = dnd_time / total
-	online_percent = round(online_p * 100, 3)
-	offline_percent = round(offline_p * 100, 3)
-	idle_percent = round(idle_p * 100, 3)
-	dnd_percent = round(dnd_p * 100, 3)
-	total_percent = round(offline_percent + online_percent + idle_percent + dnd_percent, 3)
-	return online_percent, offline_percent, idle_percent, dnd_percent, total_percent
+	# Define a list called percentages.
+	percentages = []
+	# Calculate the total of the numbers in the list.
+	total = sum(numbers)
+	# Calculate the percent out the total and add it to the list
+	for number in numbers:
+		percent = round(number / total * 100, decimal)
+		percentages.append(percent)
+	# Calaculate the total percent and add it to the list
+	total_percent = round(sum(percentages), decimal)
+	percentages.append(total_percent)
+	# Return the list
+	return percentages

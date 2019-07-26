@@ -1,12 +1,11 @@
 from discord.ext import commands
-from .utils import file_handling
 import discord
 import config
-import yaml
+import time
 import dbl
 
 
-# noinspection PyMethodMayBeStatic
+# noinspection PyMethodMayBeStatic,PyBroadException
 class Economy(commands.Cog):
 	"""
 	Economy management commands.
@@ -14,56 +13,125 @@ class Economy(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
-		self.token = config.DBL_TOKEN
-		self.dblpy = dbl.Client(self.bot, self.token, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
+		self.dblpy = dbl.Client(self.bot, config.DBL_TOKEN, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
 
-	def do_add_money(self, user, money_type, amount):
-		with open(f'data/accounts/{user.id}.yaml', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-			money = int(data['economy'][f'{money_type}'])
-			data['economy'][f'{money_type}'] = money + amount
-			with open(f'data/accounts/{user.id}.yaml', 'w', encoding='utf8') as w:
-				yaml.dump(data, w)
-
-	def do_remove_money(self, user, money_type, amount):
-		with open(f'data/accounts/{user.id}.yaml', encoding='utf8') as r:
-			data = yaml.load(r, Loader=yaml.FullLoader)
-			money = int(data['economy'][f'{money_type}'])
-			data['economy'][f'{money_type}'] = money - amount
-			with open(f'data/accounts/{user.id}.yaml', 'w', encoding='utf8') as w:
-				yaml.dump(data, w)
-
-	async def do_deposit(self, ctx, amount):
-		if amount == 'all':
+	@commands.Cog.listener()
+	async def on_dbl_vote(self, data):
+		user = self.bot.get_user(int(data['user']))
+		if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", user.id):
+			return
+		user_data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", user.id)
+		cash_amount = user_data["cash"]
+		vote_count = user_data["vote_count"]
+		await self.bot.pool.execute(f"UPDATE user_config SET vote_count = $1 WHERE key = $2", vote_count + 1, user.id)
+		await self.bot.pool.execute(f"UPDATE user_config SET vote_time = $1 WHERE key = $2", time.time(), user.id)
+		if data['isWeekend'] is True:
 			try:
-				cash_amount = int(await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'cash'))
-				if cash_amount == 0:
-					embed = discord.Embed(
-						colour=0x57FFF5,
-						timestamp=ctx.message.created_at,
-						description=f'You have no money to deposit.'
-					)
-					embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-					return await ctx.send(embed=embed)
-				else:
-					await self.bot.loop.run_in_executor(None, self.do_add_money, ctx.author, 'bank', cash_amount)
-					await self.bot.loop.run_in_executor(None, self.do_remove_money, ctx.author, 'cash', cash_amount)
-					embed = discord.Embed(
-						colour=0x57FFF5,
-						timestamp=ctx.message.created_at,
-						description=f'Deposited **£{cash_amount}** to your bank.'
-					)
-					embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-					return await ctx.send(embed=embed)
-			except FileNotFoundError:
-				await ctx.send(f'You dont have an account.')
-				return await file_handling.account_creation(ctx)
-			except ValueError:
-				return await ctx.send('That was not a valid amount of money, do not use commas or spaces. e.g `mb deposit 999999`')
-		if not amount == 'all':
+				await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount + 500, user.id)
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f'Thank you for voting, You gained **£500** because you voted on a weekend and earned double rewards!'
+				)
+				return await user.send(embed=embed)
+			except Exception:
+				return
+		else:
+			try:
+				await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount + 250, user.id)
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f'Thank you for voting, You gained **£250**.!'
+				)
+				return await user.send(embed=embed)
+			except Exception:
+				return
+
+	@commands.Cog.listener()
+	async def on_dbl_test(self, data):
+		user = self.bot.get_user(int(data['user']))
+		if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", user.id):
+			return
+		user_data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", user.id)
+		cash_amount = user_data["cash"]
+		vote_count = user_data["vote_count"]
+		await self.bot.pool.execute(f"UPDATE user_config SET vote_count = $1 WHERE key = $2", vote_count + 1, user.id)
+		await self.bot.pool.execute(f"UPDATE user_config SET vote_time = $1 WHERE key = $2", time.time(), user.id)
+		if data['isWeekend'] is True:
+			try:
+				await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount + 500, user.id)
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f'Thank you for voting, You gained **£500** because you voted on a weekend and earned double rewards!'
+				)
+				return await user.send(embed=embed)
+			except Exception:
+				return
+		else:
+			try:
+				await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount + 250, user.id)
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f'Thank you for voting, You gained **£250**.!'
+				)
+				return await user.send(embed=embed)
+			except Exception:
+				return
+
+	@commands.command(name='balance', aliases=['bal'])
+	async def balance(self, ctx):
+		"""
+		Display the amount of money you have.
+		"""
+
+		if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", ctx.author.id):
+			return await ctx.send('You dont have an account.')
+		data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
+		bank = data["bank"]
+		cash = data["cash"]
+		embed = discord.Embed(
+			colour=0x57FFF5,
+			timestamp=ctx.message.created_at,
+			title=f"{ctx.author.name}'s balance:"
+		)
+		embed.add_field(name='Bank:', value=f'**£{bank}**')
+		embed.add_field(name='Cash:', value=f'**£{cash}**')
+		embed.add_field(name='Total:', value=f'**£{cash + bank}**')
+		embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
+		return await ctx.send(embed=embed)
+
+	@commands.command(name='deposit', aliases=['dep'])
+	async def deposit(self, ctx, amount):
+		"""
+		Desposit an amount of money to your bank.
+		"""
+
+		if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", ctx.author.id):
+			return await ctx.send('You dont have an account.')
+		data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
+		bank_amount = data["bank"]
+		cash_amount = data["cash"]
+		if amount == 'all':
+			if cash_amount == 0:
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					timestamp=ctx.message.created_at,
+					description=f'You have no money to deposit.'
+				)
+				embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
+				return await ctx.send(embed=embed)
+			else:
+				await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", bank_amount + cash_amount, ctx.author.id)
+				await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount - cash_amount, ctx.author.id)
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					timestamp=ctx.message.created_at,
+					description=f'Deposited **£{cash_amount}** to your bank.'
+				)
+				embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
+				return await ctx.send(embed=embed)
+		else:
 			try:
 				amount = int(amount)
-				cash_amount = int(await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'cash'))
 				if amount > cash_amount or amount <= 0:
 					embed = discord.Embed(
 						colour=0x57FFF5,
@@ -73,8 +141,8 @@ class Economy(commands.Cog):
 					embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
 					return await ctx.send(embed=embed)
 				else:
-					await self.bot.loop.run_in_executor(None, self.do_add_money, ctx.author, 'bank', amount)
-					await self.bot.loop.run_in_executor(None, self.do_remove_money, ctx.author, 'cash', amount)
+					await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", bank_amount + amount, ctx.author.id)
+					await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount - amount, ctx.author.id)
 					embed = discord.Embed(
 						colour=0x57FFF5,
 						timestamp=ctx.message.created_at,
@@ -82,44 +150,42 @@ class Economy(commands.Cog):
 					)
 					embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
 					return await ctx.send(embed=embed)
-			except FileNotFoundError:
-				await ctx.send(f'You dont have an account.')
-				return await file_handling.account_creation(ctx)
 			except ValueError:
 				return await ctx.send('That was not a valid amount of money, do not use commas or spaces. e.g `mb deposit 999999`')
 
-	async def do_withdraw(self, ctx, amount):
+	@commands.command(name='withdraw', aliases=['wd'])
+	async def withdraw(self, ctx, amount):
+		"""
+		Withdraw an amount of money from your bank.
+		"""
+
+		if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", ctx.author.id):
+			return await ctx.send('You dont have an account.')
+		data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
+		bank_amount = data["bank"]
+		cash_amount = data["cash"]
 		if amount == 'all':
-			try:
-				cash_amount = int(await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'cash'))
-				bank_amount = int(await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'bank'))
-				if bank_amount == 0:
-					embed = discord.Embed(
-						colour=0x57FFF5,
-						timestamp=ctx.message.created_at,
-						description=f'You have no money to withdraw.'
-					)
-					embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-					return await ctx.send(embed=embed)
-				else:
-					await self.bot.loop.run_in_executor(None, self.do_add_money, ctx.author, 'cash', bank_amount)
-					await self.bot.loop.run_in_executor(None, self.do_remove_money, ctx.author, 'bank', bank_amount)
-					embed = discord.Embed(
-						colour=0x57FFF5,
-						timestamp=ctx.message.created_at,
-						description=f'Withdrew **£{cash_amount}** from your bank.'
-					)
-					embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-					return await ctx.send(embed=embed)
-			except FileNotFoundError:
-				await ctx.send(f'You dont have an account.')
-				return await file_handling.account_creation(ctx)
-			except ValueError:
-				return await ctx.send('That was not a valid amount of money, do not use commas or spaces. e.g `mb deposit 999999`')
+			if bank_amount == 0:
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					timestamp=ctx.message.created_at,
+					description=f'You have no money to withdraw.'
+				)
+				embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
+				return await ctx.send(embed=embed)
+			else:
+				await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount + bank_amount, ctx.author.id)
+				await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", bank_amount - bank_amount, ctx.author.id)
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					timestamp=ctx.message.created_at,
+					description=f'Withdrew **£{bank_amount}** from your bank.'
+				)
+				embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
+				return await ctx.send(embed=embed)
 		elif not amount == 'all':
 			try:
 				amount = int(amount)
-				bank_amount = int(await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'bank'))
 				if amount > bank_amount or amount <= 0:
 					embed = discord.Embed(
 						colour=0x57FFF5,
@@ -129,8 +195,8 @@ class Economy(commands.Cog):
 					embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
 					return await ctx.send(embed=embed)
 				else:
-					await self.bot.loop.run_in_executor(None, self.do_add_money, ctx.author, 'cash', amount)
-					await self.bot.loop.run_in_executor(None, self.do_remove_money, ctx.author, 'bank', amount)
+					await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount + amount, ctx.author.id)
+					await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", bank_amount - amount, ctx.author.id)
 					embed = discord.Embed(
 						colour=0x57FFF5,
 						timestamp=ctx.message.created_at,
@@ -138,95 +204,8 @@ class Economy(commands.Cog):
 					)
 					embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
 					return await ctx.send(embed=embed)
-			except FileNotFoundError:
-				await ctx.send(f'You dont have an account.')
-				return await file_handling.account_creation(ctx)
 			except ValueError:
 				return await ctx.send('That was not a valid amount of money, do not use commas or spaces. e.g `mb deposit 999999`')
-
-	@commands.Cog.listener()
-	async def on_dbl_vote(self, data):
-		user = self.bot.get_user(int(data['user']))
-		if data['isWeekend'] is True:
-			try:
-				await self.bot.loop.run_in_executor(None, self.do_add_money, user, 'cash', 500)
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f'Thank you for voting, You gained **£500** because you voted on a weekend and earned double rewards!'
-				)
-				return await user.send(embed=embed)
-			except FileNotFoundError:
-				return await user.send('You dont have an account, so your vote didnt count, use `mb account create` to make one.')
-		else:
-			try:
-				await self.bot.loop.run_in_executor(None, self.do_add_money, user, 'cash', 250)
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f'Thank you for voting, You gained **£250**.'
-				)
-				return await user.send(embed=embed)
-			except FileNotFoundError:
-				return await user.send('You dont have an account, so your vote didnt count, use `mb account create` to make one.')
-
-	@commands.Cog.listener()
-	async def on_dbl_test(self, data):
-		user = self.bot.get_user(int(data['user']))
-		if data['isWeekend'] is True:
-			try:
-				await self.bot.loop.run_in_executor(None, self.do_add_money, user, 'cash', 500)
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f'Thank you for voting, You gained **£500** because you voted on a weekend and earned double rewards!'
-				)
-				return await user.send(embed=embed)
-			except FileNotFoundError:
-				return await user.send('You dont have an account, so your vote didnt count, use `mb account create` to make one.')
-		else:
-			try:
-				await self.bot.loop.run_in_executor(None, self.do_add_money, user, 'cash', 250)
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f'Thank you for voting, You gained **£250**.'
-				)
-				return await user.send(embed=embed)
-			except FileNotFoundError:
-				return await user.send('You dont have an account, so your vote didnt count, use `mb account create` to make one.')
-
-	@commands.command(name='balance', aliases=['bal'])
-	async def balance(self, ctx):
-		"""
-		Display the amount of money you have.
-		"""
-		try:
-			bank = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'bank')
-			cash = await self.bot.loop.run_in_executor(None, file_handling.get_account_data, ctx.author, 'economy', 'cash')
-			embed = discord.Embed(
-				colour=0x57FFF5,
-				timestamp=ctx.message.created_at,
-				title=f"{ctx.author.name}'s balance:"
-			)
-			embed.add_field(name='Bank:', value=f'**£{bank}**')
-			embed.add_field(name='Cash:', value=f'**£{cash}**')
-			embed.add_field(name='Total:', value=f'**£{cash + bank}**')
-			embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-			return await ctx.send(embed=embed)
-		except FileNotFoundError:
-			await ctx.send(f'You dont have an account.')
-			return await file_handling.account_creation(ctx)
-
-	@commands.command(name='deposit', aliases=['dep'])
-	async def deposit(self, ctx, amount):
-		"""
-		Desposit an amount of money to your bank.
-		"""
-		return await self.do_deposit(ctx, amount)
-
-	@commands.command(name='withdraw', aliases=['wd'])
-	async def withdraw(self, ctx, amount):
-		"""
-		Withdraw an amount of money from your bank.
-		"""
-		return await self.do_withdraw(ctx, amount)
 
 
 def setup(bot):

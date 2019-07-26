@@ -217,30 +217,25 @@ class Track(andesite.Track):
 
 	def __init__(self, id_, info, *, ctx=None):
 		super(Track, self).__init__(id_, info)
-
 		self.channel = ctx.channel
 		self.requester = ctx.author
 
 
-# noinspection PyProtectedMember
 class Player(andesite.Player):
 
 	def __init__(self, bot, guild_id: int, node):
 		super(Player, self).__init__(bot, guild_id, node)
-		self.filter = andesite.Timescale(speed=1, pitch=1, rate=1)
 		self.bot.loop.create_task(self.player_loop())
-		self.next_event = asyncio.Event()
 		self.queue = Queue()
-		self.volume = 50
-		self.paused = False
 		self.loop_queue = False
+		self.paused = False
+		self.filter = None
+		self.volume = 50
 
 	async def player_loop(self):
 		await self.bot.wait_until_ready()
 		await self.set_volume(self.volume)
-		await self.set_filters(self.filter)
 		while True:
-			self.next_event.clear()
 			song = await self.queue.get()
 			if not song:
 				continue
@@ -250,6 +245,7 @@ class Player(andesite.Player):
 			await self.bot.wait_for("andesite_track_end", check=lambda p: p.player.guild_id == self.guild_id)
 			if self.loop_queue is True:
 				await self.queue.put(self.current)
+			self.current = None
 
 	async def invoke_controller(self, track: andesite.Track = None):
 		if not track:
@@ -269,7 +265,7 @@ class Player(andesite.Player):
 		await track.channel.send(embed=embed)
 
 
-# noinspection PyAttributeOutsideInit,PyProtectedMember
+# noinspection PyAttributeOutsideInit
 class Voice(commands.Cog):
 
 	def __init__(self, bot):
@@ -362,16 +358,16 @@ class Voice(commands.Cog):
 		try:
 			channel = ctx.author.voice.channel
 		except AttributeError:
-			return await ctx.send('Join the same voice channel as MrBot to use this command.')
+			return await ctx.send('Join a voice channel to use this command.')
 
 		if player.is_connected:
 			if ctx.guild.me.voice.channel.id == channel.id:
-				return await ctx.send('I am already in that voice channel.')
+				return await ctx.send('I am already in this voice channel.')
 			await self.do_join(ctx, player, channel)
-			return await ctx.send(f'MrBot moved to the voice channel `{channel}`')
+			return await ctx.send(f'Moved to the voice channel `{channel}`')
 		else:
 			await self.do_join(ctx, player, channel)
-			return await ctx.send(f'MrBot joined the voice channel `{channel}`')
+			return await ctx.send(f'Joined the voice channel `{channel}`')
 
 	async def do_join(self, ctx, player, channel):
 		"""
@@ -399,8 +395,8 @@ class Voice(commands.Cog):
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if not channel == ctx.guild.me.voice.channel:
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-			await ctx.send(f'Left the voice channel `{ctx.guild.me.voice.channel}`.')
-			return await self.do_leave(player)
+			await self.do_leave(player)
+			return await ctx.send(f'Left the voice channel `{ctx.guild.me.voice.channel}`.')
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
@@ -481,6 +477,8 @@ class Voice(commands.Cog):
 	async def skip(self, ctx):
 		"""
 		Skip to the next song in the queue.
+
+		This will auto skip if you are the requester of the current songs, otherwise a vote will start to skip the song.
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
@@ -490,12 +488,12 @@ class Voice(commands.Cog):
 				channel = ctx.author.voice.channel
 			except AttributeError:
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-			if not player.current:
-				return await ctx.send('No songs/videos currently playing.')
 			if not channel == ctx.guild.me.voice.channel:
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if player.queue.qsize() <= 0:
+				return await ctx.send('There are no songs in the queue to skip too.')
 			if player.current.requester.id == ctx.author.id:
-				await ctx.send(f'The requester of the current song has skipped the song.')
+				await ctx.send(f"The current song's requester has skipped the song.")
 				return await self.do_skip(player)
 			else:
 				await ctx.send('Vote skipping coming soon.')
@@ -538,6 +536,68 @@ class Voice(commands.Cog):
 
 		await player.set_volume(volume)
 		player.volume = volume
+
+	@commands.command(name='filter')
+	async def filter(self, ctx):
+		"""
+		Changes the volume of the player.
+		"""
+
+		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+
+		def check(msg):
+			return ctx.author == msg.author and ctx.channel == msg.channel
+
+		if player.is_connected:
+			try:
+				channel = ctx.author.voice.channel
+			except AttributeError:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if not channel == ctx.guild.me.voice.channel:
+				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+
+			message = await ctx.send(f'What filter type would you like to use?\n> 1. Karaoke\n> 2. Timescale\n> 3. Tremolo\n> 4. Vibrato\nEnter number:')
+			try:
+				filter_type = await ctx.bot.wait_for('message', timeout=30.0, check=check)
+				if filter_type.content == 'cancel':
+					return await ctx.send('Ended filter selection.')
+				filter_type = int(filter_type.content)
+				if filter_type <= 0 or filter_type >= 5:
+					return await ctx.send(f'That is not a valid filter, please choose a valid filters number.')
+			except asyncio.TimeoutError:
+				return await ctx.send(f'You took to long to respond.')
+			except ValueError:
+				return await ctx.send(f'That was not a valid filter type, make sure you use a number.')
+			if filter_type == 1:
+				await message.edit(content=f'What `level` would you like?')
+				try:
+					filter_type = await ctx.bot.wait_for('message', timeout=30.0, check=check)
+					if filter_type.content == 'cancel':
+						return await ctx.send('Ended filter selection.')
+					filter_type = int(filter_type.content)
+					if filter_type <= 0 or filter_type >= 20:
+						return await ctx.send(f'That is not a valid `level`, please choose a valid filters number.')
+				except asyncio.TimeoutError:
+					return await ctx.send(f'You took to long to respond.')
+				except ValueError:
+					return await ctx.send(f'That was not a valid filter type, make sure you use a number.')
+
+
+
+
+
+			#if not 0 < volume < 101:
+				#return await ctx.send(f'Please enter a value between `1` and and `100`.')
+			#await ctx.send(f'Changed the players volume to `{volume}%`.')
+			return await self.do_filter(player, filters)
+		else:
+			return await ctx.send(f'MrBot is not currently in any voice channels.')
+
+	async def do_filter(self, player, filters):
+		"""
+		Changes the volume of the player.
+		"""
+		await player.set_filters(filters)
 
 	@commands.command(name='seek')
 	async def seek(self, ctx, position: int):
@@ -628,8 +688,7 @@ class Voice(commands.Cog):
 		"""
 		Shuffle the queue.
 		"""
-
-		random.shuffle(player.queue._queue)
+		random.shuffle(player.queue.queue)
 
 	@commands.command(name='clear')
 	async def clear(self, ctx):
@@ -657,8 +716,7 @@ class Voice(commands.Cog):
 		"""
 		Clear the queue.
 		"""
-
-		player.queue._queue.clear()
+		player.queue.queue.clear()
 
 	@commands.command(name='loop')
 	async def loop(self, ctx):
@@ -699,6 +757,8 @@ class Voice(commands.Cog):
 	async def remove(self, ctx, entry: int):
 		"""
 		Remove an entry from the queue.
+
+		When removing entries use the number shown in the `queue` command. For example `mb remove  13` will remove the track in 13th position.
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
@@ -713,7 +773,7 @@ class Voice(commands.Cog):
 			if player.queue.qsize() <= 0:
 				return await ctx.send('Add videos/songs to the queue to enable queue entry removing.')
 			if not 0 < entry <= player.queue.qsize():
-				return await ctx.send(f'That was not a valid track position.')
+				return await ctx.send(f'That was not a valid track entry number.')
 			item = await self.do_remove(player, entry)
 			return await ctx.send(f'Removed `{item}` from the queue.')
 		else:
@@ -724,9 +784,11 @@ class Voice(commands.Cog):
 		return item
 
 	@commands.command(name='move')
-	async def move(self, ctx, pos1: int, pos2: int):
+	async def move(self, ctx, entry_1: int, entry_2: int):
 		"""
 		Move an entry from one position to another in the queue.
+
+		When moving entries use the number shown in the `queue` command. For example `mb move 1 15` will move the track in 1st position to 15th.
 		"""
 
 		player = self.andesite.get_player(ctx.guild.id, cls=Player)
@@ -740,20 +802,20 @@ class Voice(commands.Cog):
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if player.queue.qsize() <= 0:
 				return await ctx.send('Add videos/songs to the queue to enable queue entry moving.')
-			if not 0 < pos1 <= player.queue.qsize():
-				return await ctx.send(f'That was not a valid track position to move from.')
-			if not 0 < pos2 <= player.queue.qsize():
-				return await ctx.send(f'That was not a valid track position to move too.')
-			item = await self.do_move(ctx, player, pos1, pos2)
-			return await ctx.send(f'Moved `{item}` from position `{pos1}` to position `{pos2}`.')
+			if not 0 < entry_1 <= player.queue.qsize():
+				return await ctx.send(f'That was not a valid track entry to move from.')
+			if not 0 < entry_2 <= player.queue.qsize():
+				return await ctx.send(f'That was not a valid track entry to move too.')
+			item = await self.do_move(ctx, player, entry_1, entry_2)
+			return await ctx.send(f'Moved `{item}` from position `{entry_1}` to position `{entry_2}`.')
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
-	async def do_move(self, ctx, player, pos1, pos2):
-		item = await player.queue.get_pos(pos1 - 1)
+	async def do_move(self, ctx, player, entry_1, entry_2):
+		item = await player.queue.get_pos(entry_1 - 1)
 		tracks = await player.node.get_tracks(f"{item}")
 		track = tracks[0]
-		await player.queue.put_pos(Track(track.id, track.data, ctx=ctx), pos2 - 1)
+		await player.queue.put_pos(Track(track.id, track.data, ctx=ctx), entry_2 - 1)
 		return item
 
 	@commands.command(name='reverse')
@@ -769,10 +831,10 @@ class Voice(commands.Cog):
 				channel = ctx.author.voice.channel
 			except AttributeError:
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-			if player.queue.qsize() <= 0:
-				return await ctx.send('Add videos/songs to the queue to enable queue reversing.')
 			if not channel == ctx.guild.me.voice.channel:
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
+			if player.queue.qsize() <= 0:
+				return await ctx.send('Add videos/songs to the queue to enable queue reversing.')
 			await self.do_reverse(player)
 			return await ctx.send(f'Reversed the queue.')
 		else:
