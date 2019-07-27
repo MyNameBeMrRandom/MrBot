@@ -1,13 +1,7 @@
-from discord.ext import commands
 from .utils import get_information
-from .utils import file_handling
+from discord.ext import commands
 import traceback
-import asyncio
 import discord
-import yaml
-import time
-import os
-
 
 
 class Events(commands.Cog):
@@ -18,501 +12,389 @@ class Events(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
-	# When the bot joins a guild.
 	@commands.Cog.listener()
 	async def on_guild_join(self, guild):
 		self.bot.logging.info(f'[GUILD] - Joined the guild {guild.name}.')
 		channel = self.bot.get_channel(516002789617434664)
 		return await channel.send(f'{guild.me.name} joined a guild called `{guild.name}`')
 
-	# When the bot leaves the guild.
 	@commands.Cog.listener()
 	async def on_guild_remove(self, guild):
 		self.bot.logging.info(f'[GUILD] - Left the guild {guild.name}.')
 		channel = self.bot.get_channel(516002789617434664)
 		return await channel.send(f'{guild.me.name} left a guild called `{guild.name}`')
 
-	# When a guild is updated
 	@commands.Cog.listener()
 	async def on_guild_update(self, before, after):
-		# If the guild name has changed
-		if not before.name == after.name:
-			# Check if this type of logging is enabled.
-			guild_name_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_name')
-			if guild_name_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds name has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{before.name}\n**After:**\n{after.name}'
-				return await channel.send(embed=embed)
-		# If the guilds region has changed.
-		if not before.region == after.region:
-			# Check if this type of logging is enabled.
-			guild_region_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_region')
-			if guild_region_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds region has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{get_information.guild_region(before)}\n**After:**\n{get_information.guild_region(after)}'
-				return await channel.send(embed=embed)
-		# If the guilds afk timout has changed.
-		if not before.afk_timeout == after.afk_timeout:
-			# Check if this type of logging is enabled.
-			guild_afk_timeout_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_afk_timeout')
-			if guild_afk_timeout_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds AFK timout has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{int(before.afk_timeout/60)} minutes\n**After:**\n{int(after.afk_timeout/60)} minutes'
-				return await channel.send(embed=embed)
-		# If the guilds afk channel has changed.
-		if not before.afk_channel == after.afk_channel:
-			# Check if this type of logging is enabled.
-			guild_afk_channel_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_afk_channel')
-			if guild_afk_channel_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds AFK voice channel has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{before.afk_channel.name}\n**After:**\n{after.afk_channel.name}'
-				return await channel.send(embed=embed)
-		# If the guilds system channel has changed.
-		if not before.system_channel == after.system_channel:
-			# Check if this type of logging is enabled.
-			guild_system_channel_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_system_channel')
-			if guild_system_channel_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds system messages channel has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{before.system_channel.mention}\n**After:**\n{after.system_channel.mention}'
-				return await channel.send(embed=embed)
-		# If the guilds icon has changed.
-		if not before.icon_url == after.icon_url:
-			# Check if this type of logging is enabled.
-			guild_icon_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_icon')
-			if guild_icon_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds icon has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n[Image]({before.icon_url})\n**After:**\n[Image]({after.icon_url})'
-				return await channel.send(embed=embed)
-		# If the guilds notification setting has changed.
-		if not before.default_notifications == after.default_notifications:
-			# Check if this type of logging is enabled.
-			guild_default_notifications_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_default_notifications')
-			if guild_default_notifications_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds default notification setting has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{get_information.guild_notification_level(before)}\n**After:**\n{get_information.guild_notification_level(after)}'
-				return await channel.send(embed=embed)
-		# If the guilds description has changed.
-		if not before.description == after.description:
-			# Check if this type of logging is enabled.
-			guild_description_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_description')
-			if guild_description_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds description has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{before.description}\n**After:**\n{after.description}'
-				return await channel.send(embed=embed)
-		# If the guilds mfa_level has changed.
-		if not before.mfa_level == after.mfa_level:
-			# Check if this type of logging is enabled.
-			guild_mfa_level_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_mfa_level')
-			if guild_mfa_level_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds MFA level has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{get_information.guild_mfa_level(before)}\n**After:**\n{get_information.guild_mfa_level(after)}'
-				return await channel.send(embed=embed)
-		# If the guilds verification level has changed.
-		if not before.verification_level == after.verification_level:
-			# Check if this type of logging is enabled.
-			guild_mfa_level_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_verification_level')
-			if guild_mfa_level_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds verification level has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{get_information.guild_verification_level(before)}\n**After:**\n{get_information.guild_verification_level(after)}'
-				return await channel.send(embed=embed)
-		# If the guilds explicit content filter has changed.
-		if not before.explicit_content_filter == after.explicit_content_filter:
-			# Check if this type of logging is enabled.
-			guild_explicit_content_filter_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_explicit_content_filter')
-			if guild_explicit_content_filter_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds explicit content filter has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{get_information.guild_content_filter_level(before)}\n**After:**\n{get_information.guild_content_filter_level(after)}'
-				return await channel.send(embed=embed)
-		# If the guilds splash has changed.
-		if not before.splash == after.splash:
-			# Check if this type of logging is enabled.
-			guild_splash_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, before, 'guild_splash')
-			if guild_splash_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, before))
-				guild_name = before.name
-				guild_avatar = before.icon_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"This guilds splash has changed.\n\n"
-				)
-				embed.set_author(icon_url=guild_avatar, name=guild_name)
-				embed.description += f'**Before:**\n{before.splash}\n**After:**\n{after.splash}'
-				return await channel.send(embed=embed)
-		else:
+		if self.bot.is_db_ready is False:
 			return
-
-	# When a member joins a server.
-	@commands.Cog.listener()
-	async def on_member_join(self, member):
-		guild = member.guild
-		# Check if this type of logging is enabled.
-		check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_join')
-		if check is True:
-			# Get the logging channel for the guild.
-			channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-			author = member.name
-			useravatar = member.avatar_url
-			embed = discord.Embed(
-				colour=0x57FFF5,
-				description=f"**{member.name}** has joined the guild."
-			)
-			embed.set_author(icon_url=useravatar, name=author)
-			embed.set_footer(text=f'ID: {member.id}')
-			embed.set_thumbnail(url=member.avatar_url_as(format="png"))
-			return await channel.send(embed=embed)
-		else:
+		data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", before.id)
+		if data["logging_channel"]is None:
 			return
-
-	# When a member leaves a server.
-	@commands.Cog.listener()
-	async def on_member_remove(self, member):
-		guild = member.guild
-		# Check if this type of logging is enabled.
-		check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_leave')
-		if check is True:
-			# Get the logging channel for the guild.
-			channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-			author = member.name
-			useravatar = member.avatar_url
-			embed = discord.Embed(
-				colour=0x57FFF5,
-				description=f"**{member.name}** has left the guild."
-			)
-			embed.set_author(icon_url=useravatar, name=author)
-			embed.set_footer(text=f'ID: {member.id}')
-			embed.set_thumbnail(url=member.avatar_url_as(format="png"))
-			return await channel.send(embed=embed)
-		else:
-			return
-
-	# When a member updates their profile
-	@commands.Cog.listener()
-	async def on_member_update(self, before, after):
-		guild = before.guild
-		# If the user is a bot, return nothing.
-		if before.bot:
-			return
-		# If the members status has changed.
-		if not before.status == after.status:
-			# Check if this type of logging is enabled.
-			member_status_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_status')
-			if member_status_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-				author = after.name
-				useravatar = after.avatar_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"**{before.name}**'s status has changed.\n\n"
-				)
-				embed.set_author(icon_url=useravatar, name=author)
-				embed.description += f'**Before:**\n{get_information.user_status(before)}\n**After:**\n{get_information.user_status(after)}'
-				return await channel.send(embed=embed)
-			#try:
-				#self.update_user_status(before, after)
-			#except FileNotFoundError:
-			#	return
-			#except TypeError:
-			#	return
-		# If the members nickname has changed.
-		if not before.nick == after.nick:
-			# Check if this type of logging is enabled.
-			member_nickname_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_nickname')
-			if member_nickname_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-				author = after.name
-				useravatar = after.avatar_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"**{before.name}**'s nickname has changed.\n\n"
-				)
-				embed.set_author(icon_url=useravatar, name=author)
-				embed.description += f'**Before:**\n{before.nick}\n**After:**\n{after.nick}'
-				return await channel.send(embed=embed)
-		# If the members roles have changed.
-		if not before.roles == after.roles:
-			# Check if this type of logging is enabled.
-			member_role_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_role')
-			if member_role_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-				author = after.name
-				useravatar = after.avatar_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"**{before.name}**'s roles have changed.\n\n"
-				)
-				embed.set_author(icon_url=useravatar, name=author)
-				embed.description += f'**Before:**\n{", ".join([r for r in before.roles])}\n**After:**\n{", ".join([r for r in after.roles])}'
-				return await channel.send(embed=embed)
-		# If the members activity has changed.
-		if not before.activity == after.activity:
-			try:
-				if before.activity.name == after.activity.name:
-					return
-			except AttributeError:
-				pass
-			# Check if this type of logging is enabled.
-			member_activity_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'member_activity')
-			if member_activity_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-				author = after.name
-				useravatar = after.avatar_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"**{before.name}**'s activity has changed.\n\n"
-				)
-				embed.set_author(icon_url=useravatar, name=author)
-				embed.description += f'**Before:**\n{get_information.user_activity(before)}\n**After:**\n{get_information.user_activity(after)}'
-				return await channel.send(embed=embed)
-		else:
-			return
-
-	# When a user updates thier profile
-	@commands.Cog.listener()
-	async def on_user_update(self, before, after):
-		# If the user is a bot, return nothing.
-		if before.bot:
-			return
-		# Loop through all guilds the bot is in.
-		for guild in self.bot.guilds:
-			#If the user is not in the guilds, return nothing.
-			if before or after not in guild.members:
-				return
-			# If the users username has changed.
+		channel = self.bot.get_channel(data["logging_channel"])
+		if data["logging_enabled"] is True:
 			if not before.name == after.name:
-				# Check if this type of logging is enabled.
-				user_name_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'user_username')
-				if user_name_check is True:
-					# Get the logging channel for the guild.
-					channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-					author = after.name
-					useravatar = after.avatar_url
+				if data["guild_name"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
 					embed = discord.Embed(
 						colour=0x57FFF5,
-						description=f"**{after.name}**'s name has changed.\n\n"
+						description=f"This guilds name has changed.\n\n"
 					)
-					embed.set_author(icon_url=useravatar, name=author)
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
 					embed.description += f'**Before:**\n{before.name}\n**After:**\n{after.name}'
 					return await channel.send(embed=embed)
-			# If the users discriminator has changed.
-			elif not before.discriminator == after.discriminator:
-				# Check if this type of logging is enabled.
-				user_discriminator_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'user_discriminator')
-				if user_discriminator_check is True:
-					# Get the logging channel for the guild.
-					channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-					author = after.name
-					useravatar = after.avatar_url
+			if not before.region == after.region:
+				if data["guild_region"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
 					embed = discord.Embed(
 						colour=0x57FFF5,
-						description=f"**{after.name}**'s discriminator has changed.\n\n"
+						description=f"This guilds region has changed.\n\n"
 					)
-					embed.set_author(icon_url=useravatar, name=author)
-					embed.description += f'**Before:**\n{before.discriminator}\n**After:**\n{after.discriminator}'
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n{get_information.guild_region(before)}\n**After:**\n{get_information.guild_region(after)}'
 					return await channel.send(embed=embed)
-			# If the users avatar has changed.
-			elif not before.avatar == after.avatar:
-				# Check if this type of logging is enabled.
-				user_avatar_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'user_avatar')
-				if user_avatar_check is True:
-					# Get the logging channel for the guild.
-					channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-					author = after.name
-					useravatar = after.avatar_url
+			if not before.afk_timeout == after.afk_timeout:
+				if data["guild_afk_timeout"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
 					embed = discord.Embed(
 						colour=0x57FFF5,
-						description=f"**{after.name}**'s avatar has changed.\n\n"
+						description=f"This guilds AFK timout has changed.\n\n"
 					)
-					embed.set_author(icon_url=useravatar, name=author)
-					embed.description += f'**Before:**\n{before.avatar_url}\n**After:**\n{after.avatar_url}'
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n{int(before.afk_timeout/60)} minutes\n**After:**\n{int(after.afk_timeout/60)} minutes'
+					return await channel.send(embed=embed)
+			if not before.afk_channel == after.afk_channel:
+				if data["guild_afk_channel"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"This guilds AFK voice channel has changed.\n\n"
+					)
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n{before.afk_channel.name}\n**After:**\n{after.afk_channel.name}'
+					return await channel.send(embed=embed)
+			if not before.system_channel == after.system_channel:
+				if data["guild_system_channel"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"This guilds system messages channel has changed.\n\n"
+					)
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n{before.system_channel.mention}\n**After:**\n{after.system_channel.mention}'
+					return await channel.send(embed=embed)
+			if not before.icon_url == after.icon_url:
+				if data["guild_icon"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"This guilds icon has changed.\n\n"
+					)
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n[Image]({before.icon_url})\n**After:**\n[Image]({after.icon_url})'
+					return await channel.send(embed=embed)
+			if not before.default_notifications == after.default_notifications:
+				if data["guild_default_notifications"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"This guilds default notification setting has changed.\n\n"
+					)
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n{get_information.guild_notification_level(before)}\n**After:**\n{get_information.guild_notification_level(after)}'
+					return await channel.send(embed=embed)
+			if not before.description == after.description:
+				if data["guild_description"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"This guilds description has changed.\n\n"
+					)
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n{before.description}\n**After:**\n{after.description}'
+					return await channel.send(embed=embed)
+			if not before.mfa_level == after.mfa_level:
+				if data["guild_mfa_level"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"This guilds MFA level has changed.\n\n"
+					)
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n{get_information.guild_mfa_level(before)}\n**After:**\n{get_information.guild_mfa_level(after)}'
+					return await channel.send(embed=embed)
+			if not before.verification_level == after.verification_level:
+				if data["guild_verification_level"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"This guilds verification level has changed.\n\n"
+					)
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n{get_information.guild_verification_level(before)}\n**After:**\n{get_information.guild_verification_level(after)}'
+					return await channel.send(embed=embed)
+			if not before.explicit_content_filter == after.explicit_content_filter:
+				if data["guild_explict_content_filter"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"This guilds explicit content filter has changed.\n\n"
+					)
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n{get_information.guild_content_filter_level(before)}\n**After:**\n{get_information.guild_content_filter_level(after)}'
+					return await channel.send(embed=embed)
+			if not before.splash == after.splash:
+				if data["guild_splash"] is True:
+					guild_name = before.name
+					guild_avatar = before.icon_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"This guilds splash has changed.\n\n"
+					)
+					embed.set_author(icon_url=guild_avatar, name=guild_name)
+					embed.description += f'**Before:**\n{before.splash}\n**After:**\n{after.splash}'
 					return await channel.send(embed=embed)
 			else:
-				continue
+				return
 
-	# When a message is edited.
-	@commands.Cog.listener()
-	async def on_message_edit(self, before, after):
-		guild = before.guild
-		# If the user is a bot, return
-		if before.author.bot:
-			return
-		# If message has been pinned/unpinned.
-		if not before.pinned == after.pinned:
-			# Check if this type of logging is enabled.
-			message_pin_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'message_pin')
-			if message_pin_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-				author = after.author.name
-				useravatar = after.author.avatar_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"**{after.author.name}**'s message was pinned/unpinned.\n\n"
-				)
-				embed.set_author(icon_url=useravatar, name=author)
-				# If the message has an attachement.
-				if after.attachments:
-					embed.description += f'**Message content:** [Attachment]({after.attachments[0].url})\n{after.content}'
-				else:
-					embed.description += f'**Message content:**\n{after.content}'
-				return await channel.send(embed=embed)
-		# If the message was edited.
-		if not before.content == after.content:
-			# Check if this type of logging is enabled.
-			message_edit_check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'message_edit')
-			if message_edit_check is True:
-				# Get the logging channel for the guild.
-				channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-				author = after.author.name
-				useravatar = after.author.avatar_url
-				embed = discord.Embed(
-					colour=0x57FFF5,
-					description=f"**{after.author.name}**'s edited a message in <#{after.channel.id}>.\n\n"
-				)
-				embed.set_author(icon_url=useravatar, name=author)
-				# If the message has an attachment.
-				if before.attachments:
-					embed.description += f'**Before:** [Attachment]({before.attachments[0].url})\n{before.content}\n**After:** [Attachment]({before.attachments[0].url})\n{after.content}'
-				else:
-					embed.description += f'**Before:**\n{before.content}\n**After:**\n{after.content}'
-				return await channel.send(embed=embed)
-		if not after.embeds and not after.pinned:
-			await self.bot.process_commands(after)
-		else:
-			return
-
-	# When a message is deleted.
 	@commands.Cog.listener()
 	async def on_message_delete(self, message):
 		guild = message.guild
-		# If the user is a bot, return
+		if self.bot.is_db_ready is False:
+			return
 		if message.author.bot:
 			return
-		# Check if this type of logging is enabled.
-		check = await self.bot.loop.run_in_executor(None, file_handling.logging_check, guild, 'message_delete')
-		if check is True:
-			# Get the logging channel for the guild.
-			channel = self.bot.get_channel(await self.bot.loop.run_in_executor(None, file_handling.get_logging_channel, guild))
-			author = message.author.name
-			useravatar = message.author.avatar_url
-			embed = discord.Embed(
-				colour=0x57FFF5,
-				description=f"**{message.author.name}**'s message in <#{message.channel.id}> was deleted.\n\n"
-			)
-			embed.set_author(icon_url=useravatar, name=author)
-			# If the message had an attachment.
-			if message.attachments:
-				embed.description += f'**Message content:** [Attachment]({message.attachments[0].proxy_url})\n{message.content}'
-				embed.set_image(url=message.attachments[0].proxy_url)
-			else:
-				embed.description += f'**Message content:**\n{message.content}'
-			return await channel.send(embed=embed)
-		else:
+		data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
+		if data["logging_channel"]is None:
 			return
+		channel = self.bot.get_channel(data["logging_channel"])
+		if data["logging_enabled"] is True:
+			if data['message_delete'] is True:
+				author = message.author.name
+				useravatar = message.author.avatar_url
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f"**{message.author.name}**'s message in <#{message.channel.id}> was deleted.\n\n"
+				)
+				embed.set_author(icon_url=useravatar, name=author)
+				# If the message had an attachment.
+				if message.attachments:
+					embed.description += f'**Message content:** [Attachment]({message.attachments[0].proxy_url})\n{message.content}'
+					embed.set_image(url=message.attachments[0].proxy_url)
+				else:
+					embed.description += f'**Message content:**\n{message.content}'
+				return await channel.send(embed=embed)
 
-	# When a message is sent.
 	@commands.Cog.listener()
-	async def on_message(self, message):
-		if message.author.id == self.bot.user.id:
-			return await self.bot.loop.run_in_executor(None, file_handling.update_stat_data, 'messages_sent')
-		if not message.author.bot:
-			return await self.bot.loop.run_in_executor(None, file_handling.update_stat_data, 'messages_seen')
-		if message.author.bot:
+	async def on_message_edit(self, before, after):
+		guild = before.guild
+		if self.bot.is_db_ready is False:
 			return
+		if before.author.bot:
+			return
+		data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
+		if data["logging_channel"]is None:
+			return
+		channel = self.bot.get_channel(data["logging_channel"])
+		if data["logging_enabled"] is True:
+			if not before.pinned == after.pinned:
+				if data['message_pin'] is True:
+					author = after.author.name
+					useravatar = after.author.avatar_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"**{after.author.name}**'s message was pinned/unpinned.\n\n"
+					)
+					embed.set_author(icon_url=useravatar, name=author)
+					if after.attachments:
+						embed.description += f'**Message content:** [Attachment]({after.attachments[0].url})\n{after.content}'
+					else:
+						embed.description += f'**Message content:**\n{after.content}'
+					return await channel.send(embed=embed)
+			if not before.content == after.content:
+				if data['message_edit'] is True:
+					author = after.author.name
+					useravatar = after.author.avatar_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"**{after.author.name}**'s edited a message in <#{after.channel.id}>.\n\n"
+					)
+					embed.set_author(icon_url=useravatar, name=author)
+					if before.attachments:
+						embed.description += f'**Before:** [Attachment]({before.attachments[0].url})\n{before.content}\n**After:** [Attachment]({before.attachments[0].url})\n{after.content}'
+					else:
+						embed.description += f'**Before:**\n{before.content}\n**After:**\n{after.content}'
+					return await channel.send(embed=embed)
 
-	# When a command errors. (Error handler)
+	@commands.Cog.listener()
+	async def on_member_join(self, member):
+		guild = member.guild
+		if self.bot.is_db_ready is False:
+			return
+		data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
+		if data["logging_channel"]is None:
+			return
+		channel = self.bot.get_channel(data["logging_channel"])
+		if data["logging_enabled"] is True:
+			if data['member_join'] is True:
+				author = member.name
+				useravatar = member.avatar_url
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f"**{member.name}** has joined the guild."
+				)
+				embed.set_author(icon_url=useravatar, name=author)
+				embed.set_footer(text=f'ID: {member.id}')
+				embed.set_thumbnail(url=member.avatar_url_as(format="png"))
+				return await channel.send(embed=embed)
+
+	@commands.Cog.listener()
+	async def on_member_remove(self, member):
+		guild = member.guild
+		if self.bot.is_db_ready is False:
+			return
+		data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
+		if data["logging_channel"]is None:
+			return
+		channel = self.bot.get_channel(data["logging_channel"])
+		if data["logging_enabled"] is True:
+			if data['member_join'] is True:
+				author = member.name
+				useravatar = member.avatar_url
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f"**{member.name}** has left the guild."
+				)
+				embed.set_author(icon_url=useravatar, name=author)
+				embed.set_footer(text=f'ID: {member.id}')
+				embed.set_thumbnail(url=member.avatar_url_as(format="png"))
+				return await channel.send(embed=embed)
+
+	@commands.Cog.listener()
+	async def on_member_update(self, before, after):
+		guild = before.guild
+		if self.bot.is_db_ready is False:
+			return
+		if before.bot:
+			return
+		data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
+		if data["logging_channel"]is None:
+			return
+		channel = self.bot.get_channel(data["logging_channel"])
+		if data["logging_enabled"] is True:
+			if not before.status == after.status:
+				if data["member_status"] is True:
+					author = after.name
+					useravatar = after.avatar_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"**{before.name}**'s status has changed.\n\n"
+					)
+					embed.set_author(icon_url=useravatar, name=author)
+					embed.description += f'**Before:**\n{get_information.user_status(before)}\n**After:**\n{get_information.user_status(after)}'
+					return await channel.send(embed=embed)
+			if not before.nick == after.nick:
+				if data["member_nickname"] is True:
+					author = after.name
+					useravatar = after.avatar_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"**{before.name}**'s nickname has changed.\n\n"
+					)
+					embed.set_author(icon_url=useravatar, name=author)
+					embed.description += f'**Before:**\n{before.nick}\n**After:**\n{after.nick}'
+					return await channel.send(embed=embed)
+			if not before.roles == after.roles:
+				if data["member_role"] is True:
+					author = after.name
+					useravatar = after.avatar_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"**{before.name}**'s roles have changed.\n\n"
+					)
+					embed.set_author(icon_url=useravatar, name=author)
+					embed.description += f'**Before:**\n{", ".join([r for r in before.roles])}\n**After:**\n{", ".join([r for r in after.roles])}'
+					return await channel.send(embed=embed)
+			if not before.activity == after.activity:
+				try:
+					if before.activity.name == after.activity.name:
+						return
+				except AttributeError:
+					pass
+				if data["member_activity"] is True:
+					author = after.name
+					useravatar = after.avatar_url
+					embed = discord.Embed(
+						colour=0x57FFF5,
+						description=f"**{before.name}**'s activity has changed.\n\n"
+					)
+					embed.set_author(icon_url=useravatar, name=author)
+					embed.description += f'**Before:**\n{get_information.user_activity(before)}\n**After:**\n{get_information.user_activity(after)}'
+					return await channel.send(embed=embed)
+			else:
+				return
+
+	@commands.Cog.listener()
+	async def on_user_update(self, before, after):
+		if self.bot.is_db_ready is False:
+			return
+		if before.bot:
+			return
+		for guild in self.bot.guilds:
+			data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
+			if data["logging_channel"] is None:
+				return
+			channel = self.bot.get_channel(data["logging_channel"])
+			if data["logging_enabled"] is True:
+				if before or after not in guild.members:
+					return
+				if not before.name == after.name:
+					if data["user_username"] is True:
+						author = after.name
+						useravatar = after.avatar_url
+						embed = discord.Embed(
+							colour=0x57FFF5,
+							description=f"**{after.name}**'s name has changed.\n\n"
+						)
+						embed.set_author(icon_url=useravatar, name=author)
+						embed.description += f'**Before:**\n{before.name}\n**After:**\n{after.name}'
+						return await channel.send(embed=embed)
+				if not before.discriminator == after.discriminator:
+					if data["user_discriminator"] is True:
+						author = after.name
+						useravatar = after.avatar_url
+						embed = discord.Embed(
+							colour=0x57FFF5,
+							description=f"**{after.name}**'s discriminator has changed.\n\n"
+						)
+						embed.set_author(icon_url=useravatar, name=author)
+						embed.description += f'**Before:**\n{before.discriminator}\n**After:**\n{after.discriminator}'
+						return await channel.send(embed=embed)
+				if not before.avatar == after.avatar:
+					if data["user_avatar"] is True:
+						author = after.name
+						useravatar = after.avatar_url
+						embed = discord.Embed(
+							colour=0x57FFF5,
+							description=f"**{after.name}**'s avatar has changed.\n\n"
+						)
+						embed.set_author(icon_url=useravatar, name=author)
+						embed.description += f'**Before:**\n{before.avatar_url}\n**After:**\n{after.avatar_url}'
+						return await channel.send(embed=embed)
+				else:
+					continue
+
 	@commands.Cog.listener()
 	async def on_command_error(self, ctx, error):
 		error = getattr(error, 'original', error)
@@ -553,11 +435,23 @@ class Events(commands.Cog):
 				print(f'{error.__class__.__name__}: {error}')
 				traceback.print_tb(error.__traceback__)
 
-	# When a command successfully completes
+	@commands.Cog.listener()
+	async def on_message(self, message):
+		bot = await self.bot.fetch_user(424637852035317770)
+		data = await self.bot.pool.fetchrow("SELECT * FROM bot_stats WHERE key = $1", bot.id)
+		if message.author.id == bot.id:
+			return await self.bot.pool.execute(f"UPDATE bot_stats SET messages_sent = $1 WHERE key = $2", data["messages_sent"] + 1, bot.id)
+		if not message.author.bot:
+			return await self.bot.pool.execute(f"UPDATE bot_stats SET messages_seen = $1 WHERE key = $2", data["messages_seen"] + 1, bot.id)
+		if message.author.bot:
+			return
+
 	@commands.Cog.listener()
 	async def on_command_completion(self, ctx):
 		self.bot.logging.info(f'[COMMAND] - {ctx.author} used the command "{ctx.command}" in the guild "{ctx.guild}".')
-		return await self.bot.loop.run_in_executor(None, file_handling.update_stat_data, 'commands_run')
+		bot = await self.bot.fetch_user(424637852035317770)
+		data = await self.bot.pool.fetchrow("SELECT * FROM bot_stats WHERE key = $1", bot.id)
+		return await self.bot.pool.execute(f"UPDATE bot_stats SET commands_run = $1 WHERE key = $2", data["commands_run"] + 1, bot.id)
 
 
 def setup(bot):
