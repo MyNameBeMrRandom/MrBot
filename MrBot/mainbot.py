@@ -63,6 +63,7 @@ class MrBot(commands.Bot):
 		self.loop = asyncio.get_event_loop()
 		self.config = config
 		self.logging = logger
+		self.is_db_ready = False
 		self.pool = None
 
 		for ext in extensions:
@@ -98,6 +99,7 @@ class MrBot(commands.Bot):
 				except asyncpg.UniqueViolationError:
 					pass
 			print('[DB] Done adding guilds.\n')
+			self.is_db_ready = True
 		except ConnectionRefusedError:
 			print('\n[DB] Connection to db was denied.')
 		except Exception as e:
