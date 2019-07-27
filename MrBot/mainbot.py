@@ -1,3 +1,5 @@
+# noinspection PyUnresolvedReferences
+from cogs.voice import Player
 from discord.ext import commands
 import logging.handlers
 import asyncpg
@@ -138,6 +140,18 @@ class MrBot(commands.Bot):
 			loop.run_until_complete(self.bot_start())
 		except KeyboardInterrupt:
 			loop.run_until_complete(self.bot_logout())
+
+	async def get_context(self, message, *, cls=None):
+		return await super().get_context(message, cls=MyContext)
+
+class MyContext(commands.Context):
+
+	@property
+	def player(self):
+		return self.bot.andesite.get_player(self.guild.id, cls=Player)
+
+
+
 
 
 MrBot().run()

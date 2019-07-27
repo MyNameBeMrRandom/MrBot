@@ -3,7 +3,6 @@ def get_time(second):
 	"""
 	Converts an amount of seconds into a readable format.
 	"""
-
 	minute, second = divmod(second, 60)
 	hour, minute = divmod(minute, 60)
 	day, hour = divmod(hour, 24)
