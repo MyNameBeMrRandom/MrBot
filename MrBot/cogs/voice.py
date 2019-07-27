@@ -8,6 +8,7 @@ import discord
 import config
 import random
 
+
 class Queue:
 
 	def __init__(self, maxsize=0, *, loop=None):
@@ -256,22 +257,27 @@ class Player(andesite.Player):
 		if track.is_stream:
 			embed.add_field(name='Time:', value='`Live stream`')
 		else:
-			embed.add_field(name='Time:', value=f'`{calculations.get_time(self.last_position / 1000)}` / `{calculations.get_time(track.length / 1000)}`')
+			embed.add_field(name='Time:', value=f'`{calculations.get_time(self.last_position / 1000)} - ` / `{calculations.get_time(track.length / 1000)}`')
 		embed.add_field(name='Volume:', value=f'`{self.volume}%`')
 		embed.add_field(name='Queue Length:', value=f'`{str(self.queue.qsize())}`')
 		embed.add_field(name='Queue looped:', value=f'`{self.loop_queue}`')
 		embed.add_field(name='Requester:', value=track.requester.mention)
+		if self.is_playing is True:
+			embed.add_field(name='Status:', value=f"`Playing`")
+		else:
+			embed.add_field(name='Status:', value=f"`Paused`")
 		# embed.add_field(name=f'Filter:', value=f'Current: {self.filter}')
 		await track.channel.send(embed=embed)
 
 
 # noinspection PyAttributeOutsideInit
+
 class Voice(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
-		self.andesite = andesite.Client(bot)
-		bot.loop.create_task(self.initiate_nodes())
+		self.bot.andesite = andesite.Client(bot)
+		self.bot.loop.create_task(self.initiate_nodes())
 
 	async def initiate_nodes(self):
 
@@ -284,7 +290,7 @@ class Voice(commands.Cog):
 		         }
 
 		for n in nodes.values():
-			await self.andesite.start_node(
+			await self.bot.andesite.start_node(
 				n['ip'],
 				n['port'],
 				rest_uri=n['rest_uri'],
@@ -300,7 +306,7 @@ class Voice(commands.Cog):
 		`search` will default to a Youtube search however it also accepts links from SoundCloud and Twitch.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		try:
 			await self.do_join(ctx, player, ctx.author.voice.channel)
@@ -330,7 +336,7 @@ class Voice(commands.Cog):
 		Display information about the current song/queue status.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			if not player.current:
@@ -353,7 +359,7 @@ class Voice(commands.Cog):
 		Joins or moves to the users voice channel.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		try:
 			channel = ctx.author.voice.channel
@@ -386,7 +392,7 @@ class Voice(commands.Cog):
 		Leaves the current voice channel.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -413,7 +419,7 @@ class Voice(commands.Cog):
 		Pauses the current song.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -446,7 +452,7 @@ class Voice(commands.Cog):
 		Resumes the current song.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -481,7 +487,7 @@ class Voice(commands.Cog):
 		This will auto skip if you are the requester of the current songs, otherwise a vote will start to skip the song.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -513,7 +519,7 @@ class Voice(commands.Cog):
 		Changes the volume of the player.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -543,7 +549,7 @@ class Voice(commands.Cog):
 		Changes the volume of the player.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		def check(msg):
 			return ctx.author == msg.author and ctx.channel == msg.channel
@@ -589,7 +595,7 @@ class Voice(commands.Cog):
 			#if not 0 < volume < 101:
 				#return await ctx.send(f'Please enter a value between `1` and and `100`.')
 			#await ctx.send(f'Changed the players volume to `{volume}%`.')
-			return await self.do_filter(player, filters)
+			#return await self.do_filter(player, filters)
 		else:
 			return await ctx.send(f'MrBot is not currently in any voice channels.')
 
@@ -607,7 +613,7 @@ class Voice(commands.Cog):
 		`position` can be the time you want to skip to in seconds.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 		milliseconds = position * 1000
 		if player.is_connected:
 			try:
@@ -640,7 +646,7 @@ class Voice(commands.Cog):
 		Display a list of the current queue.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			upcoming = list(itertools.islice(player.queue.queue, 0, 15))
@@ -668,7 +674,7 @@ class Voice(commands.Cog):
 		Shuffle the queue.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -696,7 +702,7 @@ class Voice(commands.Cog):
 		Clear the queue of all entries.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -724,7 +730,7 @@ class Voice(commands.Cog):
 		Loop the queue.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -761,7 +767,7 @@ class Voice(commands.Cog):
 		When removing entries use the number shown in the `queue` command. For example `mb remove  13` will remove the track in 13th position.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -791,7 +797,7 @@ class Voice(commands.Cog):
 		When moving entries use the number shown in the `queue` command. For example `mb move 1 15` will move the track in 1st position to 15th.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -824,7 +830,7 @@ class Voice(commands.Cog):
 		Remove an entry from the queue.
 		"""
 
-		player = self.andesite.get_player(ctx.guild.id, cls=Player)
+		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
 
 		if player.is_connected:
 			try:
@@ -846,4 +852,7 @@ class Voice(commands.Cog):
 
 def setup(bot):
 	bot.add_cog(Voice(bot))
+
+
+
 
