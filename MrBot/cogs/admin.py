@@ -91,7 +91,7 @@ class Admin(commands.Cog):
 		current = await self.bot.pool.fetchrow("SELECT logging_enabled FROM guild_config WHERE key = $1", ctx.guild.id)
 		if current["logging_enabled"] is True:
 			await self.bot.pool.execute(f"UPDATE guild_config SET logging_enabled = $1 WHERE key = $2", False, ctx.guild.id)
-			return await ctx.send(f'Disabled logging **Off** for this guild.')
+			return await ctx.send(f'Disabled logging for this guild.')
 		if current["logging_enabled"] is False:
 			await self.bot.pool.execute(f"UPDATE guild_config SET logging_enabled = $1 WHERE key = $2", True, ctx.guild.id)
 			return await ctx.send(f'Enabled logging for this guild.')
