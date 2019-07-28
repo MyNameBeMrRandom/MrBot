@@ -4,7 +4,6 @@ from discord.ext import commands
 import logging.handlers
 import asyncpg
 import asyncio
-import discord
 import config
 import os
 
@@ -45,10 +44,13 @@ class MrBot(commands.AutoShardedBot):
 			reconnect=True,
 		)
 		self.loop = asyncio.get_event_loop()
-		self.is_db_ready = False
 		self.logging = logger
 		self.config = config
+		self.is_db_ready = False
 		self.pool = None
+		self.commands_run = 0
+		self.messages_seen = 0
+		self.messages_sent = 0
 
 		for ext in extensions:
 			try:
@@ -58,6 +60,17 @@ class MrBot(commands.AutoShardedBot):
 			except commands.ExtensionNotFound:
 				print(f'[EXT] Failed - {ext}')
 				logger.warning(f'[EXT] Failed - {ext}')
+
+	def run(self):
+		"""
+		Run the bot.
+		"""
+
+		loop = self.loop
+		try:
+			loop.run_until_complete(self.bot_start())
+		except KeyboardInterrupt:
+			loop.run_until_complete(self.bot_logout())
 
 	async def db_start(self):
 		try:
@@ -110,17 +123,6 @@ class MrBot(commands.AutoShardedBot):
 		logger.info(f'[BOT] Logged in as {self.user} - {self.user.id}')
 		print(f'\n[BOT] Logged in as {self.user} - {self.user.id}')
 		await self.db_start()
-
-	def run(self):
-		"""
-		Run the bot.
-		"""
-
-		loop = self.loop
-		try:
-			loop.run_until_complete(self.bot_start())
-		except KeyboardInterrupt:
-			loop.run_until_complete(self.bot_logout())
 
 	async def get_context(self, message, *, cls=None):
 		return await super().get_context(message, cls=MyContext)
