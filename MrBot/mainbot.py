@@ -7,16 +7,7 @@ import asyncio
 import config
 import os
 
-
 os.environ['JISHAKU_HIDE'] = 'True'
-
-try:
-	# noinspection PyUnresolvedReferences
-	import uvloop
-except ImportError:
-	pass
-else:
-	asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 extensions = [
 	'cogs.kross_server',
@@ -149,9 +140,6 @@ class MyContext(commands.Context):
 	@property
 	def player(self):
 		return self.bot.andesite.get_player(self.guild.id, cls=Player)
-
-
-
 
 
 MrBot().run()
