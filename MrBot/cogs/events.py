@@ -400,11 +400,6 @@ class Events(commands.Cog):
 		error = getattr(error, 'original', error)
 		if hasattr(ctx.command, 'on_error'):
 			return
-		elif isinstance(error, commands.NoPrivateMessage):
-			try:
-				return await ctx.send(f"The command `{ctx.command}` cannot be used in private messages.")
-			except Exception:
-				pass
 		elif isinstance(error, commands.DisabledCommand):
 			return await ctx.send(f"The command `{ctx.command}` is currently disabled.")
 		elif isinstance(error, commands.CommandOnCooldown):
@@ -417,16 +412,23 @@ class Events(commands.Cog):
 			return await ctx.send(f"A bad argument was passed to the command `{ctx.command}`.")
 		elif isinstance(error, commands.MissingPermissions):
 			return await ctx.send(f"You dont have the permissions to run the `{ctx.command}` command.")
-		elif isinstance(error, commands.BotMissingPermissions):
-			missing_perms = ""
-			for perms in error.missing_perms:
-				missing_perms += f"\n>{perms}"
-			return await ctx.send(f"I am missing the following permissions to run the command `{ctx.command}`.{missing_perms}")
 		elif isinstance(error, discord.HTTPException):
 			if isinstance(error, discord.Forbidden):
 				return await ctx.send(f"I am missing permissions to run the command `{ctx.command}`.")
 		elif isinstance(error, commands.CommandInvokeError):
 			return await ctx.send(f"There was an error while running that command")
+		elif isinstance(error, commands.NotOwner):
+			return await ctx.send(f"This is an owner only command.")
+		elif isinstance(error, commands.NoPrivateMessage):
+			try:
+				return await ctx.send(f"The command `{ctx.command}` cannot be used in private messages.")
+			except Exception:
+				pass
+		elif isinstance(error, commands.BotMissingPermissions):
+			missing_perms = ""
+			for perms in error.missing_perms:
+				missing_perms += f"\n>{perms}"
+			return await ctx.send(f"I am missing the following permissions to run the command `{ctx.command}`\n{missing_perms}")
 		else:
 			try:
 				print(f'{error.original.__class__.__name__}: {error.original}')
@@ -439,23 +441,17 @@ class Events(commands.Cog):
 	async def on_message(self, message):
 		if self.bot.is_db_ready is False:
 			return
-		bot = await self.bot.fetch_user(424637852035317770)
-		data = await self.bot.pool.fetchrow("SELECT * FROM bot_stats WHERE key = $1", bot.id)
-		if message.author.id == bot.id:
-			return await self.bot.pool.execute(f"UPDATE bot_stats SET messages_sent = $1 WHERE key = $2", data["messages_sent"] + 1, bot.id)
+		if message.author.id == 424637852035317770:
+			self.bot.messages_sent += 1
 		if not message.author.bot:
-			return await self.bot.pool.execute(f"UPDATE bot_stats SET messages_seen = $1 WHERE key = $2", data["messages_seen"] + 1, bot.id)
+			self.bot.messages_seen += 1
 		if message.author.bot:
 			return
 
 	@commands.Cog.listener()
 	async def on_command_completion(self, ctx):
-		if self.bot.is_db_ready is False:
-			return
 		self.bot.logging.info(f'[COMMAND] - {ctx.author} used the command "{ctx.command}" in the guild "{ctx.guild}".')
-		bot = await self.bot.fetch_user(424637852035317770)
-		data = await self.bot.pool.fetchrow("SELECT * FROM bot_stats WHERE key = $1", bot.id)
-		return await self.bot.pool.execute(f"UPDATE bot_stats SET commands_run = $1 WHERE key = $2", data["commands_run"] + 1, bot.id)
+		self.bot.commands_run += 1
 
 
 def setup(bot):
