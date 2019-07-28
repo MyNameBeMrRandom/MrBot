@@ -4,6 +4,7 @@ from discord.ext import commands
 import logging.handlers
 import asyncpg
 import asyncio
+import discord
 import config
 import os
 
@@ -28,22 +29,12 @@ extensions = [
 
 logger = logging.getLogger('MrBot')
 logger.setLevel(logging.INFO)
-handler = logging.handlers.TimedRotatingFileHandler(
-	filename=f'logs/mrbot.log',
-	encoding='utf-8',
-	backupCount=10,
-	interval=100,
-	when='D',
-	utc=True
-)
-handler.setFormatter(
-	logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-)
+handler = logging.handlers.TimedRotatingFileHandler(filename=f'logs/mrbot.log', encoding='utf-8', backupCount=10, interval=100, when='D', utc=True)
+handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(handler)
 
 
-# noinspection PyMethodMayBeStatic
-class MrBot(commands.Bot):
+class MrBot(commands.AutoShardedBot):
 	"""
 	Main bot class.
 	"""
@@ -54,18 +45,17 @@ class MrBot(commands.Bot):
 			reconnect=True,
 		)
 		self.loop = asyncio.get_event_loop()
-		self.config = config
-		self.logging = logger
 		self.is_db_ready = False
+		self.logging = logger
+		self.config = config
 		self.pool = None
 
 		for ext in extensions:
-			# noinspection PyBroadException
 			try:
 				self.load_extension(ext)
 				print(f'[EXT] Success - {ext}')
 				logger.info(f'[EXT] Success - {ext}')
-			except Exception:
+			except commands.ExtensionNotFound:
 				print(f'[EXT] Failed - {ext}')
 				logger.warning(f'[EXT] Failed - {ext}')
 
