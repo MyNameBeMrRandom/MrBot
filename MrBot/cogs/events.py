@@ -437,6 +437,8 @@ class Events(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
+		if self.bot.is_db_ready is False:
+			return
 		bot = await self.bot.fetch_user(424637852035317770)
 		data = await self.bot.pool.fetchrow("SELECT * FROM bot_stats WHERE key = $1", bot.id)
 		if message.author.id == bot.id:
@@ -448,6 +450,8 @@ class Events(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_command_completion(self, ctx):
+		if self.bot.is_db_ready is False:
+			return
 		self.bot.logging.info(f'[COMMAND] - {ctx.author} used the command "{ctx.command}" in the guild "{ctx.guild}".')
 		bot = await self.bot.fetch_user(424637852035317770)
 		data = await self.bot.pool.fetchrow("SELECT * FROM bot_stats WHERE key = $1", bot.id)

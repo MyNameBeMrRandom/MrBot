@@ -27,6 +27,12 @@ class Queue:
 		self._finished.set()
 		self.queue = []
 
+	def __repr__(self):
+		return f'<{type(self).__name__} at {id(self):#x} {self._format()}>'
+
+	def __str__(self):
+		return f'<{type(self).__name__} {self._format()}>'
+
 	def _wakeup_next(self, waiters):
 		# Wake up the next waiter (if any) that isn't cancelled.
 		while waiters:
@@ -34,12 +40,6 @@ class Queue:
 			if not waiter.done():
 				waiter.set_result(None)
 				break
-
-	def __repr__(self):
-		return f'<{type(self).__name__} at {id(self):#x} {self._format()}>'
-
-	def __str__(self):
-		return f'<{type(self).__name__} {self._format()}>'
 
 	def _format(self):
 		result = f'maxsize={self._maxsize!r}'
