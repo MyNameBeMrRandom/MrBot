@@ -8,6 +8,7 @@ import config
 import os
 
 os.environ['JISHAKU_HIDE'] = 'True'
+os.environ['JISHAKU_NO_UNDERSCORE'] = 'True'
 
 extensions = [
 	'cogs.kross_server',

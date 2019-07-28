@@ -38,12 +38,5 @@ CREATE TABLE IF NOT EXISTS guild_config(
     guild_splash BOOLEAN
 );
 
-CREATE TABLE IF NOT EXISTS bot_stats(
-    key BIGINT PRIMARY KEY,
-    messages_seen BIGINT,
-    messages_sent BIGINT,
-    commands_run BIGINT
-);
-
 
 
