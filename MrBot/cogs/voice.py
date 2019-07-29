@@ -27,12 +27,6 @@ class Queue:
 		self._finished.set()
 		self.queue = []
 
-	def __repr__(self):
-		return f'<{type(self).__name__} at {id(self):#x} {self._format()}>'
-
-	def __str__(self):
-		return f'<{type(self).__name__} {self._format()}>'
-
 	def _wakeup_next(self, waiters):
 		# Wake up the next waiter (if any) that isn't cancelled.
 		while waiters:
@@ -257,20 +251,18 @@ class Player(andesite.Player):
 		if track.is_stream:
 			embed.add_field(name='Time:', value='`Live stream`')
 		else:
-			embed.add_field(name='Time:', value=f'`{calculations.get_time(self.last_position / 1000)} - ` / `{calculations.get_time(track.length / 1000)}`')
+			embed.add_field(name='Time:', value=f'`{calculations.get_time(self.last_position / 1000)}` / `{calculations.get_time(track.length / 1000)}`')
 		embed.add_field(name='Volume:', value=f'`{self.volume}%`')
 		embed.add_field(name='Queue Length:', value=f'`{str(self.queue.qsize())}`')
 		embed.add_field(name='Queue looped:', value=f'`{self.loop_queue}`')
 		embed.add_field(name='Requester:', value=track.requester.mention)
-		if self.is_playing is True:
+		if not self.paused is True:
 			embed.add_field(name='Status:', value=f"`Playing`")
 		else:
 			embed.add_field(name='Status:', value=f"`Paused`")
 		# embed.add_field(name=f'Filter:', value=f'Current: {self.filter}')
 		await track.channel.send(embed=embed)
 
-
-# noinspection PyAttributeOutsideInit
 
 class Voice(commands.Cog):
 
@@ -739,7 +731,7 @@ class Voice(commands.Cog):
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
 			if not channel == ctx.guild.me.voice.channel:
 				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-			if player.queue.qsize() <= 0:
+			if player.queue.qsize() < 0:
 				return await ctx.send('Add videos/songs to the queue to enable queue looping.')
 			await self.do_loop(player)
 			if player.loop_queue is True:
