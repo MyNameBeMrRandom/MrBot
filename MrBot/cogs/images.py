@@ -1,6 +1,5 @@
 from discord.ext.commands.cooldowns import BucketType
 from discord.ext import commands
-from .utils import file_handling
 import matplotlib.pyplot as plt
 from PIL import ImageEnhance
 from PIL import ImageDraw
@@ -245,27 +244,6 @@ class Images(commands.Cog):
 		dnd_percent = round(dnd_p * 100, 3)
 		return online_percent, offline_percent, idle_percent, dnd_percent
 
-	def do_status_pie(self, ctx):
-		# Get the times in seconds.
-		online_time, offline_time, idle_time, dnd_time = file_handling.get_status_times(ctx)
-		# Calculate the percentages of each status.
-		online_percent, offline_percent, idle_percent, dnd_percent = self.calculate_status_percentages(online_time, offline_time, idle_time, dnd_time)
-
-		# Set labels sizes and colours.
-		labels = [f'Online: {online_percent}%', f'Idle: {idle_percent}%', f'DnD: {dnd_percent}%', f'Offline: {offline_percent}%']
-		sizes = [online_time, idle_time, dnd_time, offline_time]
-		colors = ['#7acba6', '#fcc15d', '#f57e7e', '#9ea4af']
-
-		# Create pie chart.
-		fig, axs = plt.subplots()
-		axs.pie(sizes, colors=colors,shadow=True, startangle=90)
-		axs.legend(labels, loc="best")
-		axs.axis('equal')
-		plt.tight_layout()
-		# Save and close pie chart.
-		plt.savefig(f'images/charts/{ctx.author.id}_status_pie.png', transparent=True)
-		plt.close()
-
 	def do_pie_chart(self, ctx, names, numbers):
 
 		labels = []
@@ -295,7 +273,7 @@ class Images(commands.Cog):
 
 		plt.bar(x_pos, numbers)
 		plt.ylabel(ylabel)
-		plt.ylabel(xlabel)
+		plt.xlabel(xlabel)
 		plt.title(title)
 		plt.xticks(x_pos, names)
 		plt.tight_layout()
@@ -518,24 +496,6 @@ class Images(commands.Cog):
 		end = time.perf_counter()
 		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
-	@commands.command(name='status_pie', aliases=['status_p', 'sp'], enabled=False)
-	async def status_pie(self, ctx):
-		"""
-		Generates a pie chart with values corresponding to the amount of time you have been online, offline, dnd, idle.
-
-		You must have an account for this to work, use `mb account create` to create one.
-		"""
-		try:
-			start = time.perf_counter()
-			await ctx.trigger_typing()
-			await self.bot.loop.run_in_executor(None, self.do_status_pie, ctx)
-			await ctx.send(file=discord.File(f'images/charts/{ctx.author.id}_status_pie.png'))
-			end = time.perf_counter()
-			return await ctx.send(f'That took {end - start:.3f}sec to complete')
-		except FileNotFoundError:
-			await ctx.send(f'You dont have an account.')
-			return await file_handling.account_creation(ctx)
-
 	@commands.cooldown(1, 10, BucketType.user)
 	@commands.command(name='pie_chart', aliases=['pie_c', 'pc'])
 	async def pie_chart(self, ctx):
@@ -595,16 +555,12 @@ class Images(commands.Cog):
 				return await ctx.send(f'{ctx.author.mention}, You did not enter a valid number.')
 			value += 1
 
-		try:
-			start = time.perf_counter()
-			await ctx.trigger_typing()
-			await self.bot.loop.run_in_executor(None, self.do_pie_chart, ctx, name_values, number_values)
-			await ctx.send(file=discord.File(f'images/charts/{ctx.author.id}_pie_chart.png'))
-			end = time.perf_counter()
-			return await ctx.send(f'That took {end - start:.3f}sec to complete')
-		except FileNotFoundError:
-			await ctx.send(f'You dont have an account.')
-			return await file_handling.account_creation(ctx)
+		start = time.perf_counter()
+		await ctx.trigger_typing()
+		await self.bot.loop.run_in_executor(None, self.do_pie_chart, ctx, name_values, number_values)
+		await ctx.send(file=discord.File(f'images/charts/{ctx.author.id}_pie_chart.png'))
+		end = time.perf_counter()
+		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 	@commands.cooldown(1, 10, BucketType.user)
 	@commands.command(name='bar_chart', aliases=['bar_c', 'bc'])
@@ -698,16 +654,12 @@ class Images(commands.Cog):
 				return await ctx.send(f'{ctx.author.mention}, You did not enter a valid number.')
 			value += 1
 
-		try:
-			start = time.perf_counter()
-			await ctx.trigger_typing()
-			await self.bot.loop.run_in_executor(None, self.do_bar_chart, ctx, title, xlabel, ylabel, name_values, number_values)
-			await ctx.send(file=discord.File(f'images/charts/{ctx.author.id}_bar_chart.png'))
-			end = time.perf_counter()
-			return await ctx.send(f'That took {end - start:.3f}sec to complete')
-		except FileNotFoundError:
-			await ctx.send(f'You dont have an account.')
-			return await file_handling.account_creation(ctx)
+		start = time.perf_counter()
+		await ctx.trigger_typing()
+		await self.bot.loop.run_in_executor(None, self.do_bar_chart, ctx, title, xlabel, ylabel, name_values, number_values)
+		await ctx.send(file=discord.File(f'images/charts/{ctx.author.id}_bar_chart.png'))
+		end = time.perf_counter()
+		return await ctx.send(f'That took {end - start:.3f}sec to complete')
 
 
 def setup(bot):
