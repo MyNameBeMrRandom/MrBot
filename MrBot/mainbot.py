@@ -78,7 +78,7 @@ class MrBot(commands.AutoShardedBot):
 			self.pool = await asyncpg.create_pool(**config.DB_CONN_INFO)
 			print('\n[DB] Successfully connected to database.\n')
 			print('[DB] Creating tables.')
-			with open("data/schema.sql") as f:
+			with open("schema.sql") as f:
 				await self.pool.execute(f.read())
 			print('[DB] Done creating tables.\n')
 			print('[DB] Adding guilds.')
