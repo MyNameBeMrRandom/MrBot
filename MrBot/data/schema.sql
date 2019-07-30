@@ -38,5 +38,10 @@ CREATE TABLE IF NOT EXISTS guild_config(
     guild_splash BOOLEAN
 );
 
+CREATE TABLE IF NOT EXISTS kross_config(
+    key TEXT PRIMARY KEY,
+    points BIGINT
+);
+
 
 

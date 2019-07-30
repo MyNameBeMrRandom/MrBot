@@ -412,9 +412,8 @@ class Events(commands.Cog):
 			return await ctx.send(f"A bad argument was passed to the command `{ctx.command}`.")
 		elif isinstance(error, commands.MissingPermissions):
 			return await ctx.send(f"You dont have the permissions to run the `{ctx.command}` command.")
-		elif isinstance(error, discord.HTTPException):
-			if isinstance(error, discord.Forbidden):
-				return await ctx.send(f"I am missing permissions to run the command `{ctx.command}`.")
+		if isinstance(error, discord.Forbidden):
+			return await ctx.send(f"I am missing permissions to run the command `{ctx.command}`.")
 		elif isinstance(error, commands.CommandInvokeError):
 			return await ctx.send(f"There was an error while running that command")
 		elif isinstance(error, commands.NotOwner):
