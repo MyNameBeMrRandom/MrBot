@@ -78,8 +78,8 @@ class Owner(commands.Cog):
 		"""
 		Say whatever is inputed as the bot.
 		"""
-		return await ctx.send(f'{content}')
 
+		return await ctx.send(f'{content}')
 
 def setup(bot):
 	bot.add_cog(Owner(bot))

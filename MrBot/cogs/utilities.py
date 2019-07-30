@@ -43,6 +43,7 @@ class Utilities(commands.Cog):
 		"""
 		Information about the bot.
 		"""
+
 		async with self.session.get(f"https://discordbots.org/api/widget/424637852035317770.png?certifiedcolor={random.randint(0, 999999)}") as req:
 			image = BytesIO(await req.read())
 		image.seek(0)
@@ -91,11 +92,24 @@ class Utilities(commands.Cog):
 															   f"**Messages sent:** {self.bot.messages_sent}", inline=False)
 		return await ctx.send(embed=embed)
 
+	@commands.command(name='ping')
+	async def ping(self, ctx):
+		"""
+		Display the bots ping.
+		"""
+
+		start = time.perf_counter()
+		message = await ctx.send("Ping...")
+		end = time.perf_counter()
+		duration = (end - start) * 1000
+		await message.edit(content='Pong! {:.2f}ms'.format(duration))
+
 	@commands.command(name='serverinfo')
 	async def serverinfo(self, ctx):
 		"""
 		Information about the current server.
 		"""
+
 		embed = discord.Embed(
 			colour=0xFF0000,
 			timestamp=ctx.message.created_at,
@@ -119,6 +133,7 @@ class Utilities(commands.Cog):
 		"""
 		Information about you, or a specified user.
 		"""
+
 		if not user:
 			user = ctx.author
 		embed = discord.Embed(
@@ -141,6 +156,7 @@ class Utilities(commands.Cog):
 		"""
 		Get a users avatar.
 		"""
+
 		if not user:
 			user = ctx.author
 		embed = discord.Embed(
@@ -148,28 +164,17 @@ class Utilities(commands.Cog):
 			timestamp=ctx.message.created_at
 		)
 		embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-		embed.add_field(name=f"{user.name}'s Avatar", value=f'[Avatar URL]({user.avatar_url})', inline=False)
-		embed.set_image(url=f'{user.avatar_url}')
+		embed.add_field(name=f"{user.name}'s Avatar", value=f'[Avatar URL]({user.avatar_url_as(size=1024)})', inline=False)
+		embed.set_image(url=f'{user.avatar_url_as(size=1024)}')
 		return await ctx.send(embed=embed)
-
-	@commands.command(name='ping')
-	async def ping(self, ctx):
-		"""
-		Display the bots ping.
-		"""
-		start = time.perf_counter()
-		message = await ctx.send("Ping...")
-		end = time.perf_counter()
-		duration = (end - start) * 1000
-		await message.edit(content='Pong! {:.2f}ms'.format(duration))
 
 	@commands.command(name='upvote')
 	async def upvote(self, ctx):
 		"""
 		Send a link to the bots upvote page.
 		"""
-		async with self.session.get(
-				f"https://discordbots.org/api/widget/424637852035317770.png?certifiedcolor={random.randint(0, 999999)}") as req:
+
+		async with self.session.get(f"https://discordbots.org/api/widget/424637852035317770.png?certifiedcolor={random.randint(0, 999999)}") as req:
 			image = BytesIO(await req.read())
 		image.seek(0)
 		embed = discord.Embed(
@@ -181,18 +186,12 @@ class Utilities(commands.Cog):
 		embed.set_image(url="attachment://dbl.png")
 		await ctx.send(file=discord.File(fp=image, filename="dbl.png"), embed=embed)
 
-	@commands.command(name='github')
-	async def github(self, ctx):
-		"""
-		Send a link to the bots github page.
-		"""
-		await ctx.send('https://github.com/MyNameBeMrRandom/MrBot')
-
 	@commands.command(name='source')
 	async def source(self, ctx, *, command: str = None):
 		"""
 		Github link to the source of a command.
 		"""
+
 		github_url = 'https://github.com/MyNameBeMrRandom/MrBot'
 		if command is None:
 			return await ctx.send(github_url)
@@ -210,12 +209,12 @@ class Utilities(commands.Cog):
 		final_url = f'<{github_url}/blob/master/MrBot/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
 		await ctx.send(final_url)
 
-	# noinspection PyArgumentEqualDefault
 	@commands.command(name='linecount', aliases=['lc'])
 	async def linecount(self,ctx):
 		"""
 		Display how many lines of code the bot is made out of.
 		"""
+
 		total = 0
 		file_amount = 0
 		comments = 0
@@ -238,6 +237,7 @@ class Utilities(commands.Cog):
 		"""
 		Generate a link that allows for screenshare in voice channels.
 		"""
+
 		if not channel:
 			try:
 				channel = ctx.author.voice.channel
