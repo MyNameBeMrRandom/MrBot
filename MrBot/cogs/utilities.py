@@ -81,7 +81,7 @@ class Utilities(commands.Cog):
 			description=""
 		)
 		embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
-		embed.add_field(name="__**System CPU:**__", value=f"**Cores:** {psutil.cpu_count(logical=False)}\n**Usage:** {process.cpu_percent()}%\n" \
+		embed.add_field(name="__**System CPU:**__", value=f"**Cores:** {psutil.cpu_count(logical=False)}\n**Usage:** {psutil.cpu_percent()}%\n" \
 			                                       f"**Frequency:** {round(psutil.cpu_freq().current, 2)} Mhz", inline=False)
 		embed.add_field(name="__**System Memory:**__", value=f"**Total:** {round(psutil.virtual_memory().total/1073741824, 2)} GB\n"
 													  f"**Used:** {round(psutil.virtual_memory().used/1073741824, 2)} GB\n"

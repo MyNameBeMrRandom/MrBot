@@ -6,40 +6,16 @@ def get_time(second):
 	minute, second = divmod(second, 60)
 	hour, minute = divmod(minute, 60)
 	day, hour = divmod(hour, 24)
+	days = round(day)
 	hours = round(hour)
 	minutes = round(minute)
 	seconds = round(second)
-	days = round(day)
-	message = ""
-	if not days == 0:
-		if days < 10:
-			message += f'0{days}:'
-		else:
-			message += f'{days}:'
-	else:
-		message += '00:'
-	if not hours == 0:
-		if hours < 10:
-			message += f'0{hours}:'
-		else:
-			message += f'{hours}:'
-	else:
-		message += '00:'
-	if not minutes == 0:
-		if minutes < 10:
-			message += f'0{minutes}:'
-		else:
-			message += f'{minutes}:'
-	else:
-		message += '00:'
-	if not seconds == 0:
-		if seconds < 10:
-			message += f'0{seconds}'
-		else:
-			message += f'{seconds}'
-	else:
-		message += '00'
-	return message
+	if minutes == 0:
+		return f"{seconds}s"
+	if hours == 0:
+		return "%02d:%02d" % (minutes, seconds)
+	if days == 0:
+		return "%02d:%02d:%02d" % (hours, minutes, seconds)
 
 def get_time_friendly(second):
 	"""
