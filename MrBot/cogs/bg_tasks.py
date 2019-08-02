@@ -2,6 +2,7 @@ from discord.ext import commands
 import discord
 import asyncio
 import config
+import time
 import dbl
 
 
@@ -32,6 +33,68 @@ class BgTasks(commands.Cog):
 			except Exception as e:
 				self.bot.logging.exception('[SERVER_COUNT] - Failed to post server count.\n{}: {}'.format(type(e).__name__, e))
 			await asyncio.sleep(21600)
+
+	@commands.Cog.listener()
+	async def on_dbl_vote(self, data):
+		user = self.bot.get_user(int(data['user']))
+		if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", user.id):
+			return
+		user_data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", user.id)
+		cash_amount = user_data["cash"]
+		vote_count = user_data["vote_count"]
+		await self.bot.pool.execute(f"UPDATE user_config SET vote_count = $1 WHERE key = $2", vote_count + 1, user.id)
+		await self.bot.pool.execute(f"UPDATE user_config SET vote_time = $1 WHERE key = $2", time.time(), user.id)
+		if data['isWeekend'] is True:
+			try:
+				await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount + 500, user.id)
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f'Thank you for voting, You gained **£500** because you voted on a weekend and earned double rewards!'
+				)
+				return await user.send(embed=embed)
+			except Exception:
+				return
+		else:
+			try:
+				await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount + 250, user.id)
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f'Thank you for voting, You gained **£250**.!'
+				)
+				return await user.send(embed=embed)
+			except Exception:
+				return
+
+	@commands.Cog.listener()
+	async def on_dbl_test(self, data):
+		user = self.bot.get_user(int(data['user']))
+		if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", user.id):
+			return
+		user_data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", user.id)
+		cash_amount = user_data["cash"]
+		vote_count = user_data["vote_count"]
+		await self.bot.pool.execute(f"UPDATE user_config SET vote_count = $1 WHERE key = $2", vote_count + 1, user.id)
+		await self.bot.pool.execute(f"UPDATE user_config SET vote_time = $1 WHERE key = $2", time.time(), user.id)
+		if data['isWeekend'] is True:
+			try:
+				await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount + 500, user.id)
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f'Thank you for voting, You gained **£500** because you voted on a weekend and earned double rewards!'
+				)
+				return await user.send(embed=embed)
+			except Exception:
+				return
+		else:
+			try:
+				await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", cash_amount + 250, user.id)
+				embed = discord.Embed(
+					colour=0x57FFF5,
+					description=f'Thank you for voting, You gained **£250**.!'
+				)
+				return await user.send(embed=embed)
+			except Exception:
+				return
 
 
 def setup(bot):
