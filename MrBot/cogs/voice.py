@@ -268,7 +268,7 @@ class Voice(commands.Cog):
 
 	async def initiate_nodes(self):
 
-		nodes = {'MAIN_NODE': { 'ip': config.IP_1,
+		nodes = {'Node_1': { 'ip': config.IP_1,
 		                        'port': config.PORT_1,
 		                        'rest_uri': config.ADRESS_1,
 		                        'password': config.PASSWORD_1,
@@ -277,13 +277,17 @@ class Voice(commands.Cog):
 		         }
 
 		for n in nodes.values():
-			await self.bot.andesite.start_node(
-				n['ip'],
-				n['port'],
-				rest_uri=n['rest_uri'],
-				password=n['password'],
-				identifier=n['identifier']
-				)
+			try:
+				await self.bot.andesite.start_node(
+					n['ip'],
+					n['port'],
+					rest_uri=n['rest_uri'],
+					password=n['password'],
+					identifier=n['identifier']
+					)
+			except Exception:
+				print('[ANDESITE] Nodes failed to connect.')
+			print('[ANDESITE] Nodes connected.')
 
 	@commands.command(name='now_playing', aliases=['np'])
 	async def now_playing(self, ctx):
@@ -321,7 +325,7 @@ class Voice(commands.Cog):
 			return await ctx.send(f'Added the playlist **{tracks.name}** to the queue with a total of **{len(tracks.tracks)}** entries.')
 		track = tracks[0]
 		await ctx.player.queue.put(Track(track.id, track.data, ctx=ctx))
-		return await ctx.send(f'Added the video **{track.title}** to the queue.')
+		return await ctx.send(f'Added the track **{track.title}** to the queue.')
 
 	@commands.command(name='join', aliases=['connect'])
 	async def join(self, ctx):
@@ -496,69 +500,6 @@ class Voice(commands.Cog):
 		ctx.player.volume = volume
 		await ctx.player.set_volume(volume)
 
-	# TODO: Need to work on this, when im bored
-	@commands.command(name='filter')
-	async def filter(self, ctx):
-		"""
-		Changes the volume of the player.
-		"""
-
-		player = self.bot.andesite.get_player(ctx.guild.id, cls=Player)
-
-		def check(msg):
-			return ctx.author == msg.author and ctx.channel == msg.channel
-
-		if player.is_connected:
-			try:
-				channel = ctx.author.voice.channel
-			except AttributeError:
-				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-			if not channel == ctx.guild.me.voice.channel:
-				return await ctx.send(f'Join the same voice channel as MrBot to use this command.')
-
-			message = await ctx.send(f'What filter type would you like to use?\n> 1. Karaoke\n> 2. Timescale\n> 3. Tremolo\n> 4. Vibrato\nEnter number:')
-			try:
-				filter_type = await ctx.bot.wait_for('message', timeout=30.0, check=check)
-				if filter_type.content == 'cancel':
-					return await ctx.send('Ended filter selection.')
-				filter_type = int(filter_type.content)
-				if filter_type <= 0 or filter_type >= 5:
-					return await ctx.send(f'That is not a valid filter, please choose a valid filters number.')
-			except asyncio.TimeoutError:
-				return await ctx.send(f'You took to long to respond.')
-			except ValueError:
-				return await ctx.send(f'That was not a valid filter type, make sure you use a number.')
-			if filter_type == 1:
-				await message.edit(content=f'What `level` would you like?')
-				try:
-					filter_type = await ctx.bot.wait_for('message', timeout=30.0, check=check)
-					if filter_type.content == 'cancel':
-						return await ctx.send('Ended filter selection.')
-					filter_type = int(filter_type.content)
-					if filter_type <= 0 or filter_type >= 20:
-						return await ctx.send(f'That is not a valid `level`, please choose a valid filters number.')
-				except asyncio.TimeoutError:
-					return await ctx.send(f'You took to long to respond.')
-				except ValueError:
-					return await ctx.send(f'That was not a valid filter type, make sure you use a number.')
-
-
-
-
-
-			#if not 0 < volume < 101:
-				#return await ctx.send(f'Please enter a value between `1` and and `100`.')
-			#await ctx.send(f'Changed the players volume to `{volume}%`.')
-			#return await self.do_filter(player, filters)
-		else:
-			return await ctx.send(f'MrBot is not currently in any voice channels.')
-
-	async def do_filter(self, player, filters):
-		"""
-		Changes the volume of the player.
-		"""
-		await player.set_filters(filters)
-
 	@commands.command(name='seek')
 	async def seek(self, ctx, position: int):
 		"""
@@ -679,8 +620,6 @@ class Voice(commands.Cog):
 			return await ctx.send(f'You must be in a voice channel to use this command.')
 		if not ctx.player.channel_id == ctx.author.voice.channel.id:
 			return await ctx.send(f'You must be in the same voice channel as MrBot to use this command.')
-		if ctx.player.queue.qsize() <= 0:
-			return await ctx.send('Add more tracks to the queue to enable queue shuffling.')
 		await self.do_loop(ctx)
 		if ctx.player.loop_queue is True:
 			return await ctx.send(f'The queue will now loop.')

@@ -289,7 +289,7 @@ class Events(commands.Cog):
 		if before.bot:
 			return
 		data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
-		if data["logging_channel"]is None:
+		if data["logging_channel"] is None:
 			return
 		channel = self.bot.get_channel(data["logging_channel"])
 		if data["logging_enabled"] is True:
