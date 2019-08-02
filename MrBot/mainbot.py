@@ -76,11 +76,11 @@ class MrBot(commands.AutoShardedBot):
 	async def db_start(self):
 		try:
 			self.pool = await asyncpg.create_pool(**config.DB_CONN_INFO)
-			print('\n[DB] Successfully connected to database.\n')
+			print('[DB] Successfully connected to database.')
 			print('[DB] Creating tables.')
 			with open("schema.sql") as f:
 				await self.pool.execute(f.read())
-			print('[DB] Done creating tables.\n')
+			print('[DB] Done creating tables.')
 			print('[DB] Adding guilds.')
 			for guild in self.guilds:
 				try:
@@ -95,17 +95,18 @@ class MrBot(commands.AutoShardedBot):
 					print(f'[DB] Created config for guild - {guild.name}.')
 				except asyncpg.UniqueViolationError:
 					pass
-			print('[DB] Done adding guilds.\n')
+			print('[DB] Done adding guilds.')
 			self.is_db_ready = True
 		except ConnectionRefusedError:
-			print('\n[DB] Connection to db was denied.')
+			print('[DB] Connection to db was denied.')
 		except Exception as e:
-			print(f'\n[DB] An error occured: {e}')
+			print(f'[DB] An error occured: {e}')
 
 	async def bot_logout(self):
 		"""
 		Logout from discord.
 		"""
+		self.is_db_ready = False
 		await self.pool.close()
 		await super().logout()
 
@@ -122,7 +123,7 @@ class MrBot(commands.AutoShardedBot):
 		"""
 
 		logger.info(f'[BOT] Logged in as {self.user} - {self.user.id}')
-		print(f'\n[BOT] Logged in as {self.user} - {self.user.id}')
+		print(f'\n[BOT] Logged in as {self.user} - {self.user.id}\n')
 		await self.db_start()
 
 	async def get_context(self, message, *, cls=None):
