@@ -10,9 +10,9 @@ class BgTasks(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
-		self.presence_task = self.bot.loop.create_task(self.activity_changing())
+		self.update_presence = self.bot.loop.create_task(self.activity_changing())
 		self.dblpy = dbl.Client(self.bot, config.DBL_TOKEN, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
-		self.updating = self.bot.loop.create_task(self.update_guild_count())
+		self.update_count = self.bot.loop.create_task(self.update_guild_count())
 
 	async def activity_changing(self):
 			await self.bot.wait_until_ready()
@@ -26,12 +26,10 @@ class BgTasks(commands.Cog):
 
 	async def update_guild_count(self):
 		while not self.bot.is_closed():
-			self.bot.logging.info('[SERVER_COUNT] - Attempting to post server count to DBL.')
 			try:
 				await self.dblpy.post_guild_count()
-				self.bot.logging.info(f'[SERVER_COUNT] - Posted server count to DBL({self.dblpy.guild_count()}).')
-			except Exception as e:
-				self.bot.logging.exception('[SERVER_COUNT] - Failed to post server count.\n{}: {}'.format(type(e).__name__, e))
+			except discord.Forbidden:
+				return
 			await asyncio.sleep(21600)
 
 	@commands.Cog.listener()

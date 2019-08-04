@@ -1,8 +1,10 @@
 from .utils import get_information
 from discord.ext import commands
 import traceback
+import logging
 import discord
 
+log = logging.getLogger(__name__)
 
 class Events(commands.Cog):
 	"""
