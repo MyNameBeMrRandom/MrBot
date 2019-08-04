@@ -1,11 +1,9 @@
 # noinspection PyUnresolvedReferences
 from cogs.voice import Player
 from discord.ext import commands
-import logging.handlers
 import asyncpg
 import asyncio
 import config
-import dbl
 import os
 
 os.environ['JISHAKU_HIDE'] = 'True'
@@ -23,16 +21,9 @@ extensions = [
 	'cogs.owner',
 	'cogs.voice',
 	'cogs.help',
-	'cogs.fun',
 	'jishaku',
 
 ]
-
-logger = logging.getLogger('MrBot')
-logger.setLevel(logging.INFO)
-handler = logging.handlers.TimedRotatingFileHandler(filename=f'logs/mrbot.log', encoding='utf-8', backupCount=10, interval=100, when='D', utc=True)
-handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-logger.addHandler(handler)
 
 
 class MrBot(commands.AutoShardedBot):
@@ -50,7 +41,6 @@ class MrBot(commands.AutoShardedBot):
 		self.messages_seen = 0
 		self.messages_sent = 0
 		self.commands_run = 0
-		self.logging = logger
 		self.config = config
 		self.pool = None
 
@@ -58,10 +48,8 @@ class MrBot(commands.AutoShardedBot):
 			try:
 				self.load_extension(ext)
 				print(f'[EXT] Success - {ext}')
-				logger.info(f'[EXT] Success - {ext}')
 			except commands.ExtensionNotFound:
 				print(f'[EXT] Failed - {ext}')
-				logger.warning(f'[EXT] Failed - {ext}')
 
 	def run(self):
 		"""
@@ -123,7 +111,6 @@ class MrBot(commands.AutoShardedBot):
 		Allow for processing when the bot is ready.
 		"""
 
-		logger.info(f'[BOT] Logged in as {self.user} - {self.user.id}')
 		print(f'\n[BOT] Logged in as {self.user} - {self.user.id}\n')
 		await self.db_start()
 

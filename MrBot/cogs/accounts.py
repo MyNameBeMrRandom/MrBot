@@ -1,7 +1,6 @@
 from discord.ext import commands
 import asyncpg
 
-
 class Accounts(commands.Cog):
 	"""
 	MrBot account management commands.
