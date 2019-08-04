@@ -6,83 +6,83 @@ import io
 
 
 class Owner(commands.Cog):
-	"""
-	Owner only commands.
-	"""
+    """
+    Owner only commands.
+    """
 
-	def __init__(self, bot):
-		self.bot = bot
-		self._last_result = None
+    def __init__(self, bot):
+        self.bot = bot
+        self._last_result = None
 
-	async def cleanup_code(self, content):
-		"""Automatically removes code blocks from the code."""
-		if content.startswith('```') and content.endswith('```'):
-			return '\n'.join(content.split('\n')[1:-1])
-		return content.strip('` \n')
+    async def cleanup_code(self, content):
+        """Automatically removes code blocks from the code."""
+        if content.startswith('```') and content.endswith('```'):
+            return '\n'.join(content.split('\n')[1:-1])
+        return content.strip('` \n')
 
-	@commands.command(name='eval', hidden=True)
-	@commands.is_owner()
-	async def eval(self, ctx, *, body: str):
-		"""
-		Evaluate python code.
-		"""
+    @commands.command(name='eval', hidden=True)
+    @commands.is_owner()
+    async def eval(self, ctx, *, body: str):
+        """
+        Evaluate python code.
+        """
 
-		env = {
-			'bot': self.bot,
-			'ctx': ctx,
-			'channel': ctx.channel,
-			'author': ctx.author,
-			'guild': ctx.guild,
-			'message': ctx.message,
-			'_': self._last_result
-		}
+        env = {
+            'bot': self.bot,
+            'ctx': ctx,
+            'channel': ctx.channel,
+            'author': ctx.author,
+            'guild': ctx.guild,
+            'message': ctx.message,
+            '_': self._last_result
+        }
 
-		env.update(globals())
+        env.update(globals())
 
-		body = await self.cleanup_code(body)
-		stdout = io.StringIO()
+        body = await self.cleanup_code(body)
+        stdout = io.StringIO()
 
-		to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
+        to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
 
-		try:
-			exec(to_compile, env)
-		except Exception as e:
-			return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+        try:
+            exec(to_compile, env)
+        except Exception as e:
+            return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
 
-		# noinspection PyUnresolvedReferences
-		func = env['func']
-		# noinspection PyBroadException
-		try:
-			with redirect_stdout(stdout):
-				ret = await func()
-		except Exception:
-			value = stdout.getvalue()
-			await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
-		else:
-			value = stdout.getvalue()
-			# noinspection PyBroadException
-			try:
-				await ctx.message.add_reaction('\u2705')
-			except Exception:
-				pass
-			if ret is None:
-				if value:
-					await ctx.send(f'```py\n{value}\n```')
-			else:
-				self._last_result = ret
-				await ctx.send(f'```py\n{value}{ret}\n```')
+        # noinspection PyUnresolvedReferences
+        func = env['func']
+        # noinspection PyBroadException
+        try:
+            with redirect_stdout(stdout):
+                ret = await func()
+        except Exception:
+            value = stdout.getvalue()
+            await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
+        else:
+            value = stdout.getvalue()
+            # noinspection PyBroadException
+            try:
+                await ctx.message.add_reaction('\u2705')
+            except Exception:
+                pass
+            if ret is None:
+                if value:
+                    await ctx.send(f'```py\n{value}\n```')
+            else:
+                self._last_result = ret
+                await ctx.send(f'```py\n{value}{ret}\n```')
 
-	@commands.command(name='say', hidden=True)
-	@commands.is_owner()
-	async def say(self, ctx, *, content):
-		"""
-		Say whatever is inputed as the bot.
-		"""
+    @commands.command(name='say', hidden=True)
+    @commands.is_owner()
+    async def say(self, ctx, *, content):
+        """
+        Say whatever is inputed as the bot.
+        """
 
-		return await ctx.send(f'{content}')
+        return await ctx.send(f'{content}')
 
 def setup(bot):
-	bot.add_cog(Owner(bot))
+    bot.add_cog(Owner(bot))
 
 
 
