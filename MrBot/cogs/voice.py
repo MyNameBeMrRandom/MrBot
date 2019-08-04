@@ -230,6 +230,8 @@ class Player(andesite.Player):
 	async def player_loop(self):
 		await self.bot.wait_until_ready()
 		await self.set_volume(self.volume)
+		await self.set_pause(False)
+		self.paused = False
 		while True:
 			song = await self.queue.get()
 			if not song:
@@ -501,14 +503,14 @@ class Voice(commands.Cog):
 		await ctx.player.set_volume(volume)
 
 	@commands.command(name='seek')
-	async def seek(self, ctx, position: int):
+	async def seek(self, ctx, seconds: int):
 		"""
 		Changes the postion of the player.
 
 		`position` can be the time you want to skip to in seconds.
 		"""
 
-		milliseconds = position * 1000
+		milliseconds = seconds * 1000
 		if not ctx.player.is_connected:
 			return await ctx.send(f'MrBot is not connected to any voice channels.')
 		if not ctx.author.voice or not ctx.author.voice.channel:
@@ -520,7 +522,7 @@ class Voice(commands.Cog):
 		if not ctx.player.current.is_seekable:
 			return await ctx.send('This track is not seekable.')
 		if not 0 <= milliseconds <= ctx.player.current.length:
-			return await ctx.send(f'Please enter a value between `1` and and `{round(ctx.player.current.length / 1000)}`.')
+			return await ctx.send(f'Please enter a value between `1` and `{round(ctx.player.current.length / 1000)}`.')
 		await self.do_seek(ctx, milliseconds)
 		return await ctx.send(f'Changed the players position to `{calculations.get_time(milliseconds / 1000)}`.')
 
@@ -529,7 +531,7 @@ class Voice(commands.Cog):
 		Seek to a postion in a track.
 		"""
 
-		await ctx.player.seek(milliseconds)
+		return await ctx.player.seek(milliseconds)
 
 	@commands.command(name='queue')
 	async def queue(self, ctx):
