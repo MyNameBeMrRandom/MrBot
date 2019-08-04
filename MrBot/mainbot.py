@@ -46,13 +46,13 @@ class MrBot(commands.AutoShardedBot):
 			reconnect=True,
 		)
 		self.loop = asyncio.get_event_loop()
-		self.logging = logger
-		self.config = config
 		self.is_db_ready = False
-		self.pool = None
-		self.commands_run = 0
 		self.messages_seen = 0
 		self.messages_sent = 0
+		self.commands_run = 0
+		self.logging = logger
+		self.config = config
+		self.pool = None
 
 		for ext in extensions:
 			try:
