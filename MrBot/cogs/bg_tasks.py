@@ -1,9 +1,7 @@
 from discord.ext import commands
 import discord
 import asyncio
-import config
 import time
-import dbl
 
 
 class BgTasks(commands.Cog):
@@ -11,7 +9,6 @@ class BgTasks(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.update_presence = self.bot.loop.create_task(self.activity_changing())
-        self.dblpy = dbl.Client(self.bot, config.DBL_TOKEN, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
         self.update_count = self.bot.loop.create_task(self.update_guild_count())
 
     async def activity_changing(self):
@@ -27,7 +24,7 @@ class BgTasks(commands.Cog):
     async def update_guild_count(self):
         while not self.bot.is_closed():
             try:
-                await self.dblpy.post_guild_count()
+                await self.bot.dblpy.post_guild_count()
             except discord.Forbidden:
                 return
             await asyncio.sleep(21600)

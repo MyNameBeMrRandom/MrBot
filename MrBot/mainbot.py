@@ -18,7 +18,9 @@ from cogs.voice import Player
 from discord.ext import commands
 import asyncpg
 import asyncio
+import aiohttp
 import config
+import dbl
 import os
 
 os.environ['JISHAKU_HIDE'] = 'True'
@@ -51,6 +53,8 @@ class MrBot(commands.AutoShardedBot):
             command_prefix=commands.when_mentioned_or(config.DISCORD_PREFIX),
             reconnect=True,
         )
+        self.dblpy = dbl.Client(self, config.DBL_TOKEN, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
+        self.session = aiohttp.ClientSession(loop=self.loop)
         self.loop = asyncio.get_event_loop()
         self.is_db_ready = False
         self.messages_seen = 0
@@ -112,6 +116,7 @@ class MrBot(commands.AutoShardedBot):
         """
         self.is_db_ready = False
         await self.pool.close()
+        await self.session.close()
         await super().logout()
 
     async def bot_start(self):

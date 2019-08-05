@@ -1,8 +1,7 @@
 
+
 def get_time(second):
-    """
-    Converts an amount of seconds into a readable format.
-    """
+
     minute, second = divmod(second, 60)
     hour, minute = divmod(minute, 60)
     day, hour = divmod(hour, 24)
@@ -16,54 +15,30 @@ def get_time(second):
         return "%02d:%02d" % (minutes, seconds)
     if days == 0:
         return "%02d:%02d:%02d" % (hours, minutes, seconds)
+    return "%02d:%02d:%02d:%02d" % (days, hours, minutes, seconds)
 
 def get_time_friendly(second):
-    """
-    Converts an amount of seconds into a readable format.
-    """
 
     minute, second = divmod(second, 60)
     hour, minute = divmod(minute, 60)
     day, hour = divmod(hour, 24)
+    days = round(day)
     hours = round(hour)
     minutes = round(minute)
     seconds = round(second)
-    days = round(day)
-    message = ""
-    if not days == 0:
-        if days < 10:
-            message += f'0{days}d, '
-        else:
-            message += f'{days}d, '
-    else:
-        message += '00d, '
-    if not hours == 0:
-        if hours < 10:
-            message += f'0{hours}h, '
-        else:
-            message += f'{hours}h, '
-    else:
-        message += '00h, '
-    if not minutes == 0:
-        if minutes < 10:
-            message += f'0{minutes}m, '
-        else:
-            message += f'{minutes}m, '
-    else:
-        message += '00m, '
-    if not seconds == 0:
-        if seconds < 10:
-            message += f'0{seconds}s'
-        else:
-            message += f'{seconds}s'
-    else:
-        message += '00s'
-    return message
+    if minutes == 0:
+        return f"%02ds" % seconds
+    if hours == 0:
+        return "%02dm %02ds" % (minutes, seconds)
+    if days == 0:
+        return "%02dh %02dm %02ds" % (hours, minutes, seconds)
+    return "%02dd %02dh %02dm %02ds" % (days, hours, minutes, seconds)
 
 def calculate_percentages(numbers, decimal):
     """
     Takes a list of numbers and calculate the percatage of each one out the total.
     """
+
     # Define a list called percentages.
     percentages = []
     # Calculate the total of the numbers in the list.
