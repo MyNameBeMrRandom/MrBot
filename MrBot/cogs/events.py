@@ -1,7 +1,6 @@
 from .utils import get_information
 from discord.ext import commands
 import traceback
-import logging
 import discord
 
 
@@ -36,7 +35,6 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx):
-        self.bot.logging.info(f'[COMMAND] - {ctx.author} used the command "{ctx.command}" in the guild "{ctx.guild}".')
         self.bot.commands_run += 1
 
     @commands.Cog.listener()
