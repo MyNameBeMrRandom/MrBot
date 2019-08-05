@@ -1,15 +1,58 @@
 import discord
+import pathlib
+import codecs
 import time
+import os
 
-# Get the bots ping.
-async def get_ping(ctx):
-    start = time.perf_counter()
+async def get_ping(ctx, bot):
+    # Define variables.
+    pings = []
+    number = 0
+    # Get typing time and append.
+    typings = time.monotonic()
     await ctx.trigger_typing()
-    end = time.perf_counter()
-    duration = (end - start) * 1000
-    return f'{duration:.2f}ms'
+    typinge = time.monotonic()
+    typingms = round((typinge - typings) * 1000)
+    pings.append(typingms)
+    # Get latency and append.
+    latencyms = round(bot.latency * 1000)
+    pings.append(latencyms)
+    # Ping discord and append.
+    discords = time.monotonic()
+    async with bot.session.get("https://discordapp.com/") as resp:
+        if resp.status is 200:
+            discorde = time.monotonic()
+            discordms = round((discorde - discords) * 1000)
+            pings.append(discordms)
+        else:
+            discordms = "Failed"
+    # Calculate the average.
+    for ms in pings:
+        number += ms
+    average = round(number / len(pings))
+    return typingms, latencyms, discordms, average
 
-# Get a color for embeds based on users status.
+def linecount():
+    file_amount = 0
+    comments = 0
+    lines = 0
+    functions = 0
+    for path, subdirs, files in os.walk('.'):
+        for name in files:
+            if name.endswith('.py'):
+                file_amount += 1
+                with codecs.open('./' + str(pathlib.PurePath(path, name)), 'r', 'utf-8') as f:
+                    for i, l in enumerate(f):
+                        if l.strip().startswith('#'):
+                            comments += 1
+                        if l.strip().startswith('async def') or l.strip().startswith('async'):
+                            functions += 1
+                        if len(l.strip()) is 0:
+                            pass
+                        else:
+                            lines += 1
+    return file_amount, comments, lines, functions
+
 def embed_color(user):
     if user.status == discord.Status.online:
         return 0x008000
@@ -22,23 +65,25 @@ def embed_color(user):
     else:
         return 0xFF8000
 
-# Get a users activity.
 def user_activity(user):
     try:
         if user.status == discord.Status.offline:
             return 'N/A'
-        if user.activity == discord.ActivityType.playing:
-            return f'Playing: **{user.activity.name}**'
-        elif user.activity == discord.ActivityType.streaming:
-            return f'Streaming [{user.activity.name}]({user.activity.url})'
-        elif user.activity == discord.ActivityType.listening:
+        if not user.activity:
+            return 'N/A'
+        if user.activity.type == discord.ActivityType.playing:
+            if user.activity.details is not None:
+                return f'**Playing:** {user.activity.name}, {user.activity.details}'
+            return f'**Playing:** {user.activity.name}'
+        if user.activity.type == discord.ActivityType.streaming:
+            return f'Streaming: [{user.activity.name}]({user.activity.url})'
+        if user.activity.type == discord.ActivityType.listening:
             return f'Listening to {user.activity.name}: **{user.activity.title}**  by  **{user.activity.artist}**'
-        elif user.activity == discord.ActivityType.watching:
+        if user.activity.type == discord.ActivityType.watching:
             return f'Watching: {user.activity.name}'
     except TypeError:
         return 'N/A'
 
-# Get a users status.
 def user_status(user):
     if user.status == discord.Status.online:
         return "Online"
@@ -51,7 +96,22 @@ def user_status(user):
     else:
         return "Offline"
 
-# Get a guilds region.
+def guild_user_count(guild):
+    online = 0
+    offline = 0
+    idle = 0
+    dnd = 0
+    for member in guild.members:
+        if member.status == discord.Status.online:
+            online += 1
+        if member.status == discord.Status.idle:
+            idle += 1
+        if member.status == discord.Status.dnd:
+            dnd +=1
+        if member.status == discord.Status.offline:
+            offline += 1
+    return online, offline, idle, dnd
+
 def guild_region(guild):
     if guild.region == discord.VoiceRegion.amsterdam:
         return "Amsterdam"
@@ -90,7 +150,6 @@ def guild_region(guild):
     else:
         return "N/A"
 
-# Get a guilds default notification level.
 def guild_notification_level(guild):
     if guild.default_notifications == discord.NotificationLevel.all_messages:
         return "All messages"
@@ -99,7 +158,6 @@ def guild_notification_level(guild):
     else:
         return "N/A"
 
-# Get a guilds 2FA level.
 def guild_mfa_level(guild):
     if guild.mfa_level == 0:
         return "2FA Not required"
@@ -108,7 +166,6 @@ def guild_mfa_level(guild):
     else:
         return "N/A"
 
-# Get a guilds verification level.
 def guild_verification_level(guild):
     if guild.verification_level == discord.VerificationLevel.none:
         return "None - No criteria set"
@@ -123,7 +180,6 @@ def guild_verification_level(guild):
     else:
         return "N/A"
 
-# Get a guilds content filter level.
 def guild_content_filter_level(guild):
     if guild.explicit_content_filter == discord.ContentFilter.disabled:
         return "None - Content filter disabled"
