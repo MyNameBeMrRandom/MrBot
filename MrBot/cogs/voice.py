@@ -220,16 +220,22 @@ class Player(andesite.Player):
     def __init__(self, bot, guild_id: int, node):
         super(Player, self).__init__(bot, guild_id, node)
         self.bot.loop.create_task(self.player_loop())
-        self.queue = Queue()
         self.loop_queue = False
+        self.queue = Queue()
         self.paused = False
-        self.filter = None
         self.volume = 50
+
+        self.filter_count = 0
+        self.nightcore = False
 
     async def player_loop(self):
         await self.bot.wait_until_ready()
         await self.set_volume(self.volume)
         await self.set_pause(False)
+        await self.set_karaoke()
+        await self.set_timescale()
+        await self.set_tremolo()
+        await self.set_vibrato()
         self.paused = False
         while True:
             song = await self.queue.get()
@@ -258,7 +264,6 @@ class Player(andesite.Player):
         embed.add_field(name='Requester:', value=track.requester.mention)
         # embed.add_field(name=f'Filter:', value=f'Current: {self.filter}')
         await track.channel.send(embed=embed)
-
 
 class Voice(commands.Cog):
 
@@ -710,6 +715,42 @@ class Voice(commands.Cog):
 
     async def do_reverse(self, player):
         return player.queue.queue.reverse()
+
+    @commands.group(name='filter', invoke_without_command=True)
+    async def filter(self, ctx):
+
+        if not ctx.player.is_connected:
+            return await ctx.send(f'MrBot is not connected to any voice channels.')
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            return await ctx.send(f'You must be in a voice channel to use this command.')
+        if not ctx.player.channel_id == ctx.author.voice.channel.id:
+            return await ctx.send(f'You must be in the same voice channel as MrBot to use this command.')
+        if ctx.player.filter_count == 0:
+             return await ctx.send('No filters curently enabled.')
+        message = f'>>> **The current filters are:**\n'
+        if ctx.player.nightcore is True:
+            message += '   - Nightcore'
+        return await ctx.send(message)
+
+    @filter.command(name='nightcore')
+    async def nightcore(self, ctx):
+
+        if not ctx.player.is_connected:
+            return await ctx.send(f'MrBot is not connected to any voice channels.')
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            return await ctx.send(f'You must be in a voice channel to use this command.')
+        if not ctx.player.channel_id == ctx.author.voice.channel.id:
+            return await ctx.send(f'You must be in the same voice channel as MrBot to use this command.')
+        if ctx.player.nightcore is True:
+            ctx.player.nightcore = False
+            ctx.player.filter_count -= 1
+            await ctx.send(f'Removed the nightcore filter.')
+            return await ctx.player.set_timescale()
+        ctx.player.nightcore = True
+        ctx.player.filter_count += 1
+        await ctx.send(f'Added the nightcore filter.')
+        return await ctx.player.set_timescale(speed=1.1, pitch=1.1, rate=1)
+
 
 
 def setup(bot):
