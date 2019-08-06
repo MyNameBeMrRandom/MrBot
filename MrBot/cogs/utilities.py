@@ -8,7 +8,6 @@ import time
 import os
 
 
-
 start_time = time.time()
 process = psutil.Process()
 
@@ -35,9 +34,9 @@ class Utilities(commands.Cog):
             colour=0xFF0000,
             timestamp=ctx.message.created_at,
         )
-        embed.set_author(icon_url=self.bot.user.avatar_url, name='MrBots Info')
+        embed.set_author(icon_url=self.bot.user.avatar_url_as(format='png'), name='MrBots Info')
         embed.set_footer(text=f'ID: {self.bot.user.id}')
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.bot.user.avatar_url_as(format='png'))
         embed.set_image(url=await self.bot.dblpy.generate_widget_large())
         embed.add_field(name="__**Bot info:**__", value=f"**Uptime:** {calculations.get_time_friendly(uptime)}\n"
                                                         f"**Total users:** {len(self.bot.users)}\n"
@@ -67,8 +66,8 @@ class Utilities(commands.Cog):
             colour=0xFF0000,
             timestamp=ctx.message.created_at,
         )
-        embed.set_author(icon_url=self.bot.user.avatar_url, name='MrBots Stats')
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.set_author(icon_url=self.bot.user.avatar_url_as(format='png'), name='MrBots Stats')
+        embed.set_thumbnail(url=self.bot.user.avatar_url_as(format='png'))
         embed.add_field(name="__**System CPU:**__", value=f"**Cores:** {psutil.cpu_count(logical=False)}\n"
                                                           f"**Usage:** {psutil.cpu_percent()}%\n" \
                                                           f"**Frequency:** {round(psutil.cpu_freq().current, 2)} Mhz")
@@ -111,7 +110,7 @@ class Utilities(commands.Cog):
         return await ctx.send(f"**Comments:** {comments}\n"
                              f"**Functions:** {functions}\n"
                              f"**Lines:** {lines}\n"
-                             f"**Files:** {file_amount}\n**Lines:** {lines}\n")
+                             f"**Files:** {file_amount}\n")
 
     @commands.command(name='source')
     async def source(self, ctx, *, command: str = None):
@@ -183,7 +182,7 @@ class Utilities(commands.Cog):
         """
 
         if not channel:
-            if not ctx.author.voice.channel:
+            if not ctx.author.voice:
                 return await ctx.send('There is no voice channel to create a screenshare from, join one or specify one.')
             channel = ctx.author.voice.channel
         link = f'<http://www.discordapp.com/channels/{ctx.guild.id}/{channel.id}>'
