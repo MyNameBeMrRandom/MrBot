@@ -4,7 +4,6 @@ from PIL import ImageFont
 from io import BytesIO
 from PIL import Image
 import discord
-import aiohttp
 import time
 
 
@@ -15,10 +14,9 @@ class Images(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.session = aiohttp.ClientSession(loop=bot.loop)
 
     async def get_image(self, url):
-        async with self.session.get(url) as response:
+        async with self.bot.session.get(url) as response:
             image_bytes = await response.read()
         return image_bytes
 
