@@ -37,7 +37,7 @@ class Utilities(commands.Cog):
         embed.set_author(icon_url=self.bot.user.avatar_url_as(format='png'), name='MrBots Info')
         embed.set_footer(text=f'ID: {self.bot.user.id}')
         embed.set_thumbnail(url=self.bot.user.avatar_url_as(format='png'))
-        embed.set_image(url=await self.bot.dblpy.generate_widget_large())
+        embed.set_image(url=await self.bot.dblpy.generate_widget_large(cert=calculations.random_colour()))
         embed.add_field(name="__**Bot info:**__", value=f"**Uptime:** {calculations.get_time_friendly(uptime)}\n"
                                                         f"**Total users:** {len(self.bot.users)}\n"
                                                         f"**Guilds:** {len(self.bot.guilds)}\n")
@@ -146,8 +146,24 @@ class Utilities(commands.Cog):
         )
         embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.name)
         embed.add_field(name=f'Upvote Link:', value=f'[Click here!](https://discordbots.org/bot/424637852035317770/vote)')
-        embed.set_image(url=await self.bot.dblpy.generate_widget_large())
+        embed.set_image(url=await self.bot.dblpy.generate_widget_large(cert=calculations.random_colour()))
         await ctx.send(embed=embed)
+
+    @commands.command(name='upvotes')
+    async def upvotes(self, ctx):
+
+        upvotes = await self.bot.dblpy.get_bot_upvotes()
+        if not upvotes:
+            return await ctx.send('No upvotes')
+        embed = discord.Embed(
+            colour=0xFF0000,
+            timestamp=ctx.message.created_at,
+            description=""
+        )
+        embed.set_author(icon_url=self.bot.user.avatar_url_as(format='png'), name='MrBots upvoters:')
+        for upvoter in upvotes:
+            embed.description += f"{upvoter['username']}{upvoter['discriminator']}\n"
+        return await ctx.send(embed=embed)
 
     @commands.command(name='avatar')
     async def avatar(self, ctx, user: discord.Member = None):
@@ -243,6 +259,8 @@ class Utilities(commands.Cog):
                                                                           f'**Roles:** {", ".join([r.mention for r in user.roles])}')
         embed.set_thumbnail(url=user.avatar_url)
         return await ctx.send(embed=embed)
+
+
 
 def setup(bot):
     bot.add_cog(Utilities(bot))
