@@ -54,7 +54,7 @@ def calculate_percentages(numbers, decimal):
     return percentages
 
 def random_colour():
-    random_number = random.randint(0, 16777215)
-    hex_number = str(hex(random_number))
-    hex_number = '#' + hex_number[2:]
-    return hex_number
+    r = lambda: random.randint(0, 255)
+    return '%02X%02X%02X' % (r(), r(), r())
+
+
