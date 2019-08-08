@@ -43,7 +43,7 @@ extensions = [
 ]
 
 
-class MrBot(commands.AutoShardedBot):
+class MrBot(commands.Bot):
     """
     Main bot class.
     """
@@ -115,9 +115,9 @@ class MrBot(commands.AutoShardedBot):
         Logout from discord.
         """
         self.is_db_ready = False
-        await self.pool.close()
         await self.session.close()
         await super().logout()
+        await self.pool.close()
 
     async def bot_start(self):
         """

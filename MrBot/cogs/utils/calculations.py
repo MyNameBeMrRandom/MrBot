@@ -1,4 +1,4 @@
-
+import random
 
 def get_time(second):
 
@@ -52,3 +52,9 @@ def calculate_percentages(numbers, decimal):
     percentages.append(total_percent)
     # Return the list
     return percentages
+
+def random_colour():
+    random_number = random.randint(0, 16777215)
+    hex_number = str(hex(random_number))
+    hex_number = '#' + hex_number[2:]
+    return hex_number

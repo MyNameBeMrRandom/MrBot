@@ -33,7 +33,7 @@ class Accounts(commands.Cog):
         """
 
         try:
-            await self.bot.pool.execute(f"INSERT INTO user_config VALUES ($1, 'default', NULL, NULL, 0, 500, 500)", ctx.author.id)
+            await self.bot.pool.execute(f"INSERT INTO user_config VALUES ($1, 'default', NULL, False, False, 0, 500, 500)", ctx.author.id)
             return await ctx.send(f'Account created with ID `{ctx.author.id}`')
         except asyncpg.UniqueViolationError:
             return await ctx.send('You already have an account.')
