@@ -1,5 +1,6 @@
 from discord.ext import commands
 from .utils import calculations
+from youtube_dl import YoutubeDL
 import collections
 import itertools
 import andesite
@@ -7,6 +8,30 @@ import asyncio
 import discord
 import config
 import random
+import os
+
+
+ytdlopts = {
+    'format': 'bestaudio',
+    'outtmpl': 'music/%(id)s.%(ext)s',
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0',
+    'postprocessors':
+        [
+            {
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }
+        ],
+}
+
+ytdl = YoutubeDL(ytdlopts)
 
 
 class Queue:
@@ -713,8 +738,45 @@ class Voice(commands.Cog):
         await self.do_reverse(ctx)
         return await ctx.send(f'Reversed the queue.')
 
-    async def do_reverse(self, player):
-        return player.queue.queue.reverse()
+    async def do_reverse(self, ctx):
+        return ctx.player.queue.queue.reverse()
+
+    @commands.command(name='download')
+    async def download(self, ctx):
+        """
+        Downloads an mp3 file of the current track.
+        """
+
+        if not ctx.player.is_connected:
+            return await ctx.send(f'MrBot is not connected to any voice channels.')
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            return await ctx.send(f'You must be in a voice channel to use this command.')
+        if not ctx.player.channel_id == ctx.author.voice.channel.id:
+            return await ctx.send(f'You must be in the same voice channel as MrBot to use this command.')
+        if not ctx.player.current:
+            return await ctx.send('No tracks currently playing.')
+        message = await ctx.send('Downloading track.')
+        await ctx.trigger_typing()
+        track_title, track_id = await self.bot.loop.run_in_executor(None, self.do_download, ctx)
+        await self.do_file_check(ctx, f'music/{track_id}.mp3')
+        await ctx.send(content='Here is your download.', file=discord.File(filename=f'{track_title}.mp3', fp=f'music/{track_id}.mp3'))
+        os.remove(f'music/{track_id}.mp3')
+        return await message.delete()
+
+    async def do_file_check(self, ctx, path):
+        if ctx.guild.premium_tier == 2:
+            size = os.path.getsize(path)
+            if size >= 52428800:
+                return await ctx.send('This track is too big to upload to discord.')
+        if ctx.guild.premium_tier == 3:
+            size = os.path.getsize(path)
+            if size >= 104857600:
+                return await ctx.send('This track is too big to upload to discord.')
+
+    def do_download(self, ctx):
+        data = ytdl.extract_info(f'{ctx.player.current.uri}', download=False)
+        ytdl.download([f'{ctx.player.current.uri}'])
+        return data['title'], data['id']
 
     @commands.group(name='filter', invoke_without_command=True)
     async def filter(self, ctx):
