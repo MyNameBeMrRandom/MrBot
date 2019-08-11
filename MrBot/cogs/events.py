@@ -14,24 +14,30 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        channel = self.bot.get_channel(516002789617434664)
-        return await channel.send(f'Joined a guild called `{guild.name}`')
+        await self.bot.log_channel.send(f'Joined a guild called `{guild.name}`')
+        print(f'[BOT] Joined a guild called `{guild.name}`')
+        if not await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id):
+            await self.bot.pool.execute(
+                "INSERT INTO guild_config VALUES"
+                "($1, 0, FALSE, FALSE, FALSE,"
+                "FALSE, FALSE, FALSE, FALSE, FALSE,"
+                "FALSE, FALSE, FALSE, FALSE, FALSE,"
+                "FALSE, FALSE, FALSE, FALSE, FALSE,"
+                "FALSE, FALSE, FALSE, FALSE, FALSE,"
+                "FALSE, FALSE)", guild.id)
+            print(f'[DB] Created config for guild - {guild.name}.')
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        channel = self.bot.get_channel(516002789617434664)
-        return await channel.send(f'Left a guild called `{guild.name}`')
+        await self.bot.log_channel.send(f'Left a guild called `{guild.name}`')
+        print(f'[BOT] Left a guild called `{guild.name}`')
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if self.bot.is_db_ready is False:
-            return
         if message.author.id == 424637852035317770:
             self.bot.messages_sent += 1
         if not message.author.bot:
             self.bot.messages_seen += 1
-        if message.author.bot:
-            return
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx):
@@ -85,7 +91,7 @@ class Events(commands.Cog):
         data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", before.id)
         if data["logging_enabled"] is False:
             return
-        if data["logging_channel"] is None:
+        if data["logging_channel"] == 0:
             return
         channel = self.bot.get_channel(data["logging_channel"])
         if not before.name == after.name:
@@ -231,7 +237,7 @@ class Events(commands.Cog):
         data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
         if data["logging_enabled"] is False:
             return
-        if data["logging_channel"] is None:
+        if data["logging_channel"] == 0:
             return
         channel = self.bot.get_channel(data["logging_channel"])
         if data['message_delete'] is True:
@@ -259,7 +265,7 @@ class Events(commands.Cog):
         data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
         if data["logging_enabled"] is False:
             return
-        if data["logging_channel"] is None:
+        if data["logging_channel"] == 0:
             return
         channel = self.bot.get_channel(data["logging_channel"])
         if not before.pinned == after.pinned:
@@ -299,7 +305,7 @@ class Events(commands.Cog):
         data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
         if data["logging_enabled"] is False:
             return
-        if data["logging_channel"] is None:
+        if data["logging_channel"] == 0:
             return
         channel = self.bot.get_channel(data["logging_channel"])
         if data['member_join'] is True:
@@ -322,7 +328,7 @@ class Events(commands.Cog):
         data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
         if data["logging_enabled"] is False:
             return
-        if data["logging_channel"] is None:
+        if data["logging_channel"] == 0:
             return
         channel = self.bot.get_channel(data["logging_channel"])
         if data['member_join'] is True:
@@ -347,7 +353,7 @@ class Events(commands.Cog):
         data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
         if data["logging_enabled"] is False:
             return
-        if data["logging_channel"] is None:
+        if data["logging_channel"] == 0:
             return
         channel = self.bot.get_channel(data["logging_channel"])
         if not before.status == after.status:
@@ -410,7 +416,7 @@ class Events(commands.Cog):
             data = await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
             if data["logging_enabled"] is False:
                 return
-            if data["logging_channel"] is None:
+            if data["logging_channel"] == 0:
                 return
             channel = self.bot.get_channel(data["logging_channel"])
             if before or after not in guild.members:

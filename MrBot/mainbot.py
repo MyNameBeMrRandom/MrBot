@@ -23,9 +23,9 @@ import config
 import dbl
 import os
 
+
 os.environ['JISHAKU_HIDE'] = 'True'
 os.environ['JISHAKU_NO_UNDERSCORE'] = 'True'
-
 extensions = [
     'cogs.kross_server',
     'cogs.utilities',
@@ -56,6 +56,7 @@ class MrBot(commands.Bot):
         self.dblpy = dbl.Client(self, config.DBL_TOKEN, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.loop = asyncio.get_event_loop()
+        self.log_channel = None
         self.is_db_ready = False
         self.messages_seen = 0
         self.messages_sent = 0
@@ -71,10 +72,6 @@ class MrBot(commands.Bot):
                 print(f'[EXT] Failed - {ext}')
 
     def run(self):
-        """
-        Run the bot.
-        """
-
         loop = self.loop
         try:
             loop.run_until_complete(self.bot_start())
@@ -83,55 +80,53 @@ class MrBot(commands.Bot):
 
     async def db_start(self):
         try:
+            # connect to the database.
             self.pool = await asyncpg.create_pool(**config.DB_CONN_INFO)
-            print('[DB] Successfully connected to database.')
+            print('[DB] Connected to database.')
+
+            # Create tables if they dont exist.
             print('[DB] Creating tables.')
             with open("schema.sql") as f:
                 await self.pool.execute(f.read())
             print('[DB] Done creating tables.')
+
+            # Create config for guilds joined during downtime.
             print('[DB] Adding guilds.')
             for guild in self.guilds:
-                try:
+                data = await self.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
+                if not data:
                     await self.pool.execute(
                         "INSERT INTO guild_config VALUES"
-                        "($1, NULL, FALSE, FALSE, FALSE,"
+                        "($1, 0, FALSE, FALSE, FALSE,"
                         "FALSE, FALSE, FALSE, FALSE, FALSE,"
                         "FALSE, FALSE, FALSE, FALSE, FALSE,"
                         "FALSE, FALSE, FALSE, FALSE, FALSE,"
                         "FALSE, FALSE, FALSE, FALSE, FALSE,"
                         "FALSE, FALSE)", guild.id)
                     print(f'[DB] Created config for guild - {guild.name}.')
-                except asyncpg.UniqueViolationError:
-                    pass
             print('[DB] Done adding guilds.')
+
+            # Tell bot that database is ready.
             self.is_db_ready = True
+
         except ConnectionRefusedError:
             print('[DB] Connection to db was denied.')
         except Exception as e:
             print(f'[DB] An error occured: {e}')
 
     async def bot_logout(self):
-        """
-        Logout from discord.
-        """
         self.is_db_ready = False
-        await self.session.close()
         await super().logout()
+        await self.session.close()
         await self.pool.close()
 
     async def bot_start(self):
-        """
-        Start the discord bot.
-        """
         await self.login(config.DISCORD_TOKEN)
         await self.connect()
 
     async def on_ready(self):
-        """
-        Allow for processing when the bot is ready.
-        """
-
         print(f'\n[BOT] Logged in as {self.user} - {self.user.id}\n')
+        self.log_channel = self.get_channel(516002789617434664)
         await self.db_start()
 
     async def get_context(self, message, *, cls=None):
