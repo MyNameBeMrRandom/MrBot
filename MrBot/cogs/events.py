@@ -2,6 +2,7 @@ from .utils import get_information
 from discord.ext import commands
 import traceback
 import discord
+import asyncio
 
 
 class Events(commands.Cog):
@@ -14,8 +15,10 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
+        # Log this event.
         await self.bot.log_channel.send(f'Joined a guild called `{guild.name}`')
         print(f'[BOT] Joined a guild called `{guild.name}`')
+        # Create config for guild.
         if not await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id):
             await self.bot.pool.execute(
                 "INSERT INTO guild_config VALUES"
@@ -26,11 +29,24 @@ class Events(commands.Cog):
                 "FALSE, FALSE, FALSE, FALSE, FALSE,"
                 "FALSE, FALSE)", guild.id)
             print(f'[DB] Created config for guild - {guild.name}.')
+        # Update dbl count.
+        try:
+            await self.bot.dblpy.post_guild_count()
+            print(f'[DBL] Posted guild count of {len(self.bot.guilds)}')
+        except discord.Forbidden:
+            print('[DBL] Forbidden - Failed to post guild count')
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
+        # Log this event.
         await self.bot.log_channel.send(f'Left a guild called `{guild.name}`')
         print(f'[BOT] Left a guild called `{guild.name}`')
+        # Update dbl count.
+        try:
+            await self.bot.dblpy.post_guild_count()
+            print(f'[DBL] Posted guild count of {len(self.bot.guilds)}')
+        except discord.Forbidden:
+            print('[DBL] Forbidden - Failed to post guild count')
 
     @commands.Cog.listener()
     async def on_message(self, message):
