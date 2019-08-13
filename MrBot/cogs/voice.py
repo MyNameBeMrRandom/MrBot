@@ -755,10 +755,11 @@ class Voice(commands.Cog):
             return await ctx.send(f'You must be in the same voice channel as MrBot to use this command.')
         if not ctx.player.current:
             return await ctx.send('No tracks currently playing.')
-        message = await ctx.send('Downloading track.')
+        message = await ctx.send('Downloading track... <a:updating:403035325242540032>')
         await ctx.trigger_typing()
         track_title, track_id = await self.bot.loop.run_in_executor(None, self.do_download, ctx)
         await self.do_file_check(ctx, f'music/{track_id}.mp3')
+        await message.edit(content='Uploading track... <a:updating:403035325242540032>')
         await ctx.send(content='Here is your download.', file=discord.File(filename=f'{track_title}.mp3', fp=f'music/{track_id}.mp3'))
         os.remove(f'music/{track_id}.mp3')
         return await message.delete()
@@ -812,7 +813,6 @@ class Voice(commands.Cog):
         ctx.player.filter_count += 1
         await ctx.send(f'Added the nightcore filter.')
         return await ctx.player.set_timescale(speed=1.1, pitch=1.1, rate=1)
-
 
 
 def setup(bot):

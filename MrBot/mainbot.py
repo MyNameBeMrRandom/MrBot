@@ -19,6 +19,7 @@ from discord.ext import commands
 import asyncpg
 import asyncio
 import aiohttp
+import discord
 import config
 import dbl
 import os
@@ -114,6 +115,13 @@ class MrBot(commands.Bot):
         except Exception as e:
             print(f'[DB] An error occured: {e}')
 
+    async def log_guilds(self):
+        try:
+            await self.dblpy.post_guild_count()
+            print(f'[DBL] Posted guild count of {len(self.guilds)}')
+        except discord.Forbidden:
+            print('[DBL] Forbidden - Failed to post guild count')
+
     async def bot_logout(self):
         self.is_db_ready = False
         await super().logout()
@@ -128,6 +136,7 @@ class MrBot(commands.Bot):
         print(f'\n[BOT] Logged in as {self.user} - {self.user.id}\n')
         self.log_channel = self.get_channel(516002789617434664)
         await self.db_start()
+        await self.log_guilds()
 
     async def get_context(self, message, *, cls=None):
         return await super().get_context(message, cls=MyContext)
