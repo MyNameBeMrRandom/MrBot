@@ -814,7 +814,6 @@ class Voice(commands.Cog):
         await ctx.send(f'Added the nightcore filter.')
         return await ctx.player.set_timescale(speed=1.1, pitch=1.1, rate=1)
 
-
 def setup(bot):
     bot.add_cog(Voice(bot))
 

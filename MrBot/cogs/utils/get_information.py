@@ -12,24 +12,24 @@ async def get_ping(ctx, bot):
     typings = time.monotonic()
     await ctx.trigger_typing()
     typinge = time.monotonic()
-    typingms = round((typinge - typings) * 1000)
+    typingms = round((typinge - typings) * 1000, 2)
     pings.append(typingms)
     # Get latency and append.
-    latencyms = round(bot.latency * 1000)
+    latencyms = round(bot.latency * 1000, 2)
     pings.append(latencyms)
     # Ping discord and append.
     discords = time.monotonic()
     async with bot.session.get("https://discordapp.com/") as resp:
         if resp.status is 200:
             discorde = time.monotonic()
-            discordms = round((discorde - discords) * 1000)
+            discordms = round((discorde - discords) * 1000, 2)
             pings.append(discordms)
         else:
             discordms = "Failed"
     # Calculate the average.
     for ms in pings:
         number += ms
-    average = round(number / len(pings))
+    average = round(number / len(pings), 2)
     return typingms, latencyms, discordms, average
 
 def linecount():
