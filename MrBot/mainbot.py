@@ -119,6 +119,8 @@ class MrBot(commands.Bot):
         try:
             await self.dblpy.post_guild_count()
             print(f'[DBL] Posted guild count of {len(self.guilds)}')
+        except dbl.HTTPException:
+            pass
         except discord.Forbidden:
             print('[DBL] Forbidden - Failed to post guild count')
 
