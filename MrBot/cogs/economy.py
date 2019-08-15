@@ -3,6 +3,7 @@ import itertools
 import discord
 import random
 import typing
+import time
 
 
 class Economy(commands.Cog):
@@ -270,31 +271,27 @@ class Economy(commands.Cog):
         if not data:
             return await ctx.send("You don't have an account. Use `mb account create` to make one.")
 
-        # Check if the user voted, if they havent then return.
-        vote = await self.bot.dblpy.get_user_vote(ctx.author.id)
-        if vote is False:
-            return await ctx.send('You have not voted, if you have only just voted please keep in mind that the vote can take a few minutes to register.')
-
         # Check if it is a weekend.
         is_weekend = await self.bot.dblpy.get_weekend_status()
 
-        # If the user has not voted yet.
-        if data['voted'] is False:
+        # If the user has already claimed.
+        if data["vote_claimed"] is True:
+            return await ctx.send('You have already claimed your vote. You can claim again after voting which you can do every 12 hours.')
+
+        # If the user has not voted.
+        if data["voted"] is False:
             return await ctx.send('You have not voted yet. Please vote here https://discordbots.org/bot/424637852035317770/vote')
 
-        # If the user has already claimed their vote.
-        if data['vote_claimed'] is True:
-            return await ctx.send(f'You have already voted today. You can only vote once every 12 hours.')
-
-        # Set vote_claimed to true.
+        # Set "vote_claimed" to true and "voted" to false (for consistancy).
         await self.bot.pool.execute(f"UPDATE user_config SET vote_claimed = $1 WHERE key = $2", True, ctx.author.id)
+        await self.bot.pool.execute(f"UPDATE user_config SET voted = $1 WHERE key = $2", False, ctx.author.id)
 
-        # If its the weekend give user 500, else 250.
+        # If its the weekend give user 200, else 100.
         if is_weekend is True:
-            await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", data['bank'] + 500, ctx.author.id)
-            return await ctx.send(f'Thank you for voting, because you voted on a weekend you were given `£500`!')
-        await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", data['bank'] + 250, ctx.author.id)
-        return await ctx.send(f'Thank you for voting, You were given `£250`!')
+            await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", data['bank'] + 200, ctx.author.id)
+            return await ctx.send(f'Thank you for voting, because you voted on a weekend you were given `£200`!')
+        await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", data['bank'] + 100, ctx.author.id)
+        return await ctx.send(f'Thank you for voting, You were given `£100`!')
 
     @commands.Cog.listener()
     async def on_dbl_vote(self, data):
@@ -303,13 +300,14 @@ class Economy(commands.Cog):
 
         # If the user doesn't have an account, create one.
         if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", user.id):
-            await self.bot.pool.execute(f"INSERT INTO user_config VALUES ($1, 'default', NULL, False, False, 0, 500, 500)", user.id)
-
-        # Get the users account.
+            await self.bot.pool.execute(f"INSERT INTO user_config VALUES ($1, 'default', NULL, False, False, 0, 1000, 1000)", user.id)
         data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", user.id)
 
-        # Set 'voted' status to true.
+        # Set "voted" to True.
         await self.bot.pool.execute(f"UPDATE user_config SET voted = $1 WHERE key = $2", True, user.id)
+
+        # Set "vote_claimed" to False.
+        await self.bot.pool.execute(f"UPDATE user_config SET vote_claimed = $1 WHERE key = $2", False, user.id)
 
         # Increase vote count.
         await self.bot.pool.execute(f"UPDATE user_config SET vote_count = $1 WHERE key = $2", data['vote_count'] + 1, user.id)
@@ -321,21 +319,17 @@ class Economy(commands.Cog):
 
         # If the user doesn't have an account, create one.
         if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", user.id):
-            await self.bot.pool.execute(f"INSERT INTO user_config VALUES ($1, 'default', NULL, False, False, 0, 500, 500)", user.id)
-
-        # Get the users account.
+            await self.bot.pool.execute(f"INSERT INTO user_config VALUES ($1, 'default', NULL, False, False, 0, 1000, 1000)", user.id)
         data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", user.id)
 
-        # Set 'voted' status to true.
+        # Set "voted" to True.
         await self.bot.pool.execute(f"UPDATE user_config SET voted = $1 WHERE key = $2", True, user.id)
 
-        # Set 'voted_claimed' to false
+        # Set "vote_claimed" to False.
         await self.bot.pool.execute(f"UPDATE user_config SET vote_claimed = $1 WHERE key = $2", False, user.id)
-
 
         # Increase vote count.
         await self.bot.pool.execute(f"UPDATE user_config SET vote_count = $1 WHERE key = $2", data['vote_count'] + 1, user.id)
-
 
 def setup(bot):
     bot.add_cog(Economy(bot))
