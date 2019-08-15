@@ -574,9 +574,9 @@ class Voice(commands.Cog):
             return await ctx.send('The queue is empty.')
         upcoming = list(itertools.islice(ctx.player.queue.queue, 0, 10))
         message = f"__**Current track:**__\n[{ctx.player.current.title}]({ctx.player.current.uri}) | " \
-            f"`{calculations.get_time(round(ctx.player.current.length) / 1000)}` | " \
-            f"`Requested by:` {ctx.player.current.requester.mention}\n\n" \
-            f"__**Up next:**__: `{len(upcoming)}` out of `{ctx.player.queue.qsize()}` entries in the queue.\n"
+                  f"`{calculations.get_time(round(ctx.player.current.length) / 1000)}` | " \
+                  f"`Requested by:` {ctx.player.current.requester.mention}\n\n" \
+                  f"__**Up next:**__: `{len(upcoming)}` out of `{ctx.player.queue.qsize()}` entries in the queue.\n"
         counter = 1
         time = 0
         for track in upcoming:
