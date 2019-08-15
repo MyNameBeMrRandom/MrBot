@@ -17,8 +17,11 @@ class Accounts(commands.Cog):
         Display information about your account.
         """
 
-        if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", ctx.author.id):
-            return await ctx.send('You dont have an account.')
+        # Check if the user has an account.
+        data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
+        if not data:
+            return await ctx.send("You don't have an account. Use `mb account create` to make one.")
+
         message = f">>> __**Information about {ctx.author.name}'s account.**__\n\n"
         data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
         message += f'**Configuration:**\n    **Background:** {data["background"]}\n\n'
@@ -33,7 +36,7 @@ class Accounts(commands.Cog):
         """
 
         try:
-            await self.bot.pool.execute(f"INSERT INTO user_config VALUES ($1, 'default', NULL, False, False, 0, 500, 500)", ctx.author.id)
+            await self.bot.pool.execute(f"INSERT INTO user_config VALUES ($1, 'default', NULL, False, False, 0, 1000, 1000)", ctx.author.id)
             return await ctx.send(f'Account created with ID `{ctx.author.id}`')
         except asyncpg.UniqueViolationError:
             return await ctx.send('You already have an account.')
@@ -44,8 +47,11 @@ class Accounts(commands.Cog):
         Deletes your account.
         """
 
-        if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", ctx.author.id):
-            return await ctx.send('You dont have an account.')
+        # Check if the user has an account.
+        data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
+        if not data:
+            return await ctx.send("You don't have an account. Use `mb account create` to make one.")
+
         await self.bot.pool.execute(f"DELETE FROM user_config WHERE key = $1", ctx.author.id)
         return await ctx.send('Deleted your account.')
 
@@ -55,9 +61,10 @@ class Accounts(commands.Cog):
         Tells you what background you currently have set.
         """
 
-        if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", ctx.author.id):
-            return await ctx.send("You do not have an account.")
+        # Check if the user has an account.
         data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
+        if not data:
+            return await ctx.send("You don't have an account. Use `mb account create` to make one.")
         return await ctx.send(f"Your current background is `{data['background']}`.")
 
     @commands.command(name="bg_change", aliases=["bgc"])
@@ -66,9 +73,10 @@ class Accounts(commands.Cog):
         Changes your "imginfo" background to the one specified.
         """
 
-        if not await self.bot.pool.fetchrow("SELECT key FROM user_config WHERE key = $1", ctx.author.id):
-            return await ctx.send("You do not have an account.")
+        # Check if the user has an account.
         data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
+        if not data:
+            return await ctx.send("You don't have an account. Use `mb account create` to make one.")
         if not os.path.isfile(f"images/resources/backgrounds/{new_background}.png"):
             return await ctx.send(f"`{new_background}` is not a recongnised background.")
         await ctx.send(f"Changed your background from `{data['background']}` to `{new_background}`.")
