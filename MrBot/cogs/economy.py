@@ -110,81 +110,6 @@ class Economy(commands.Cog):
         await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", data["bank"] - amount, ctx.author.id)
         return await ctx.send(f'Withdrew **£{amount}** from your bank.')
 
-    @commands.command(name='claim')
-    async def claim(self, ctx):
-        """
-        Claim money if you have voted.
-        """
-
-        # Check if the user has an account.
-        data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
-        if not data:
-            return await ctx.send("You don't have an account. Use `mb account create` to make one.")
-
-        # Check if the user voted, if they havent then return.
-        vote = await self.bot.dblpy.get_user_vote(ctx.author.id)
-        if vote is False:
-            return await ctx.send('You have not voted, if you have only just voted please keep in mind that the vote can take a few minutes to register.')
-
-        # Check if it is a weekend.
-        is_weekend = await self.bot.dblpy.get_weekend_status()
-
-        # If the user has not voted yet.
-        if data['voted'] is False:
-            return await ctx.send('You have not voted yet. Please vote here https://discordbots.org/bot/424637852035317770/vote')
-
-        # If the user has already claimed their vote.
-        if data['vote_claimed'] is True:
-            return await ctx.send(f'You have already voted today. You can only vote once every 12 hours.')
-
-        # Set vote_claimed to true.
-        await self.bot.pool.execute(f"UPDATE user_config SET vote_claimed = $1 WHERE key = $2", True, ctx.author.id)
-
-        # If its the weekend give user 500, else 250.
-        if is_weekend is True:
-            await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", data['bank'] + 500, ctx.author.id)
-            return await ctx.send(f'Thank you for voting, because you voted on a weekend you were given `£500`!')
-        await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", data['bank'] + 250, ctx.author.id)
-        return await ctx.send(f'Thank you for voting, You were given `£250`!')
-
-    @commands.command(name='steal', aliases=['rob'])
-    async def steal(self, ctx, member: typing.Optional[discord.Member] = None):
-        """
-        Steal money from another user.
-
-        `member`: The user to tranfer money too. This can be a mention, id, nickname or name.
-        """
-
-        # If the user doesnt specify a target
-        if not member:
-            return await ctx.send('You need to specify a target.')
-        # If the user targets themself.
-        if ctx.author.id == member.id:
-            return await ctx.send("You can't steal from yourself.")
-        # Check if the user has an account.
-        author = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
-        if not author:
-            return await ctx.send("You don't have an account. Use `mb account create` to make one.")
-        # Check if the target has an account.
-        target = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", member.id)
-        if not target:
-            return await ctx.send("The target does not have an account. They can use `mb account create` to make one.")
-        # Check if the target has any money in cash.
-        if target["cash"] == 0:
-            return await ctx.send("The target has no money to steal.")
-        # Select a random chance.
-        chance = random.randint(1, 100)
-        # If the chance is 70 or higher the user will succeed in stealing, gaining half of the targets cash
-        if chance >= 70:
-            to_steal = random.randint(1, target["cash"])
-            await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", author["cash"] + to_steal, ctx.author.id)
-            await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", target["cash"] - to_steal, member.id)
-            return await ctx.send(f'You stole **£{to_steal}** from {member.mention}')
-        # If the chance is lower then 70, the user failes to steal the money and is fined
-        fine = random.randint(100, 1000)
-        await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", author["cash"] - fine, ctx.author.id)
-        return await ctx.send(f'You failed to steal from {member.mention} and was fined **£{fine}**.')
-
     @commands.command(name='transfer')
     async def transfer(self, ctx, amount, member: typing.Optional[discord.Member] = None):
         """
@@ -263,7 +188,7 @@ class Economy(commands.Cog):
             first_5 = list(itertools.islice(guild_accounts, 0, 5))
             # Add text to embed.
             embed.description += f"__**{ctx.guild.name}'s Leaderboard:**__\nShowing the top 5 accounts in terms of total balance.\n\n"
-            # Add a field for each account.
+            # Add text for each account.
             counter = 1
             for account in first_5:
                 user = self.bot.get_user(account["key"])
@@ -275,7 +200,7 @@ class Economy(commands.Cog):
             first_5 = list(itertools.islice(data, 0, 5))
             # Add text to embed.
             embed.description += f"__**MrBot's Global Leaderboard:**__\nShowing the top 5 accounts in terms of total balance.\n\n"
-            # Add a field for each account.
+            # Add text for each account.
             counter = 1
             for account in first_5:
                 user = self.bot.get_user(account["key"])
@@ -289,6 +214,87 @@ class Economy(commands.Cog):
             embed.set_footer(text=f"Your rank: {[account['key'] for account in data].index(ctx.author.id)+1}")
         # Send embed.
         return await ctx.send(embed=embed)
+
+    @commands.cooldown(1, 3600, commands.BucketType.user)
+    @commands.command(name='steal', aliases=['rob'])
+    async def steal(self, ctx, member: typing.Optional[discord.Member] = None):
+        """
+        Steal money from another user.
+
+        `member`: The user to tranfer money too. This can be a mention, id, nickname or name.
+        """
+
+        # If the user doesnt specify a target
+        if not member:
+            ctx.command.reset_cooldown(ctx)
+            return await ctx.send('You need to specify a target.')
+        # If the user targets themself.
+        if ctx.author.id == member.id:
+            ctx.command.reset_cooldown(ctx)
+            return await ctx.send("You can't steal from yourself.")
+        # Check if the user has an account.
+        author = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
+        if not author:
+            ctx.command.reset_cooldown(ctx)
+            return await ctx.send("You don't have an account. Use `mb account create` to make one.")
+        # Check if the target has an account.
+        target = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", member.id)
+        if not target:
+            ctx.command.reset_cooldown(ctx)
+            return await ctx.send("The target does not have an account. They can use `mb account create` to make one.")
+        # Check if the target has any money in cash.
+        if target["cash"] == 0:
+            ctx.command.reset_cooldown(ctx)
+            return await ctx.send("The target has no money to steal.")
+        # Select a random chance.
+        chance = random.randint(1, 100)
+        # If the chance is 70 or higher the user will succeed in stealing, gaining half of the targets cash
+        if chance >= 70:
+            to_steal = random.randint(1, target["cash"])
+            await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", author["cash"] + to_steal, ctx.author.id)
+            await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", target["cash"] - to_steal, member.id)
+            return await ctx.send(f'You stole **£{to_steal}** from {member.mention}')
+        # If the chance is lower then 70, the user failes to steal the money and is fined
+        fine = random.randint(100, 500)
+        await self.bot.pool.execute(f"UPDATE user_config SET cash = $1 WHERE key = $2", author["cash"] - fine, ctx.author.id)
+        return await ctx.send(f'You failed to steal from {member.mention} and was fined **£{fine}**.')
+
+    @commands.command(name='claim')
+    async def claim(self, ctx):
+        """
+        Claim money if you have voted.
+        """
+
+        # Check if the user has an account.
+        data = await self.bot.pool.fetchrow("SELECT * FROM user_config WHERE key = $1", ctx.author.id)
+        if not data:
+            return await ctx.send("You don't have an account. Use `mb account create` to make one.")
+
+        # Check if the user voted, if they havent then return.
+        vote = await self.bot.dblpy.get_user_vote(ctx.author.id)
+        if vote is False:
+            return await ctx.send('You have not voted, if you have only just voted please keep in mind that the vote can take a few minutes to register.')
+
+        # Check if it is a weekend.
+        is_weekend = await self.bot.dblpy.get_weekend_status()
+
+        # If the user has not voted yet.
+        if data['voted'] is False:
+            return await ctx.send('You have not voted yet. Please vote here https://discordbots.org/bot/424637852035317770/vote')
+
+        # If the user has already claimed their vote.
+        if data['vote_claimed'] is True:
+            return await ctx.send(f'You have already voted today. You can only vote once every 12 hours.')
+
+        # Set vote_claimed to true.
+        await self.bot.pool.execute(f"UPDATE user_config SET vote_claimed = $1 WHERE key = $2", True, ctx.author.id)
+
+        # If its the weekend give user 500, else 250.
+        if is_weekend is True:
+            await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", data['bank'] + 500, ctx.author.id)
+            return await ctx.send(f'Thank you for voting, because you voted on a weekend you were given `£500`!')
+        await self.bot.pool.execute(f"UPDATE user_config SET bank = $1 WHERE key = $2", data['bank'] + 250, ctx.author.id)
+        return await ctx.send(f'Thank you for voting, You were given `£250`!')
 
     @commands.Cog.listener()
     async def on_dbl_vote(self, data):
