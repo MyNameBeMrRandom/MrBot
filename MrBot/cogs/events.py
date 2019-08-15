@@ -1,8 +1,8 @@
 from .utils import get_information
 from discord.ext import commands
+from .utils import calculations
 import traceback
 import discord
-import asyncio
 
 
 class Events(commands.Cog):
@@ -66,8 +66,6 @@ class Events(commands.Cog):
             return
         elif isinstance(error, commands.DisabledCommand):
             return await ctx.send(f"The command `{ctx.command}` is currently disabled.")
-        elif isinstance(error, commands.CommandOnCooldown):
-            return await ctx.send(f"The command `{ctx.command}` is on cooldown, retry in {round(error.retry_after, 2)}s.")
         elif isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send(f"You missed the `{error.param}` parameter.")
         elif isinstance(error, commands.TooManyArguments):
@@ -76,12 +74,19 @@ class Events(commands.Cog):
             return await ctx.send(f"A bad argument was passed to the command `{ctx.command}`.")
         elif isinstance(error, commands.MissingPermissions):
             return await ctx.send(f"You dont have the permissions to run the `{ctx.command}` command.")
-        if isinstance(error, discord.Forbidden):
+        elif isinstance(error, discord.Forbidden):
             return await ctx.send(f"I am missing permissions to run the command `{ctx.command}`.")
         elif isinstance(error, commands.CommandInvokeError):
             return await ctx.send(f"There was an error while running that command")
         elif isinstance(error, commands.NotOwner):
             return await ctx.send(f"This is an owner only command.")
+        elif isinstance(error, commands.CommandOnCooldown):
+            if error.cooldown.type == commands.BucketType.user:
+                return await ctx.send(f"The command `{ctx.command}` is on cooldown for you, retry in `{calculations.get_time_friendly(error.retry_after)}`.")
+            if error.cooldown.type == commands.BucketType.default:
+                return await ctx.send(f"The command `{ctx.command}` is on cooldown for the whole bot, retry in `{calculations.get_time_friendly(error.retry_after)}`.")
+            if error.cooldown.type == commands.BucketType.guild:
+                return await ctx.send(f"The command `{ctx.command}` is on cooldown for this guild, retry in `{calculations.get_time_friendly(error.retry_after)}`.")
         elif isinstance(error, commands.NoPrivateMessage):
             try:
                 return await ctx.send(f"The command `{ctx.command}` cannot be used in private messages.")
