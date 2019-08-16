@@ -1,6 +1,6 @@
 from discord.ext import commands
-from .utils import calculations
 from youtube_dl import YoutubeDL
+from .utils import calculations
 import collections
 import itertools
 import andesite
@@ -13,7 +13,7 @@ import os
 
 ytdlopts = {
     'format': 'bestaudio',
-    'outtmpl': 'music/%(id)s.%(ext)s',
+    'outtmpl': 'audio/%(id)s.%(ext)s',
     'nocheckcertificate': True,
     'ignoreerrors': False,
     'logtostderr': False,
@@ -30,7 +30,6 @@ ytdlopts = {
             }
         ],
 }
-
 ytdl = YoutubeDL(ytdlopts)
 
 
@@ -231,14 +230,12 @@ class Queue:
         self._wakeup_next(self._putters)
         return item
 
-
 class Track(andesite.Track):
 
     def __init__(self, id_, info, *, ctx=None):
         super(Track, self).__init__(id_, info)
         self.channel = ctx.channel
         self.requester = ctx.author
-
 
 class Player(andesite.Player):
 
@@ -319,18 +316,6 @@ class Voice(commands.Cog):
             except Exception:
                 print('[ANDESITE] Nodes failed to connect.')
             print('[ANDESITE] Nodes connected.')
-
-    @commands.command(name='now_playing', aliases=['np'])
-    async def now_playing(self, ctx):
-        """
-        Display information about the current song/queue status.
-        """
-
-        if not ctx.player.is_connected:
-            return await ctx.send(f'MrBot is not connected to any voice channels.')
-        if not ctx.player.current:
-            return await ctx.send('There are no tracks currently playing.')
-        await ctx.player.invoke_controller()
 
     @commands.command(name='play')
     async def play(self, ctx, *, search: str):
@@ -562,37 +547,6 @@ class Voice(commands.Cog):
 
         return await ctx.player.seek(milliseconds)
 
-    @commands.command(name='queue')
-    async def queue(self, ctx):
-        """
-        Display a list of the current queue.
-        """
-
-        if not ctx.player.is_connected:
-            return await ctx.send(f'MrBot is not currently in any voice channels.')
-        if ctx.player.queue.qsize() <= 0:
-            return await ctx.send('The queue is empty.')
-        upcoming = list(itertools.islice(ctx.player.queue.queue, 0, 10))
-        message = f"__**Current track:**__\n[{ctx.player.current.title}]({ctx.player.current.uri}) | " \
-                  f"`{calculations.get_time(round(ctx.player.current.length) / 1000)}` | " \
-                  f"`Requested by:` {ctx.player.current.requester.mention}\n\n" \
-                  f"__**Up next:**__: `{len(upcoming)}` out of `{ctx.player.queue.qsize()}` entries in the queue.\n"
-        counter = 1
-        time = 0
-        for track in upcoming:
-            message += f'**{counter}.** [{str(track.title)}]({track.uri}) | ' \
-                f'`{calculations.get_time(round(track.length) / 1000)}` | ' \
-                f'`Requested by:` {track.requester.mention}\n\n'
-            counter += 1
-            time += track.length
-        message += f'There are `{ctx.player.queue.qsize()}` tracks in the queue with a total time of `{calculations.get_time(round(time) / 1000)}`'
-        embed = discord.Embed(
-            colour=0x57FFF5,
-            timestamp=ctx.message.created_at,
-            description=message
-        )
-        return await ctx.send(embed=embed)
-
     @commands.command(name='shuffle')
     async def shuffle(self, ctx):
         """
@@ -758,10 +712,10 @@ class Voice(commands.Cog):
         message = await ctx.send('Downloading track... <a:updating:403035325242540032>')
         await ctx.trigger_typing()
         track_title, track_id = await self.bot.loop.run_in_executor(None, self.do_download, ctx)
-        await self.do_file_check(ctx, f'music/{track_id}.mp3')
+        await self.do_file_check(ctx, f'audio/{track_id}.mp3')
         await message.edit(content='Uploading track... <a:updating:403035325242540032>')
-        await ctx.send(content='Here is your download.', file=discord.File(filename=f'{track_title}.mp3', fp=f'music/{track_id}.mp3'))
-        os.remove(f'music/{track_id}.mp3')
+        await ctx.send(content='Here is your download.', file=discord.File(filename=f'{track_title}.mp3', fp=f'audio/{track_id}.mp3'))
+        os.remove(f'audio/{track_id}.mp3')
         return await message.delete()
 
     async def do_file_check(self, ctx, path):
@@ -778,6 +732,49 @@ class Voice(commands.Cog):
         data = ytdl.extract_info(f'{ctx.player.current.uri}', download=False)
         ytdl.download([f'{ctx.player.current.uri}'])
         return data['title'], data['id']
+
+    @commands.command(name='now_playing', aliases=['np'])
+    async def now_playing(self, ctx):
+        """
+        Display information about the current song/queue status.
+        """
+
+        if not ctx.player.is_connected:
+            return await ctx.send(f'MrBot is not connected to any voice channels.')
+        if not ctx.player.current:
+            return await ctx.send('There are no tracks currently playing.')
+        await ctx.player.invoke_controller()
+
+    @commands.command(name='queue')
+    async def queue(self, ctx):
+        """
+        Display a list of the current queue.
+        """
+
+        if not ctx.player.is_connected:
+            return await ctx.send(f'MrBot is not currently in any voice channels.')
+        if ctx.player.queue.qsize() <= 0:
+            return await ctx.send('The queue is empty.')
+        upcoming = list(itertools.islice(ctx.player.queue.queue, 0, 10))
+        message = f"__**Current track:**__\n[{ctx.player.current.title}]({ctx.player.current.uri}) | " \
+                  f"`{calculations.get_time(round(ctx.player.current.length) / 1000)}` | " \
+                  f"`Requested by:` {ctx.player.current.requester.mention}\n\n" \
+                  f"__**Up next:**__: `{len(upcoming)}` out of `{ctx.player.queue.qsize()}` entries in the queue.\n"
+        counter = 1
+        time = 0
+        for track in upcoming:
+            message += f'**{counter}.** [{str(track.title)}]({track.uri}) | ' \
+                f'`{calculations.get_time(round(track.length) / 1000)}` | ' \
+                f'`Requested by:` {track.requester.mention}\n\n'
+            counter += 1
+            time += track.length
+        message += f'There are `{ctx.player.queue.qsize()}` tracks in the queue with a total time of `{calculations.get_time(round(time) / 1000)}`'
+        embed = discord.Embed(
+            colour=0x57FFF5,
+            timestamp=ctx.message.created_at,
+            description=message
+        )
+        return await ctx.send(embed=embed)
 
     @commands.group(name='filter', invoke_without_command=True)
     async def filter(self, ctx):
