@@ -2,7 +2,9 @@ import discord
 import pathlib
 import codecs
 import time
+import ssl
 import os
+
 
 async def get_ping(ctx, bot):
     # Define variables.
@@ -19,13 +21,16 @@ async def get_ping(ctx, bot):
     pings.append(latencyms)
     # Ping discord and append.
     discords = time.monotonic()
-    async with bot.session.get("https://discordapp.com/") as resp:
-        if resp.status is 200:
-            discorde = time.monotonic()
-            discordms = round((discorde - discords) * 1000, 2)
-            pings.append(discordms)
-        else:
-            discordms = "Failed"
+    try:
+        async with bot.session.get("https://discordapp.com/") as resp:
+            if resp.status is 200:
+                discorde = time.monotonic()
+                discordms = round((discorde - discords) * 1000, 2)
+                pings.append(discordms)
+            else:
+                discordms = "Failed"
+    except ssl.SSLError:
+        pass
     # Calculate the average.
     for ms in pings:
         number += ms
