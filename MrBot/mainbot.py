@@ -24,6 +24,8 @@ import config
 import dbl
 import os
 
+if not discord.opus.is_loaded():
+    discord.opus.load_opus(config.OPUS)
 
 os.environ['JISHAKU_HIDE'] = 'True'
 os.environ['JISHAKU_NO_UNDERSCORE'] = 'True'
@@ -40,9 +42,8 @@ extensions = [
     'cogs.voice',
     'cogs.help',
     'jishaku',
-
+    'cogs.voicer'
 ]
-
 
 class MrBot(commands.Bot):
     """
