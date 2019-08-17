@@ -64,7 +64,7 @@ class VoiceReceive(commands.Cog):
 
         # Start listening.
         vc.listen(discord.UserFilter(sink, user))
-        message = await ctx.send(f'I am now recording `{user}` for `{time}s` in <#{channel.id}>.')
+        message = await ctx.send(f'I am now recording `{user}` for `{time}s` in `{channel}`.')
 
         # Sleep for however long the user wants to record for.
         await asyncio.sleep(time)
