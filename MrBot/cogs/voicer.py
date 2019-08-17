@@ -1,11 +1,11 @@
 from discord.opus import Decoder
 from discord.ext import commands
 import speech_recognition as sr
+from io import BytesIO
 import discord
 import asyncio
 import typing
 import wave
-import os
 
 
 class MySink(discord.AudioSink):
@@ -13,23 +13,21 @@ class MySink(discord.AudioSink):
     def __init__(self, destination):
 
         self.destination = destination
-        self.buffer = wave.open(destination, 'wb')
-        self.buffer.setnchannels(Decoder.CHANNELS)
-        self.buffer.setsampwidth(Decoder.SAMPLE_SIZE//Decoder.CHANNELS)
-        self.buffer.setframerate(Decoder.SAMPLING_RATE)
+        self.file = wave.open(destination, 'wb')
+        self.file.setnchannels(Decoder.CHANNELS)
+        self.file.setsampwidth(Decoder.SAMPLE_SIZE//Decoder.CHANNELS)
+        self.file.setframerate(Decoder.SAMPLING_RATE)
 
     def write(self, data):
-        print(0)
-        self.buffer.writeframes(data.data)
+        self.file.writeframes(data.data)
 
     def cleanup(self):
-        self.buffer.close()
+        self.file.close()
 
 class VoiceReceive(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.recording = False
 
     @commands.command(name='record')
     async def record(self, ctx, time: typing.Optional[int] = 10, user: typing.Optional[discord.Member] = None):
@@ -44,39 +42,43 @@ class VoiceReceive(commands.Cog):
         if not ctx.author.voice or not ctx.author.voice.channel:
             return await ctx.send(f'You must be in a voice channel to use this command.')
         channel = ctx.author.voice.channel
+
         # Try to join channel, ignore errors.
         try:
             await channel.connect()
         except discord.ClientException:
             pass
-        # Get the voice client.
         vc = ctx.voice_client
+
         # Check if recording time is too long.
         if not 0 < time <= 300:
             return await ctx.send(f'You can not record for more then 5 minutes.')
-        # If the user does'nt pick someone to record, record them.
+
+        # If the user doesn't pick someone to record, record them.
         if user is None:
-            to_record = ctx.author
-        else:
-            to_record = user
-        # Check if we are already recording.
-        if self.recording is True:
-            return await ctx.send('I am already recording something.')
-        # Start listening to the voice channel.
-        vc.listen(discord.UserFilter(MySink(f'audio/{ctx.author.id}.wav'), to_record))
-        self.recording = True
+            user = ctx.author
+
+        # Define a buffer and sink
+        buffer = BytesIO()
+        sink = MySink(buffer)
+
+        # Start listening.
+        vc.listen(discord.UserFilter(sink, user))
         message = await ctx.send(f'I am now recording `{user}` for `{time}s` in <#{channel.id}>.')
+
         # Sleep for however long the user wants to record for.
         await asyncio.sleep(time)
-        # Edit message for when the time is up.
-        await message.edit(content='I have finished recording.')
+
         # Stop listening.
         vc.stop_listening()
-        self.recording = False
-        # Send file.
-        await ctx.send('Here is your recording.', file=discord.File(filename=f'{ctx.author.id}.wav', fp=f'audio/{ctx.author.id}.wav'))
-        os.remove(f'audio/{ctx.author.id}.wav')
+        await message.edit(content='I have finished recording.')
 
+        #Seek back to begginning and send file.
+        sink.cleanup()
+        buffer.seek(0)
+        await ctx.send('Here is your recording.', file=discord.File(filename=f'{ctx.author.id}.wav', fp=buffer))
+
+    """
     @commands.command(name='listen')
     async def listen(self, ctx):
 
@@ -104,6 +106,7 @@ class VoiceReceive(commands.Cog):
         except sr.RequestError as e:
             print(f"ERROR: Could not request results from service {e}")
         return msg
+    """
 
 
 def setup(bot):
