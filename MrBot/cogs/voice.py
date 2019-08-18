@@ -322,7 +322,7 @@ class Voice(commands.Cog):
         """
         Plays a song using a link or search query.
 
-        `search` will default to a Youtube search however it also accepts links from SoundCloud and Twitch.
+        `search`: will default to a Youtube search however it also accepts links from SoundCloud and Twitch.
         """
 
         if not ctx.player.is_connected:
