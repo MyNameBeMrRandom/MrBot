@@ -10,6 +10,18 @@ import config
 import random
 import os
 
+from discord.ext.commands.cooldowns import BucketType
+from discord.opus import Decoder
+from discord.ext import commands
+import speech_recognition as sr
+from io import BytesIO
+import discord
+import asyncio
+import typing
+import wave
+import copy
+
+
 
 ytdlopts = {
     'format': 'bestaudio',
@@ -287,12 +299,29 @@ class Player(andesite.Player):
         # embed.add_field(name=f'Filter:', value=f'Current: {self.filter}')
         await track.channel.send(embed=embed)
 
+class MySink(discord.AudioSink):
+
+    def __init__(self, destination):
+
+        self.destination = destination
+        self.file = wave.open(destination, 'wb')
+        self.file.setnchannels(Decoder.CHANNELS)
+        self.file.setsampwidth(Decoder.SAMPLE_SIZE//Decoder.CHANNELS)
+        self.file.setframerate(Decoder.SAMPLING_RATE)
+
+    def write(self, data):
+        self.file.writeframes(data.data)
+
+    def cleanup(self):
+        self.file.close()
+
 class Voice(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
         self.bot.andesite = andesite.Client(bot)
         self.bot.loop.create_task(self.initiate_nodes())
+        self.listen = False
 
     async def initiate_nodes(self):
 
@@ -383,15 +412,9 @@ class Voice(commands.Cog):
             return await ctx.send(f'You must be in a voice channel to use this command.')
         if not ctx.player.channel_id == ctx.author.voice.channel.id:
             return await ctx.send(f'You must be in the same voice channel as MrBot to use this command.')
-        await self.do_leave(ctx)
-        return await ctx.send(f'Left the voice channel `{ctx.guild.me.voice.channel}`.')
-
-    async def do_leave(self, ctx):
-        """
-        Leave a voice channel.
-        """
         await ctx.player.disconnect()
         await ctx.player.destroy()
+        return await ctx.send(f'Left the voice channel `{ctx.guild.me.voice.channel}`.')
 
     @commands.command(name='pause')
     async def pause(self, ctx):
@@ -409,16 +432,10 @@ class Voice(commands.Cog):
             return await ctx.send('No tracks currently playing.')
         if not ctx.player.paused:
             await ctx.send(f'Paused the current track.')
-            return await self.do_pause(ctx)
+            self.paused = True
+            await ctx.player.set_pause(True)
+
         return await ctx.send('The current track is already paused.')
-
-    async def do_pause(self, ctx):
-        """
-        Pause the current track.
-        """
-
-        self.paused = True
-        await ctx.player.set_pause(True)
 
     @commands.command(name='resume')
     async def resume(self, ctx):
@@ -436,16 +453,9 @@ class Voice(commands.Cog):
             return await ctx.send('No tracks currently playing.')
         if ctx.player.paused:
             await ctx.send(f'Resumed playback of the current track.')
-            return await self.do_resume(ctx)
+            self.paused = False
+            await ctx.player.set_pause(False)
         return await ctx.send('The current track is not paused.')
-
-    async def do_resume(self, ctx):
-        """
-        Resumes the player
-        """
-
-        self.paused = False
-        await ctx.player.set_pause(False)
 
     @commands.command(name='skip')
     async def skip(self, ctx, amount: int = None):
@@ -469,27 +479,16 @@ class Voice(commands.Cog):
             if amount:
                 if not 1 < amount <= ctx.player.queue.qsize():
                     return await ctx.send('That is not a valid amount of songs to skip.')
-                return await self.do_skip(ctx, amount)
+                for track in ctx.player.queue.queue[:amount]:
+                    if not ctx.author.id == track.requester.id:
+                        return await ctx.send(
+                            f'You are not the requester of all `{amount}` of the next tracks in the queue.')
+                    await ctx.player.queue.get_pos(0)
+                await ctx.player.stop()
+                return await ctx.send(f"The current song's requester has skipped `{amount}` songs.")
             await ctx.send(f"The current song's requester has skipped the song.")
-            return await self.do_skip(ctx)
+            return await ctx.player.stop()
         await ctx.send('Vote skipping coming soon.')
-
-    async def do_skip(self, ctx, amount = None):
-        """
-        Skip the current track
-        """
-
-        if not amount:
-            return await ctx.player.stop()
-
-        if not amount:
-            return await ctx.player.stop()
-        for track in ctx.player.queue.queue[:amount]:
-            if not ctx.author.id == track.requester.id:
-                return await ctx.send(f'You are not the requester of all `{amount}` of the next tracks in the queue.')
-            await ctx.player.queue.get_pos(0)
-        await ctx.player.stop()
-        return await ctx.send(f"The current song's requester has skipped `{amount}` songs.")
 
     @commands.command(name='volume', aliases=['vol'])
     async def volume(self, ctx, volume: int):
@@ -506,13 +505,6 @@ class Voice(commands.Cog):
         if not 0 < volume < 101:
             return await ctx.send(f'Please enter a value between `1` and and `100`.')
         await ctx.send(f'Changed the players volume to `{volume}%`.')
-        return await self.do_volume(ctx, volume)
-
-    async def do_volume(self, ctx, volume):
-        """
-        Changes the volume of the player.
-        """
-
         ctx.player.volume = volume
         await ctx.player.set_volume(volume)
 
@@ -537,15 +529,8 @@ class Voice(commands.Cog):
             return await ctx.send('This track is not seekable.')
         if not 0 <= milliseconds <= ctx.player.current.length:
             return await ctx.send(f'Please enter a value between `1` and `{round(ctx.player.current.length / 1000)}`.')
-        await self.do_seek(ctx, milliseconds)
+        await ctx.player.seek(milliseconds)
         return await ctx.send(f'Changed the players position to `{calculations.get_time(milliseconds / 1000)}`.')
-
-    async def do_seek(self, ctx, milliseconds):
-        """
-        Seek to a postion in a track.
-        """
-
-        return await ctx.player.seek(milliseconds)
 
     @commands.command(name='shuffle')
     async def shuffle(self, ctx):
@@ -561,14 +546,8 @@ class Voice(commands.Cog):
             return await ctx.send(f'You must be in the same voice channel as MrBot to use this command.')
         if ctx.player.queue.qsize() <= 0:
             return await ctx.send('Add more tracks to the queue to enable queue track shuffling.')
-        await self.do_shuffle(ctx)
-        return await ctx.send(f'The queue has been shuffled.')
-
-    async def do_shuffle(self, ctx):
-        """
-        Shuffle the queue.
-        """
         random.shuffle(ctx.player.queue.queue)
+        return await ctx.send(f'The queue has been shuffled.')
 
     @commands.command(name='clear')
     async def clear(self, ctx):
@@ -584,14 +563,8 @@ class Voice(commands.Cog):
             return await ctx.send(f'You must be in the same voice channel as MrBot to use this command.')
         if ctx.player.queue.qsize() <= 0:
             return await ctx.send('Add more tracks to the queue to enable queue clearing.')
-        await self.do_clear(ctx)
-        return await ctx.send(f'Cleared the queue.')
-
-    async def do_clear(self, ctx):
-        """
-        Clear the queue.
-        """
         ctx.player.queue.queue.clear()
+        return await ctx.send(f'Cleared the queue.')
 
     @commands.command(name='loop')
     async def loop(self, ctx):
@@ -605,20 +578,13 @@ class Voice(commands.Cog):
             return await ctx.send(f'You must be in a voice channel to use this command.')
         if not ctx.player.channel_id == ctx.author.voice.channel.id:
             return await ctx.send(f'You must be in the same voice channel as MrBot to use this command.')
-        await self.do_loop(ctx)
-        if ctx.player.loop_queue is True:
-            return await ctx.send(f'The queue will now loop.')
-        return await ctx.send(f'The queue will stop looping.')
-
-    async def do_loop(self, ctx):
-        """
-        Loop the queue.
-        """
-
         if ctx.player.loop_queue is False:
             ctx.player.loop_queue = True
         else:
             ctx.player.loop_queue = False
+        if ctx.player.loop_queue is True:
+            return await ctx.send(f'The queue will now loop.')
+        return await ctx.send(f'The queue will stop looping.')
 
     @commands.command(name='remove')
     async def remove(self, ctx, entry: int):
@@ -638,12 +604,8 @@ class Voice(commands.Cog):
             return await ctx.send('Add more tracks to the queue to enable queue track removing.')
         if not 0 < entry <= ctx.player.queue.qsize():
             return await ctx.send(f'That was not a valid track entry number.')
-        item = await self.do_remove(ctx, entry)
-        return await ctx.send(f'Removed `{item}` from the queue.')
-
-    async def do_remove(self, ctx, entry):
         item = await ctx.player.queue.get_pos(entry - 1)
-        return item
+        return await ctx.send(f'Removed `{item}` from the queue.')
 
     @commands.command(name='move')
     async def move(self, ctx, entry_1: int, entry_2: int):
@@ -665,15 +627,11 @@ class Voice(commands.Cog):
             return await ctx.send(f'That was not a valid track to move from.')
         if not 0 < entry_2 <= ctx.player.queue.qsize():
             return await ctx.send(f'That was not a valid track to move too.')
-        item = await self.do_move(ctx, entry_1, entry_2)
-        return await ctx.send(f'Moved `{item}` from position `{entry_1}` to position `{entry_2}`.')
-
-    async def do_move(self, ctx, entry_1, entry_2):
         item = await ctx.player.queue.get_pos(entry_1 - 1)
         tracks = await ctx.player.node.get_tracks(f"{item}")
         track = tracks[0]
         await ctx.player.queue.put_pos(Track(track.id, track.data, ctx=ctx), entry_2 - 1)
-        return item
+        return await ctx.send(f'Moved `{item}` from position `{entry_1}` to position `{entry_2}`.')
 
     @commands.command(name='reverse')
     async def reverse(self, ctx):
@@ -689,11 +647,8 @@ class Voice(commands.Cog):
             return await ctx.send(f'You must be in the same voice channel as MrBot to use this command.')
         if ctx.player.queue.qsize() <= 0:
             return await ctx.send('Add more tracks to the queue to enable queue track moving.')
-        await self.do_reverse(ctx)
+        ctx.player.queue.queue.reverse()
         return await ctx.send(f'Reversed the queue.')
-
-    async def do_reverse(self, ctx):
-        return ctx.player.queue.queue.reverse()
 
     @commands.command(name='download')
     async def download(self, ctx):
@@ -810,6 +765,154 @@ class Voice(commands.Cog):
         ctx.player.filter_count += 1
         await ctx.send(f'Added the nightcore filter.')
         return await ctx.player.set_timescale(speed=1.1, pitch=1.1, rate=1)
+
+    @commands.is_owner()
+    @commands.cooldown(1, 300, BucketType.user)
+    @commands.command(name='record')
+    async def record(self, ctx, time: typing.Optional[int] = 10, user: typing.Optional[discord.Member] = None):
+        """
+        Record audio from a voice channel.
+
+        `time`: How long (in seconds) you want to record for.
+        `user`: The user to record. This can be a mention, id, nickname or name.
+        """
+
+        # Check if the user in a voice channel.
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            return await ctx.send(f'You must be in a voice channel to use this command.')
+        channel = ctx.author.voice.channel
+
+        # Try to join channel, ignore errors.
+        try:
+            await channel.connect()
+        except discord.ClientException:
+            pass
+        vc = ctx.voice_client
+
+        # Check if recording time is too long.
+        if not 0 < time <= 300:
+            return await ctx.send(f'You can not record for more then 5 minutes.')
+
+        # If the user doesn't pick someone to record, record them.
+        if user is None:
+            user = ctx.author
+
+        # Define a buffer and a sink
+        buffer = BytesIO()
+        sink = MySink(buffer)
+
+        # Start listening.
+        vc.listen(discord.UserFilter(sink, user))
+        message = await ctx.send(f'I am now recording `{user}` for `{time}s` in `{channel}`.')
+
+        # Sleep for however long the user wants to record for.
+        await asyncio.sleep(time + 2)
+
+        # Stop listening.
+        vc.stop_listening()
+        await message.edit(content='I have finished recording.')
+
+        #Seek back to begginning and send file.
+        sink.cleanup()
+        buffer.seek(0)
+        await ctx.send('Here is your recording.', file=discord.File(filename=f'{ctx.author.id}.wav', fp=buffer))
+
+    @commands.is_owner()
+    @commands.command(name='stt')
+    async def stt(self, ctx, user: typing.Optional[discord.Member] = None):
+        """
+        Execute commands based on what you say.
+
+        To use this first join a voice chat, use this command, and say `alexa`. When the message saying you have been recognised is sent, you will be able to say a command which will then be executes by the bot.
+        """
+
+        # Check if the user in a voice channel.
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            return await ctx.send(f'You must be in a voice channel to use this command.')
+        channel = ctx.author.voice.channel
+
+        # Try to join channel, ignore errors.
+        try:
+            await channel.connect()
+        except discord.ClientException:
+            pass
+
+        # If the bot is already listening.
+        if self.listen is True:
+            return await ctx.send('I am already listening.')
+
+        # If the user doesn't pick someone to record, record them.
+        if user is None:
+            user = ctx.author
+
+        # Tell the user that we are listening, then start.
+        await ctx.send(f'I am listening to `{user}`. You can say `Alexa` to invoke commands.')
+        self.listen = True
+        await self.listen_to_audio(ctx, user)
+
+    async def listen_to_audio(self, ctx, user):
+        while self.listen is True:
+            try:
+                # Get the guilds voice client.
+                vc = ctx.voice_client
+                # Define the sink and start listening.
+                sink = MySink("audio/listen.wav")
+                vc.listen(discord.UserFilter(sink, user))
+                # Sleep for 2 seconds, this is so we can continuously check for our keyword.
+                await asyncio.sleep(3)
+                # Stop listening and exit file.
+                vc.stop_listening()
+                sink.cleanup()
+                # Speech recognition is blocking so try to check what was said in an executor.
+                msg = await self.bot.loop.run_in_executor(None, self.translate, sink)
+                # If the keyword was said.
+                if 'Alexa' in msg or "alexa" in msg:
+                    await ctx.send('I have detected the keyword `Alexa`, you can say a command now.')
+                    # Define the sink and start listening.
+                    sink = MySink("audio/listen.wav")
+                    vc.listen(discord.UserFilter(sink, user))
+                    # Sleep for 7 or so seconds, this is so we the user has enough time to say their command.
+                    await asyncio.sleep(7)
+                    # Stop listening and exit file.
+                    vc.stop_listening()
+                    sink.cleanup()
+                    # Speech recognition is blocking so try to check what was said in an executor.
+                    msg = await self.bot.loop.run_in_executor(None, self.translate, sink)
+                    # If the message we get back is a specific code, give an error.
+                    if msg == '81431':
+                        await ctx.send("I was unable to understand what you said. This could be because nothing was said, or because there is too much background noise.")
+                        continue
+                    if msg == '75482':
+                        await ctx.send("Error: I could not get the results from the service.")
+                        continue
+                    # Otherwise add the bots prefix to the message
+                    msg = f'{ctx.prefix}{msg.lower()}'
+                    await ctx.send(f'Trying to invoke the command `{msg}`.')
+                    # Copy the message so that we can execute it as the user we are listening too.
+                    fake_msg = copy.copy(ctx.message)
+                    fake_msg.content = msg
+                    fake_msg.author = user
+                    # Process the command.
+                    await self.bot.process_commands(fake_msg)
+            except Exception as e:
+                print(e)
+
+    def translate(self, sink):
+        # Listen to the audio from the file, adjusting for the ambient noise.
+        with sr.WavFile(sink.destination) as source:
+            sr.Recognizer().adjust_for_ambient_noise(source, duration=0.25)
+            audio = sr.Recognizer().record(source)
+        try:
+            # Try to translate it into text.
+            msg = sr.Recognizer().recognize_google(audio)
+        except sr.UnknownValueError:
+            # Return a specific code if it was not understandable
+            msg = '81431'
+        except sr.RequestError as e:
+            msg = '75482'
+            print(f"Could not request results from service. {e}")
+        return msg
+
 
 def setup(bot):
     bot.add_cog(Voice(bot))
