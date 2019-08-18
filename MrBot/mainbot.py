@@ -42,7 +42,6 @@ extensions = [
     'cogs.voice',
     'cogs.help',
     'jishaku',
-    'cogs.voicer'
 ]
 
 class MrBot(commands.Bot):
