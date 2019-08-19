@@ -12,16 +12,11 @@ import os
 
 from discord.ext.commands.cooldowns import BucketType
 from discord.opus import Decoder
-from discord.ext import commands
 import speech_recognition as sr
-from io import BytesIO
-import discord
-import asyncio
 import typing
 import wave
 import copy
-
-
+import io
 
 ytdlopts = {
     'format': 'bestaudio',
@@ -851,55 +846,63 @@ class Voice(commands.Cog):
         await self.listen_to_audio(ctx, user)
 
     async def listen_to_audio(self, ctx, user):
+
+        # Define the stream and sink and start listening.
+        vc = ctx.voice_client
+        found = False
         while self.listen is True:
             try:
-                # Get the guilds voice client.
-                vc = ctx.voice_client
-                # Define the sink and start listening.
-                sink = MySink("audio/listen.wav")
-                vc.listen(discord.UserFilter(sink, user))
-                # Sleep for 2 seconds, this is so we can continuously check for our keyword.
-                await asyncio.sleep(3)
-                # Stop listening and exit file.
-                vc.stop_listening()
-                sink.cleanup()
-                # Speech recognition is blocking so try to check what was said in an executor.
-                msg = await self.bot.loop.run_in_executor(None, self.translate, sink)
-                # If the keyword was said.
-                if 'Alexa' in msg or "alexa" in msg:
-                    await ctx.send('I have detected the keyword `Alexa`, you can say a command now.')
-                    # Define the sink and start listening.
-                    sink = MySink("audio/listen.wav")
+                # While we have not found our keyword.
+                while found is False:
+                    # Create a new stream and start listening.
+                    stream = io.BytesIO()
+                    sink = MySink(stream)
                     vc.listen(discord.UserFilter(sink, user))
-                    # Sleep for 7 or so seconds, this is so we the user has enough time to say their command.
-                    await asyncio.sleep(7)
-                    # Stop listening and exit file.
+                    # Sleep for 3 seconds, this is so we can loop every 3 secs.
+                    await asyncio.sleep(3)
+                    # Stop listening.
                     vc.stop_listening()
-                    sink.cleanup()
                     # Speech recognition is blocking so try to check what was said in an executor.
-                    msg = await self.bot.loop.run_in_executor(None, self.translate, sink)
-                    # If the message we get back is a specific code, give an error.
-                    if msg == '81431':
-                        await ctx.send("I was unable to understand what you said. This could be because nothing was said, or because there is too much background noise.")
-                        continue
-                    if msg == '75482':
-                        await ctx.send("Error: I could not get the results from the service.")
-                        continue
-                    # Otherwise add the bots prefix to the message
-                    msg = f'{ctx.prefix}{msg.lower()}'
-                    await ctx.send(f'Trying to invoke the command `{msg}`.')
-                    # Copy the message so that we can execute it as the user we are listening too.
-                    fake_msg = copy.copy(ctx.message)
-                    fake_msg.content = msg
-                    fake_msg.author = user
-                    # Process the command.
-                    await self.bot.process_commands(fake_msg)
+                    msg = await self.bot.loop.run_in_executor(None, self.translate, stream)
+                    # If the keyword was said.
+                    if 'Alexa' in msg or "alexa" in msg:
+                        await ctx.send('I have detected the keyword `Alexa`, you can say a command now.')
+                        # Stop listening for our keyword.
+                        found = True
+                # Create a new stream and start listening for our command.
+                stream = io.BytesIO()
+                sink = MySink(stream)
+                vc.listen(discord.UserFilter(sink, user))
+                # Sleep for 7 or so seconds, this is so we the user has enough time to say their command.
+                await asyncio.sleep(7)
+                # Stop listening.
+                vc.stop_listening()
+                # Speech recognition is blocking so try to check what was said in an executor.
+                msg = await self.bot.loop.run_in_executor(None, self.translate, stream)
+                # If the message we get back is a specific code, give an error.
+                if msg == '81431':
+                    await ctx.send("I was unable to understand what you said. This could be because nothing was said, or because there is too much background noise.")
+                    continue
+                if msg == '75482':
+                    await ctx.send("Error: I could not get the results from the service.")
+                    continue
+                # Otherwise add the bots prefix to the message
+                msg = f'{ctx.prefix}{msg.lower()}'
+                await ctx.send(f'Trying to invoke the command `{msg}`.')
+                # Copy the message so that we can execute it as the user we are listening too.
+                fake_msg = copy.copy(ctx.message)
+                fake_msg.content = msg
+                fake_msg.author = user
+                # Process the command.
+                await self.bot.process_commands(fake_msg)
+                found = False
             except Exception as e:
                 print(e)
 
-    def translate(self, sink):
+    def translate(self, stream: io.BytesIO):
         # Listen to the audio from the file, adjusting for the ambient noise.
-        with sr.WavFile(sink.destination) as source:
+        stream.seek(0)
+        with sr.WavFile(stream) as source:
             sr.Recognizer().adjust_for_ambient_noise(source, duration=0.25)
             audio = sr.Recognizer().record(source)
         try:
@@ -912,6 +915,7 @@ class Voice(commands.Cog):
             msg = '75482'
             print(f"Could not request results from service. {e}")
         return msg
+
 
 
 def setup(bot):
