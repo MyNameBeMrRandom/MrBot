@@ -916,8 +916,6 @@ class Voice(commands.Cog):
             print(f"Could not request results from service. {e}")
         return msg
 
-
-
 def setup(bot):
     bot.add_cog(Voice(bot))
 
