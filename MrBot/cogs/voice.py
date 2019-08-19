@@ -793,15 +793,15 @@ class Voice(commands.Cog):
             user = ctx.author
 
         # Define a buffer and a sink
-        buffer = BytesIO()
+        buffer = io.BytesIO()
         sink = MySink(buffer)
 
         # Start listening.
-        vc.listen(discord.UserFilter(sink, user))
+        vc.listen(discord.TimedFilter(discord.UserFilter(sink, user), time))
         message = await ctx.send(f'I am now recording `{user}` for `{time}s` in `{channel}`.')
 
         # Sleep for however long the user wants to record for.
-        await asyncio.sleep(time + 2)
+        await asyncio.sleep(time + 1)
 
         # Stop listening.
         vc.stop_listening()
