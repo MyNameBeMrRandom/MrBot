@@ -10,7 +10,8 @@ class KrossServer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def cog_before_invoke(self, ctx):
+    # Before invoking any commands in this cogs, check if we are in the required guild.
+    async def cog_check(self, ctx):
         if ctx.guild.id == 491312179476299786:
             return True
         await ctx.send('This command is only for a certain guild.')
@@ -45,27 +46,40 @@ class KrossServer(commands.Cog):
         except discord.Forbidden:
             return
 
-    @commands.command(name='house_members', aliases=['hm'], hidden=True)
+    @commands.command(name='houses', aliases=['h'], hidden=True)
     async def houses(self, ctx):
+        """
+        Get how many members are in each house.
+
+        This only works in a specific server.
+        """
+
         kodama = discord.utils.get(ctx.guild.roles, name='Kodama')
         sylph = discord.utils.get(ctx.guild.roles, name='Sylph')
         leviathan = discord.utils.get(ctx.guild.roles, name='Leviathan')
         phoenix = discord.utils.get(ctx.guild.roles, name='Phoenix')
         banshee = discord.utils.get(ctx.guild.roles, name='Banshee')
-        await ctx.send(f'Kodama members: {len(kodama.members)}')
-        await ctx.send(f'Sylph members: {len(sylph.members)}')
-        await ctx.send(f'Leviathan members: {len(leviathan.members)}')
-        await ctx.send(f'Phoenix members: {len(phoenix.members)}')
-        return await ctx.send(f'Banshee members: {len(banshee.members)}')
+        total = len(kodama.members) + len(sylph.members) + len(leviathan.members) + len(phoenix.members) + len(banshee.members)
+        message = f'**Kodama members:** {len(kodama.members)}\n'\
+                  f'**Sylph members:** {len(sylph.members)}\n'\
+                  f'**Leviathan members:** {len(leviathan.members)}\n'\
+                  f'**Phoenix members:** {len(phoenix.members)}\n'\
+                  f'**Banshee members:** {len(banshee.members)}\n'\
+                  f'**Total:** {total}\n'
+        return await ctx.send(message)
 
     @commands.command(name='points', aliases=['p'], hidden=True)
     @commands.has_role(548604302768209920)
     async def points(self, ctx, house: str, operation: str, points: int):
-        if not await self.bot.pool.fetchrow("SELECT key FROM kross_config WHERE key = $1", "phoenix"):
-            await self.bot.pool.execute(f"INSERT INTO kross_config VALUES ('phoenix', 0)")
-            await self.bot.pool.execute(f"INSERT INTO kross_config VALUES ('kodama', 0)")
-            await self.bot.pool.execute(f"INSERT INTO kross_config VALUES ('sylph', 0)")
-            await self.bot.pool.execute(f"INSERT INTO kross_config VALUES ('leviathan', 0)")
+        """
+        Add/remove points to/from a house.
+
+        This only works in a specific server.
+        `house`: What house to add/remove points to/from. Can be `phoenix`, `leviathan`, `kodama` or `sylph`.
+        `operation`: Wheter to add or remove points. Can be `add` or `minus`.
+        `points`: The amount of points to add/remove. Can be any number.
+        """
+
         if house == 'kodama':
             data = await self.bot.pool.fetchrow("SELECT * FROM kross_config WHERE key = $1", 'kodama')
             if operation == 'add':

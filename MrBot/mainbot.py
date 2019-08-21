@@ -93,17 +93,12 @@ class MrBot(commands.Bot):
 
             # Create config for guilds joined during downtime.
             print('[DB] Adding guilds.')
+            # Loop through all the guilds.
             for guild in self.guilds:
-                data = await self.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id)
-                if not data:
-                    await self.pool.execute(
-                        "INSERT INTO guild_config VALUES"
-                        "($1, 0, FALSE, FALSE, FALSE,"
-                        "FALSE, FALSE, FALSE, FALSE, FALSE,"
-                        "FALSE, FALSE, FALSE, FALSE, FALSE,"
-                        "FALSE, FALSE, FALSE, FALSE, FALSE,"
-                        "FALSE, FALSE, FALSE, FALSE, FALSE,"
-                        "FALSE, FALSE)", guild.id)
+                # If the guild doesnt have a config.
+                if not await self.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id):
+                    # Create a config.
+                    await self.pool.execute("INSERT INTO guild_config VALUES ($1)", guild.id)
                     print(f'[DB] Created config for guild - {guild.name}.')
             print('[DB] Done adding guilds.')
 
