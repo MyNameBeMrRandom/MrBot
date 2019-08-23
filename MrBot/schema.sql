@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS user_config(
 );
 
 CREATE TABLE IF NOT EXISTS guild_config(
-    key BIGINT PRIMARY KEY,
+    key BIGINT PRIMARY KEY
 );
 
 CREATE TABLE IF NOT EXISTS kross_config(
