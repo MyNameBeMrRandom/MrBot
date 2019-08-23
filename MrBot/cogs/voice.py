@@ -1,22 +1,22 @@
-from discord.ext import commands
+from discord.ext.commands.cooldowns import BucketType
 from youtube_dl import YoutubeDL
+from discord.opus import Decoder
+from discord.ext import commands
 from .utils import calculations
+import speech_recognition as sr
 import collections
 import itertools
 import andesite
 import asyncio
 import discord
+import typing
 import config
 import random
-import os
-
-from discord.ext.commands.cooldowns import BucketType
-from discord.opus import Decoder
-import speech_recognition as sr
-import typing
 import wave
 import copy
 import io
+import os
+
 
 ytdlopts = {
     'format': 'bestaudio',
@@ -353,7 +353,7 @@ class Voice(commands.Cog):
             try:
                 await self.do_join(ctx, ctx.author.voice.channel.id)
             except AttributeError:
-                return await ctx.send(f'You must be in a voice channel to use this command.')
+                return await ctx.send('You must be in a voice channel to use this command.')
 
         await ctx.trigger_typing()
         tracks = await ctx.player.node.get_tracks(f"{search}")
