@@ -1,7 +1,6 @@
 *.pyc
 *.png
-*.yaml
-*.txt
+*.mp3
 *.ini
 MrBot/config.py
 MrBot/logs/mrbot.log
