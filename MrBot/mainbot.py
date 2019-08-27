@@ -24,6 +24,7 @@ import config
 import dbl
 import os
 
+# Load opus if it it not loaded automatically.
 if not discord.opus.is_loaded():
     discord.opus.load_opus(config.OPUS)
 
