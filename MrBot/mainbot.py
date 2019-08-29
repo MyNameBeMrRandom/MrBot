@@ -46,9 +46,6 @@ extensions = [
 ]
 
 class MrBot(commands.Bot):
-    """
-    Main bot class.
-    """
 
     def __init__(self):
         super().__init__(
