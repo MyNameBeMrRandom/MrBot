@@ -11,7 +11,7 @@ class HelpCommand(commands.HelpCommand):
                     "**'A' or 'B'.**\n**[arguement...]** means you can have **multiple arguements.** "
         })
 
-    def get_command_aliases(self, command):
+    def get_full_command(self, command):
         parent = command.full_parent_name
         if len(command.aliases) > 0:
             aliases = "/".join(command.aliases)
@@ -81,7 +81,7 @@ class HelpCommand(commands.HelpCommand):
         # Loop through all the commands in this cog.
         for command in cog.get_commands():
             # Get the command name along with all its aliases.
-            command_name = f"{self.get_command_aliases(command)}"
+            command_name = f"{self.get_full_command(command)}"
             # If the author is not the owner.
             if not ctx.author.id == owner.id:
                 # If the command is hidden, skip this command.
@@ -111,7 +111,7 @@ class HelpCommand(commands.HelpCommand):
             if isinstance(command, commands.Group):
                 # Loop through the command in the group.
                 for group_command in command.commands:
-                    group_command_name = f"{self.get_command_aliases(group_command)}"
+                    group_command_name = f"{self.get_full_command(group_command)}"
                     # If the author is not the owner.
                     if not ctx.author.id == owner.id:
                         # If the command is hidden, skip this command.
@@ -149,7 +149,7 @@ class HelpCommand(commands.HelpCommand):
             description=""
         )
         # Get the commands aliases.
-        command_name = f"{self.get_command_aliases(command)}"
+        command_name = f"{self.get_full_command(command)}"
         # If the command has a help string.
         if command.help:
             # Get the first line of the help string.
@@ -179,7 +179,7 @@ class HelpCommand(commands.HelpCommand):
             description=""
         )
         # Get the commands aliases.
-        group_name = f"{self.get_command_aliases(group)}"
+        group_name = f"{self.get_full_command(group)}"
         # If the command has a help string.
         if group.help:
             # Get the first line of the help string.
@@ -199,7 +199,7 @@ class HelpCommand(commands.HelpCommand):
             embed.description += f"{group_help}\n\n"
         # Loop through the commands in the group.
         for command in group.commands:
-            group_command_name = f"**{self.get_command_aliases(command)}**"
+            group_command_name = f"**{self.get_full_command(command)}**"
             # If the command has a help string.
             if command.help:
                 # Get the first line of the help string.
