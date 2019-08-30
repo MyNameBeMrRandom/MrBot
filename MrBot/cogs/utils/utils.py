@@ -131,8 +131,6 @@ def guild_user_status_count(guild):
             dnd += 1
         if member.status == discord.Status.offline:
             offline += 1
-        else:
-            offline += 1
     return online, offline, idle, dnd
 
 
