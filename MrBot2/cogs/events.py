@@ -121,6 +121,9 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
 
+        if not message.guild:
+            return
+        
         # If we sent the message.
         if message.author.id == self.bot.user.id:
 
