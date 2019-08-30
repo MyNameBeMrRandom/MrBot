@@ -502,11 +502,11 @@ class Music(commands.Cog):
             await ctx.player.set_timescale()
             ctx.player.filter_count -= 1
             ctx.player.nightcore = False
-            await ctx.send(f"Removed the nightcore filter.")
+            return await ctx.send(f"Removed the nightcore filter.")
         await ctx.player.set_timescale(speed=1.1, pitch=1.1, rate=1)
         ctx.player.filter_count += 1
         ctx.player.nightcore = True
-        await ctx.send(f"Added the nightcore filter.")
+        return await ctx.send(f"Added the nightcore filter.")
 
     @commands.command(name="queue")
     async def queue(self, ctx):
