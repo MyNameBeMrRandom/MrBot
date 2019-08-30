@@ -24,6 +24,7 @@ import discord
 import asyncio
 import aiohttp
 import config
+import dbl
 import os
 
 
@@ -37,6 +38,7 @@ os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 
 # Define a list of extensions to load.
 extensions = [
+    "cogs.events",
     "cogs.music",
     "cogs.help",
     "jishaku"
@@ -50,6 +52,7 @@ class MrBot(commands.AutoShardedBot):
             command_prefix=commands.when_mentioned_or(config.DISCORD_PREFIX),
             reconnect=True,
         )
+        self.dblpy = dbl.DBLClient(self, config.DBL_TOKEN, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.loop = asyncio.get_event_loop()
         self.config = config
@@ -57,60 +60,15 @@ class MrBot(commands.AutoShardedBot):
         self.log_channel = None
         self.db_ready = False
         self.db = None
+        self.usage = {}
 
-        # Load extension
+        # Load extensions
         for extension in extensions:
             try:
                 self.load_extension(extension)
                 print(f"[EXT] Success - {extension}")
             except commands.ExtensionNotFound:
                 print(f"[EXT] Failed - {extension}")
-
-    async def get_context(self, message, *, cls=None):
-        return await super().get_context(message, cls=MyContext)
-
-    async def on_disconnect(self):
-        # Send a message to status channel notifying when the bot has been disconnected.
-        await self.status_channel.send(f"`{self.user}` has been disconnected.")
-        print(f"\n[BOT] Disconnected.")
-
-    async def on_resume(self):
-        # Send a message to status channel notifying when the bots connection has been resumed.
-        await self.status_channel.send(f"`{self.user}'s` connection has been resumed.")
-        print(f"\n[BOT] Connection resumed.")
-
-    async def on_ready(self):
-        # Set our logging and status channels.
-        self.status_channel = self.get_channel(615936923302887424)
-        self.log_channel = self.get_channel(516002789617434664)
-        # Send a message to status channel notifying when the bot has been connected.
-        await self.status_channel.send(f"`{self.user}` has been connected.")
-        print(f"\n[BOT] Logged in as {self.user} - {self.user.id}")
-        try:
-            # Try and connect to the database.
-            self.db = await asyncpg.create_pool(**config.DB_CONN_INFO)
-            print(f"\n[DB] Connected to database.")
-            # Create tables if they dont exist.
-            print('[DB] Creating tables.')
-            with open("schema.sql") as f:
-                await self.db.execute(f.read())
-            print('[DB] Done creating tables.')
-            # Create configs for guilds joined during downtime.
-            print('[DB] Adding guilds.')
-            # Loop through all the current guilds.
-            for guild in self.guilds:
-                # If the guild already has a config, skip it.
-                if await self.db.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id):
-                    continue
-                # Else create a config for the guild.
-                await self.db.execute("INSERT INTO guild_config VALUES ($1)", guild.id)
-                print(f'[DB] Created config for guild - {guild.name}.')
-            print('[DB] Done adding guilds.')
-            self.db_ready = True
-        except ConnectionRefusedError:
-            print(f"[DB] Connection to database was denied.")
-        except Exception as e:
-            print(f"[DB] An error occured: {e}")
 
     async def bot_start(self):
         # Log into discord.
@@ -129,6 +87,62 @@ class MrBot(commands.AutoShardedBot):
             self.loop.run_until_complete(self.bot_start())
         except KeyboardInterrupt:
             self.loop.run_until_complete(self.bot_close())
+
+    async def on_ready(self):
+        # Set our logging and status channels.
+        self.status_channel = self.get_channel(615936923302887424)
+        self.log_channel = self.get_channel(516002789617434664)
+
+        # Send a message to status channel notifying when the bot has been connected.
+        await self.status_channel.send(f"`{self.user}` has been connected.")
+        print(f"\n[BOT] Logged in as {self.user} - {self.user.id}")
+
+        # Connect to database.
+        try:
+            # Try and connect to the database.
+            self.db = await asyncpg.create_pool(**config.DB_CONN_INFO)
+            print(f"\n[DB] Connected to database.")
+
+            # Create tables if they dont exist.
+            print('[DB] Creating tables.')
+            with open("schema.sql") as f:
+                await self.db.execute(f.read())
+            print('[DB] Done creating tables.')
+
+            # Create configs for guilds joined during downtime.
+            print('[DB] Adding guilds.')
+
+            # Loop through all the current guilds.
+            for guild in self.guilds:
+
+                # If the guild already has a config, skip it.
+                if await self.db.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id):
+                    continue
+
+                # Else create a config for the guild.
+                await self.db.execute("INSERT INTO guild_config VALUES ($1)", guild.id)
+
+                print(f'[DB] Created config for guild - {guild.name}.')
+            print('[DB] Done adding guilds.')
+            # Tell the bot that the databse is ready.
+            self.db_ready = True
+        except ConnectionRefusedError:
+            print(f"[DB] Connection to database was denied.")
+        except Exception as e:
+            print(f"[DB] An error occured: {e}")
+
+    async def on_resume(self):
+        # Send a message to status channel notifying when the bots connection has been resumed.
+        await self.status_channel.send(f"`{self.user}'s` connection has been resumed.")
+        print(f"\n[BOT] Connection resumed.")
+
+    async def on_disconnect(self):
+        # Send a message to status channel notifying when the bot has been disconnected.
+        await self.status_channel.send(f"`{self.user}` has been disconnected.")
+        print(f"\n[BOT] Disconnected.")
+
+    async def get_context(self, message, *, cls=None):
+        return await super().get_context(message, cls=MyContext)
 
 
 class MyContext(commands.Context):
