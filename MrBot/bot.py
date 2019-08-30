@@ -28,15 +28,12 @@ import dbl
 import os
 
 
-# Load opus if it it not loaded automatically.
 if not discord.opus.is_loaded():
     discord.opus.load_opus(config.OPUS)
 
-# Set jishaku env variables.
 os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 
-# Define a list of extensions to load.
 extensions = [
     "cogs.utilities",
     "cogs.events",
@@ -129,12 +126,10 @@ class MrBot(commands.AutoShardedBot):
             print(f"[DB] An error occured: {e}")
 
     async def on_resume(self):
-        # Send a message to status channel notifying when the bots connection has been resumed.
         await self.status_channel.send(f"`{self.user}'s` connection has been resumed.")
         print(f"\n[BOT] Connection resumed.")
 
     async def on_disconnect(self):
-        # Send a message to status channel notifying when the bot has been disconnected.
         await self.status_channel.send(f"`{self.user}` has been disconnected.")
         print(f"\n[BOT] Disconnected.")
 
