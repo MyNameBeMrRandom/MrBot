@@ -91,8 +91,8 @@ class MrBot(commands.AutoShardedBot):
 
     async def on_ready(self):
         # Set our logging and status channels.
-        self.status_channel = self.get_channel(615936923302887424)
-        self.log_channel = self.get_channel(516002789617434664)
+        self.status_channel = self.get_channel(config.STATUS_CHANNEL_ID)
+        self.log_channel = self.get_channel(config.LOG_CHANNEL_ID)
 
         # Send a message to status channel notifying when the bot has been connected.
         await self.status_channel.send(f"`{self.user}` has been connected.")

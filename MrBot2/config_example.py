@@ -27,3 +27,7 @@ OPUS = ""
 
 # Linux Opus path
 # OPUS = ""
+
+# Logging and status channel ids
+STATUS_CHANNEL_ID = 000000000000000
+LOG_CHANNEL_ID = 000000000000000000
