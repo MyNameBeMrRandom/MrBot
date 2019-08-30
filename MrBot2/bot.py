@@ -38,6 +38,7 @@ os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 
 # Define a list of extensions to load.
 extensions = [
+    "cogs.utilities",
     "cogs.events",
     "cogs.music",
     "cogs.help",
@@ -52,7 +53,7 @@ class MrBot(commands.AutoShardedBot):
             command_prefix=commands.when_mentioned_or(config.DISCORD_PREFIX),
             reconnect=True,
         )
-        self.dblpy = dbl.DBLClient(self, config.DBL_TOKEN, webhook_path='/dblwebhook', webhook_auth=f'{config.DBL_TOKEN}', webhook_port=5000)
+        self.dblpy = dbl.DBLClient(self, config.DBL_TOKEN, webhook_path="/dblwebhook", webhook_auth=f"{config.DBL_TOKEN}", webhook_port=5000)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.loop = asyncio.get_event_loop()
         self.config = config
@@ -104,13 +105,13 @@ class MrBot(commands.AutoShardedBot):
             print(f"\n[DB] Connected to database.")
 
             # Create tables if they dont exist.
-            print('[DB] Creating tables.')
+            print("[DB] Creating tables.")
             with open("schema.sql") as f:
                 await self.db.execute(f.read())
-            print('[DB] Done creating tables.')
+            print("[DB] Done creating tables.")
 
             # Create configs for guilds joined during downtime.
-            print('[DB] Adding guilds.')
+            print("[DB] Adding guilds.")
 
             # Loop through all the current guilds.
             for guild in self.guilds:
@@ -122,8 +123,8 @@ class MrBot(commands.AutoShardedBot):
                 # Else create a config for the guild.
                 await self.db.execute("INSERT INTO guild_config VALUES ($1)", guild.id)
 
-                print(f'[DB] Created config for guild - {guild.name}.')
-            print('[DB] Done adding guilds.')
+                print(f"[DB] Created config for guild - {guild.name}.")
+            print("[DB] Done adding guilds.")
             # Tell the bot that the databse is ready.
             self.db_ready = True
         except ConnectionRefusedError:
