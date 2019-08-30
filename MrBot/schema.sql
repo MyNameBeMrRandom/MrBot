@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS user_config(
     key BIGINT PRIMARY KEY,
     background TEXT,
-    timezone TIMESTAMPTZ,
     voted BOOLEAN,
     vote_claimed BOOLEAN,
     vote_count BIGINT,
