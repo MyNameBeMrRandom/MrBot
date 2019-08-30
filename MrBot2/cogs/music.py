@@ -773,14 +773,17 @@ class Music(commands.Cog):
         if ctx.guild.premium_tier == 1 or ctx.guild.premium_tier == 0:
             size = os.path.getsize(f"files/voice/{track_id}.mp3")
             if size >= 8388608:
+                os.remove(f"files/voice/{track_id}.mp3")
                 return await ctx.send("This track is too big to upload to discord.")
         if ctx.guild.premium_tier == 2:
             size = os.path.getsize(f"files/voice/{track_id}.mp3")
             if size >= 52428800:
+                os.remove(f"files/voice/{track_id}.mp3")
                 return await ctx.send("This track is too big to upload to discord.")
         if ctx.guild.premium_tier == 3:
             size = os.path.getsize(f"files/voice/{track_id}.mp3")
             if size >= 104857600:
+                os.remove(f"files/voice/{track_id}.mp3")
                 return await ctx.send("This track is too big to upload to discord.")
 
         await message.edit(content="Uploading track... <a:downloading:616426925350715393>")
@@ -796,20 +799,6 @@ class Music(commands.Cog):
         data = ytdl.extract_info(f"{ctx.player.current.uri}", download=False)
         ytdl.download([f"{ctx.player.current.uri}"])
         return data["title"], data["id"]
-
-    async def file_size_check(self, ctx, path):
-        if ctx.guild.premium_tier == 1 or ctx.guild.premium_tier == 0:
-            size = os.path.getsize(path)
-            if size >= 8388608:
-                return await ctx.send("This track is too big to upload to discord.")
-        if ctx.guild.premium_tier == 2:
-            size = os.path.getsize(path)
-            if size >= 52428800:
-                return await ctx.send("This track is too big to upload to discord.")
-        if ctx.guild.premium_tier == 3:
-            size = os.path.getsize(path)
-            if size >= 104857600:
-                return await ctx.send("This track is too big to upload to discord.")
 
 
 def setup(bot):
