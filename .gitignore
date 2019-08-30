@@ -2,7 +2,7 @@
 *.png
 *.mp3
 *.ini
-MrBot/config.py
+OldBot/config.py
 MrBot/logs/mrbot.log
 MrBot.ico
 MrBot2/config.py
