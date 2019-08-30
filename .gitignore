@@ -2,4 +2,5 @@
 *.png
 *.mp3
 *.ini
-
+OldBot/config.py
+MrBot/config.py
