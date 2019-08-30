@@ -72,15 +72,11 @@ class MrBot(commands.AutoShardedBot):
                 print(f"[EXT] Failed - {extension}")
 
     async def bot_start(self):
-        # Log into discord.
         await self.login(config.DISCORD_TOKEN)
-        # Connect to discord.
         await self.connect()
 
     async def bot_close(self):
-        # Log the bot out.
         await super().logout()
-        # Close the aiohttp session.
         await self.session.close()
 
     def run(self):
