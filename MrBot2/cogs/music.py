@@ -141,8 +141,10 @@ class Music(commands.Cog):
                     password=n["password"],
                     identifier=n["identifier"]
                 )
-            except: #andesite.InvalidCredentials:
+            except andesite.InvalidCredentials:
                 print(f"\n[ANDESITE] Invalid credentials for node {n['identifier']}.")
+            except ConnectionRefusedError:
+                print(f"Failed to connect to node {n['identifier']}")
             print(f"\n[ANDESITE] Node {n['identifier']} connected.")
 
     @commands.command(name="join", aliases=["connect"])
