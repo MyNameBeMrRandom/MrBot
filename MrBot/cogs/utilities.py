@@ -54,7 +54,7 @@ class Utilities(commands.Cog):
     @commands.command(name="system", aliases=["sys"])
     async def system(self, ctx):
         """
-        Get information acount the system the bot is running on.
+        Get information about the system the bot is running on.
         """
 
         process = psutil.Process()
@@ -80,7 +80,7 @@ class Utilities(commands.Cog):
     @commands.command(name="upvote")
     async def upvote(self, ctx):
         """
-        Get the bots upvote page.
+        Get a link to the bots upvote page.
         """
 
         embed = discord.Embed(
@@ -137,7 +137,7 @@ class Utilities(commands.Cog):
     @commands.command(name="ping")
     async def ping(self, ctx):
         """
-        Gets the bots pings.
+        Gets the bots ping.
         """
 
         typingms, latencyms, discordms, average = await utils.ping(ctx, self.bot)
@@ -178,7 +178,7 @@ class Utilities(commands.Cog):
     @commands.command(name="screenshare", aliases=["ss"])
     async def screenshare(self, ctx, channel: discord.VoiceChannel = None):
         """
-        Get a link that will allow to screenshare in the specified voice channel.
+        Get a link for screensharing in the specified voice channel.
 
         `channel`: The channel you want to screeshare in. Can be an ID, mention or name.
         """
@@ -193,9 +193,10 @@ class Utilities(commands.Cog):
     @commands.command(name="avatar")
     async def avatar(self, ctx, *, user: discord.Member = None):
         """
-        Get a users avatar.
+        Get yours or a specified users avatar.
 
-        `user`: The person who you want the avatar of. Can be an ID, mention or name.
+
+        `user`: The user who you want the avatar of. Can be an ID, mention or name.
         """
 
         # If the user didnt choose someone.
@@ -222,7 +223,7 @@ class Utilities(commands.Cog):
     @commands.command(name="serverinfo")
     async def serverinfo(self, ctx):
         """
-        Get information about the server.
+        Get information about the current server.
         """
 
         online, offline, idle, dnd = utils.guild_user_status_count(ctx.guild)
@@ -255,9 +256,9 @@ class Utilities(commands.Cog):
     @commands.command(name="userinfo")
     async def userinfo(self, ctx, *, user: discord.Member = None):
         """
-        Information about you, or a specified user.
+        Get information about you, or a specified user.
 
-        `user`: The person who you want information about. Can be an ID, mention or name.
+        `user`: The user who you want information about. Can be an ID, mention or name.
         """
 
         if not user:
