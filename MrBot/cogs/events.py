@@ -16,8 +16,8 @@ class Events(commands.Cog):
         print(f"[BOT] Joined a guild called `{guild.name}`")
 
         # Create a config for the guild.
-        if not await self.bot.pool.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id):
-            await self.bot.pool.execute("INSERT INTO guild_config VALUES ($1)", guild.id)
+        if not await self.bot.db.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id):
+            await self.bot.db.execute("INSERT INTO guild_config VALUES ($1)", guild.id)
             print(f"\n[DB] Created config for guild - {guild.name}.")
 
         # Try to update discord bot list guild count.
