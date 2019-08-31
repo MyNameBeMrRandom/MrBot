@@ -85,35 +85,30 @@ def embed_color(user):
 
 
 def user_activity(user):
-    try:
-        # If the user is offline they wont have an activity.
-        if user.status == discord.Status.offline:
-            return "N/A"
-        # If the user is doing nothing.
-        if not user.activity:
-            return "N/A"
-        activity = ""
-        if user.activity.type == discord.ActivityType.playing:
-            activity += f"Playing **{user.activity.name}**"
-            if not user.activity == discord.Game:
-                if user.activity.details:
-                    activity += f" ** - {user.activity.details}**"
-        if user.activity.type == discord.ActivityType.streaming:
-            activity += f"Streaming **[{user.activity.name}]({user.activity.url})**"
-        if user.activity.type == discord.ActivityType.watching:
-            activity += f"Watching **{user.activity.name}**"
-        if user.activity.type == discord.ActivityType.listening:
-            if user.activity.name == "Spotify":
-                activity += f"Listening to **{user.activity.title}** by **{user.activity.artist}**"
-                if user.activity.album:
-                    activity += f" from the album **{user.activity.album}**"
-            else:
-                activity += f"Listening to **{user.activity.name}**"
-        return activity
-    except AttributeError:
+    # If the user is offline they wont have an activity.
+    if user.status == discord.Status.offline:
         return "N/A"
-    except TypeError:
+    # If the user is doing nothing.
+    if not user.activity:
         return "N/A"
+    activity = ""
+    if user.activity.type == discord.ActivityType.playing:
+        activity += f"Playing **{user.activity.name}**"
+        if not isinstance(user.activity, discord.Game):
+            if user.activity.details:
+                activity += f" ** - {user.activity.details}**"
+    if user.activity.type == discord.ActivityType.streaming:
+        activity += f"Streaming **[{user.activity.name}]({user.activity.url})**"
+    if user.activity.type == discord.ActivityType.watching:
+        activity += f"Watching **{user.activity.name}**"
+    if user.activity.type == discord.ActivityType.listening:
+        if user.activity.name == "Spotify":
+            activity += f"Listening to **{user.activity.title}** by **{user.activity.artist}**"
+            if user.activity.album:
+                activity += f" from the album **{user.activity.album}**"
+        else:
+            activity += f"Listening to **{user.activity.name}**"
+    return activity
 
 
 def user_status(user):
