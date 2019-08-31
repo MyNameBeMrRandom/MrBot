@@ -191,7 +191,7 @@ class Utilities(commands.Cog):
         return await ctx.send(f"Clicking on this link while in the voice channel `{channel.name}` will start a guild screenshare in that channel.\n\n{link}")
 
     @commands.command(name="avatar")
-    async def avatar(self, ctx, user: discord.Member = None):
+    async def avatar(self, ctx, *, user: discord.Member = None):
         """
         Get a users avatar.
 
@@ -240,7 +240,7 @@ class Utilities(commands.Cog):
                                                                    f"<:dnd:608059261678911582>{dnd} |"
                                                                    f"<:offline:608059228191719424>{offline}\n"
                                                                    f"**Verification level:** {utils.guild_verification_level(ctx.guild)}\n"
-                                                                   f"**Content filter level:** {utils.guild_content_filter_level(ctx.guild)}"
+                                                                   f"**Content filter level:** {utils.guild_content_filter_level(ctx.guild)}\n"
                                                                    f"**2FA:** {utils.guild_mfa_level(ctx.guild)}\n", inline=False)
         embed.add_field(name="__**Channels:**__", value=f"**Text channels:** {len(ctx.guild.text_channels)}\n"
                                                         f"**Voice channels:** {len(ctx.guild.voice_channels)}\n"
@@ -253,7 +253,7 @@ class Utilities(commands.Cog):
         return await ctx.send(embed=embed)
 
     @commands.command(name="userinfo")
-    async def userinfo(self, ctx, user: discord.Member = None):
+    async def userinfo(self, ctx, *, user: discord.Member = None):
         """
         Information about you, or a specified user.
 
@@ -262,6 +262,7 @@ class Utilities(commands.Cog):
 
         if not user:
             user = ctx.author
+        user = ctx.guild.get_member(user.id)
         embed = discord.Embed(
             colour=utils.embed_color(user),
             title=f"{user.name}'s Stats and Information."
