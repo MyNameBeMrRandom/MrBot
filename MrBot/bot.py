@@ -35,6 +35,7 @@ os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 
 extensions = [
+    "cogs.background",
     "cogs.utilities",
     "cogs.events",
     "cogs.music",
@@ -43,7 +44,7 @@ extensions = [
 ]
 
 
-class MrBot(commands.AutoShardedBot):
+class MrBot(commands.Bot):
 
     def __init__(self):
         super().__init__(
