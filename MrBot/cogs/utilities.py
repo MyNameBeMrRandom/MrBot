@@ -91,6 +91,7 @@ class Utilities(commands.Cog):
         embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=424637852035317770, cert=utils.random_colour()))
         await ctx.send(embed=embed)
 
+    @commands.is_owner()
     @commands.command(name="usage", hidden=True)
     async def usage(self, ctx):
         """
