@@ -21,11 +21,9 @@ class ListPaginator:
             "\u23f9": self.stop
         }
 
-        # Send the message for the first page.
-        print(self.title)
+        # If the title is not set.
         if self.title is None:
             self.title = f"There are `{len(self.org_entries)}` entries in this list and I am showing `{self.entries_per_page}` entries per page."
-        print(self.title)
 
     async def react(self):
         # If the amount of pages is bigger then 1, add the full range of emotes to the message.
