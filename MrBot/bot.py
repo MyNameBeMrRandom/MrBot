@@ -55,8 +55,8 @@ class MrBot(commands.Bot):
             command_prefix=commands.when_mentioned_or(config.DISCORD_PREFIX),
             reconnect=True,
         )
-        self.dblpy = dbl.DBLClient(self, config.DBL_TOKEN, webhook_path="/dblwebhook", webhook_auth=f"{config.DBL_TOKEN}", webhook_port=5000)
-        self.spotify = spotify.Client(client_id="83d102f97a1945b7bba96e029a20af40", client_secret="f791bed9077b452cbe4e07a9111ae031")
+        self.dblpy = dbl.DBLClient(self, config.DBL_TOKEN, webhook_path="/dblwebhook", webhook_auth=config.DBL_TOKEN, webhook_port=5000)
+        self.spotify = spotify.Client(client_id=config.SPOTIFY_CLIENT_ID, client_secret=config.SPOTIFY_CLIENT_SECRET)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.loop = asyncio.get_event_loop()
         self.config = config
