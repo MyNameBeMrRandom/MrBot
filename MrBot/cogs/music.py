@@ -5,6 +5,7 @@ from .utils import formatting
 import itertools
 import andesite
 import discord
+import spotify
 import random
 import config
 import os
@@ -234,6 +235,26 @@ class Music(commands.Cog):
         track = tracks[0]
         await ctx.player.queue.put(Track(track.id, track.data, ctx=ctx))
         return await ctx.send(f"Added the track **{track.title}** to the queue.")
+
+    @commands.command(name="search")
+    async def search(self, ctx, *, search: str):
+        """
+        Search for a track using a link or search query.
+
+        `search`: will default to a Youtube search however it also accepts links from SoundCloud and Twitch.
+        """
+
+        # Trigger typing.
+        await ctx.trigger_typing()
+
+        # Get a list of all the tracks for the users search term.
+        tracks = await ctx.player.node.get_tracks(f"{search}")
+
+        # If there were no tracks.
+        if not tracks:
+            return await ctx.send(f"No results were found for the search term `{search}`.")
+
+        return await ctx.lpaginate(title=f"Search results for the term `{search}`\n\n", entries=tracks, entries_per_page=10)
 
     @commands.command(name="pause")
     async def pause(self, ctx):
@@ -799,7 +820,6 @@ class Music(commands.Cog):
         # Move it the chose position.
         await ctx.player.queue.put_pos(Track(track.id, track.data, ctx=ctx), entry_2 - 1)
         return await ctx.send(f"Moved `{item}` from position `{entry_1}` to position `{entry_2}`.")
-
 
 
 def setup(bot):

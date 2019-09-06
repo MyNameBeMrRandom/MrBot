@@ -19,7 +19,7 @@ see <https://www.gnu.org/licenses/>.
 # noinspection PyUnresolvedReferences
 from cogs.music import Player
 # noinspection PyUnresolvedReferences
-from cogs.utils.paginator import ListPaginator
+from cogs.utils.paginator import ListPaginator, EmbedPaginator
 from discord.ext import commands
 import asyncpg
 import discord
@@ -179,6 +179,38 @@ class MyContext(commands.Context):
 
         # Start pagination
         paginator = ListPaginator(ctx=self, title=title, org_entries=entries, entries=c_entries, entries_per_page=entries_per_page, pages=pages)
+        return await paginator.paginate()
+
+    async def epaginate(self, **kwargs):
+        # Get the aruguements.
+        title = kwargs.get("title")
+        entries = kwargs.get("entries")
+        entries_per_page = kwargs.get("entries_per_page")
+
+        # Calculate the amount of pages we will need and round it up.
+        pages = math.ceil(len(entries) / entries_per_page)
+
+        # Define a new list to store the "combined" entries
+        c_entries = []
+
+        # Create a loop for going through each page.
+        for i in range(pages):
+
+            # Define a new entry for us to add amount of "entries_per_page" of entries to.
+            new_entry = ""
+
+            # Add one to the page loop so that the next step works lmao.
+            i += 1
+
+            # Loop through the entries, getting the first amount of "entries_per_page" and then the next amount of "entries_per_page" in next page cycle.
+            for entry in entries[entries_per_page * i - entries_per_page:entries_per_page * i]:
+                new_entry += f"{entry}\n"
+
+            # Append the new entry to the "combined" entry list
+            c_entries.append(new_entry)
+
+        # Start pagination
+        paginator = EmbedPaginator(ctx=self, title=title, org_entries=entries, entries=c_entries, entries_per_page=entries_per_page, pages=pages)
         return await paginator.paginate()
 
 
