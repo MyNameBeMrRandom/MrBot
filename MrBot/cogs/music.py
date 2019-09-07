@@ -160,7 +160,7 @@ class Music(commands.Cog):
         channel = ctx.author.voice.channel
 
         # If the player is not already connected.
-        if not ctx.player.is_connected:
+        if not ctx.player.is_connected or not ctx.guild.me.voice.channel:
             # Join the channel.
             await ctx.player.connect(channel.id)
             return await ctx.send(f"Joined the voice channel `{channel}`")
