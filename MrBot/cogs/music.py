@@ -236,26 +236,6 @@ class Music(commands.Cog):
         await ctx.player.queue.put(Track(track.id, track.data, ctx=ctx))
         return await ctx.send(f"Added the track **{track.title}** to the queue.")
 
-    @commands.command(name="search")
-    async def search(self, ctx, *, search: str):
-        """
-        Search for a track using a link or search query.
-
-        `search`: will default to a Youtube search however it also accepts links from SoundCloud and Twitch.
-        """
-
-        # Trigger typing.
-        await ctx.trigger_typing()
-
-        # Get a list of all the tracks for the users search term.
-        tracks = await ctx.player.node.get_tracks(f"{search}")
-
-        # If there were no tracks.
-        if not tracks:
-            return await ctx.send(f"No results were found for the search term `{search}`.")
-
-        return await ctx.lpaginate(title=f"Search results for the term `{search}`\n\n", entries=tracks, entries_per_page=10)
-
     @commands.command(name="pause")
     async def pause(self, ctx):
         """
