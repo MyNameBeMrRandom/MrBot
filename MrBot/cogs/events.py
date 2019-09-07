@@ -1,4 +1,5 @@
 from discord.ext import commands
+from .utils import exceptions
 from .utils import formatting
 import traceback
 import discord
@@ -92,6 +93,8 @@ class Events(commands.Cog):
                 return await ctx.send(f"The command `{ctx.command}` is on cooldown for the whole bot, retry in `{formatting.get_time_friendly(error.retry_after)}`.")
             if error.cooldown.type == commands.BucketType.guild:
                 return await ctx.send(f"The command `{ctx.command}` is on cooldown for this guild, retry in `{formatting.get_time_friendly(error.retry_after)}`.")
+        if isinstance(error, exceptions.WrongGuild):
+            return await ctx.send("This command can not be used in this guild.")
 
         # Print the error and traceback if it doesnt match any of the above.
         print(f"Ignoring exception in command {ctx.command}:")
