@@ -33,7 +33,7 @@ def linecount():
     return file_amount, functions, comments, lines
 
 
-async def ping(ctx, bot):
+async def ping(bot, ctx):
     # Define variables.
     pings = []
     number = 0
