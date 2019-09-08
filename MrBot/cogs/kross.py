@@ -153,7 +153,7 @@ class KrossServer(commands.Cog):
                 return await self.refresh_points(ctx)
             else:
                 return await ctx.send("That operation was not recognised.")
-        elif house == "leviatham":
+        elif house == "leviathan":
             data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "leviathan")
             if operation == "add":
                 await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", data["points"] + points, "leviathan")
