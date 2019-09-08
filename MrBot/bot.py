@@ -39,13 +39,15 @@ os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 
 extensions = [
-    "cogs.background",
     "cogs.utilities",
-    "cogs.events",
-    "cogs.kross",
     "cogs.music",
+    "cogs.images",
+    "cogs.kross",
     "cogs.help",
-    "jishaku"
+    "jishaku",
+
+    "cogs.background",
+    "cogs.events",
 ]
 
 
