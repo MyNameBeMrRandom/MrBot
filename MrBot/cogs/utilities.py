@@ -23,7 +23,7 @@ class Utilities(commands.Cog):
         """
 
         # Get bot information.
-        typingms, latencyms, discordms, average = await utils.ping(ctx, self.bot)
+        typingms, latencyms, discordms, average = await utils.ping(self.bot, ctx)
         files, functions, comments, lines = utils.linecount()
         uptime = time.time() - start_time
 
