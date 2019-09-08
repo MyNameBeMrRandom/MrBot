@@ -41,10 +41,12 @@ os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 extensions = [
     "cogs.utilities",
     "cogs.music",
-    "cogs.images",
     "cogs.kross",
     "cogs.help",
     "jishaku",
+
+    "cogs.accounts",
+    "cogs.images",
 
     "cogs.background",
     "cogs.events",
