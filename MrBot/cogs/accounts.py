@@ -79,7 +79,7 @@ class Accounts(commands.Cog):
         return await ctx.send(content=f"Your current background is `{data['background']}`.", file=discord.File(filename=f"{data['background']}.png", fp=f"files/images/backgrounds/{data['background']}.png"))
 
     @commands.command(name="bg_change", aliases=["bgc"])
-    async def bg_change(self, ctx, new_background: str = None):
+    async def background_change(self, ctx, new_background: str = None):
         """
         Change your background to the one specified.
 
@@ -140,6 +140,6 @@ class Accounts(commands.Cog):
             await self.bot.db.execute(f"UPDATE user_config SET background = $1 WHERE key = $2", str(ctx.author.id), ctx.author.id)
             return await ctx.send(f"Your background was changed from `{data['background']}` to `{ctx.author.id}`.")
 
-
+    
 def setup(bot):
     bot.add_cog(Accounts(bot))
