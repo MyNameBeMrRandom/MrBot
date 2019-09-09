@@ -140,6 +140,6 @@ class Accounts(commands.Cog):
             await self.bot.db.execute(f"UPDATE user_config SET background = $1 WHERE key = $2", str(ctx.author.id), ctx.author.id)
             return await ctx.send(f"Your background was changed from `{data['background']}` to `{ctx.author.id}`.")
 
-    
+
 def setup(bot):
     bot.add_cog(Accounts(bot))
