@@ -42,11 +42,12 @@ extensions = [
     "cogs.utilities",
     "cogs.music",
     "cogs.kross",
-    "cogs.help",
-    "jishaku",
 
     "cogs.accounts",
     "cogs.images",
+
+    "cogs.help",
+    "jishaku",
 
     "cogs.background",
     "cogs.events",

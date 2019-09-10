@@ -76,13 +76,13 @@ def do_imageinfo(data, member, avatar_bytes):
     background_img = round_image(background_img, 100)
 
     # Save the image into a bytesio stream
-    final_buffer = BytesIO()
-    background_img.save(final_buffer, "png")
+    imginfo = BytesIO()
+    background_img.save(imginfo, "png")
 
     # Close images.
     background_img.close()
     avatar_img.close()
 
-    # Return images
-    final_buffer.seek(0)
-    return final_buffer
+    # Return image
+    imginfo.seek(0)
+    return imginfo
