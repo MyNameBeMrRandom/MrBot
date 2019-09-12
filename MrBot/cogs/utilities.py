@@ -141,7 +141,7 @@ class Utilities(commands.Cog):
         Gets the bots ping.
         """
 
-        typingms, latencyms, discordms, average = await utils.ping(ctx, self.bot)
+        typingms, latencyms, discordms, average = await utils.ping(self.bot, ctx)
         return await ctx.send(f"**Typing:** {typingms}ms\n**Latency:** {latencyms}ms\n"
                               f"**Discord:** {discordms}ms\n**Average:** {average}ms")
 

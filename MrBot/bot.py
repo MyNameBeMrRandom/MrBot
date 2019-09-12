@@ -21,7 +21,7 @@ from cogs.music import Player
 # noinspection PyUnresolvedReferences
 from cogs.utils.paginator import ListPaginator, EmbedPaginator
 # noinspection PyUnresolvedReferences
-from cogs.utils.osu.osu import OsuClient
+from aiOsu import OsuClient
 
 from discord.ext import commands
 import andesite

@@ -36,6 +36,6 @@ class Api(commands.Cog):
                              f"**Time played:** {formatting.get_time_friendly(user.total_seconds_played)}\n"
         return await ctx.send(embed=embed)
 
-9
+
 def setup(bot):
     bot.add_cog(Api(bot))

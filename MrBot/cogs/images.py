@@ -15,7 +15,7 @@ class Images(commands.Cog):
     @commands.command(name="imginfo")
     async def imginfo(self, ctx, *, member: discord.Member = None):
         """
-        Generate an image with information abount you and your account.
+        Generate an image with information about you and your account.
         """
 
         if not member:
