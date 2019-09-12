@@ -120,7 +120,6 @@ class Music(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.bot.andesite = andesite.Client(bot)
         self.bot.loop.create_task(self.initiate_nodes())
 
     async def initiate_nodes(self):
