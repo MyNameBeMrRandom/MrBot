@@ -35,3 +35,6 @@ LOG_CHANNEL_ID = 000000000000000000
 # Spotify api keys
 SPOTIFY_CLIENT_ID = ""
 SPOTIFY_CLIENT_SECRET = ""
+
+# Osu api key
+OSU_API = ""
