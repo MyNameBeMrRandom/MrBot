@@ -20,12 +20,15 @@ see <https://www.gnu.org/licenses/>.
 from cogs.music import Player
 # noinspection PyUnresolvedReferences
 from cogs.utils.paginator import ListPaginator, EmbedPaginator
+# noinspection PyUnresolvedReferences
+from cogs.utils.osu.osu import OsuClient
+
 from discord.ext import commands
+import andesite
 import asyncpg
 import discord
 import asyncio
 import aiohttp
-import spotify
 import config
 import math
 import dbl
@@ -46,6 +49,8 @@ extensions = [
     "cogs.accounts",
     "cogs.images",
 
+    "cogs.api",
+
     "cogs.help",
     "jishaku",
 
@@ -61,16 +66,21 @@ class MrBot(commands.Bot):
             command_prefix=commands.when_mentioned_or(config.DISCORD_PREFIX),
             reconnect=True,
         )
-        self.dblpy = dbl.DBLClient(self, config.DBL_TOKEN, webhook_path="/dblwebhook", webhook_auth=config.DBL_TOKEN, webhook_port=5000)
-        self.spotify = spotify.Client(client_id=config.SPOTIFY_CLIENT_ID, client_secret=config.SPOTIFY_CLIENT_SECRET)
-        self.session = aiohttp.ClientSession(loop=self.loop)
         self.loop = asyncio.get_event_loop()
+        self.session = aiohttp.ClientSession(loop=self.loop)
         self.config = config
+
         self.status_channel = None
         self.log_channel = None
-        self.db_ready = False
+
         self.db = None
+        self.db_ready = False
+
         self.usage = {}
+
+        self.andesite = andesite.Client(self)
+        self.dblpy = dbl.DBLClient(self, config.DBL_TOKEN, webhook_path="/dblwebhook", webhook_auth=config.DBL_TOKEN, webhook_port=5000)
+        self.osu = OsuClient(config.OSU_API, session=self.session, loop=self.loop)
 
         # Load extensions
         for extension in extensions:
