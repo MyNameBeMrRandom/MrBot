@@ -15,6 +15,7 @@ import speech_recognition as sr
 import wave
 from discord.opus import Decoder
 import asyncio
+import copy
 
 ytdlopts = {
     'format': 'bestaudio',
