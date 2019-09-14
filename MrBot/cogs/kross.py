@@ -117,68 +117,115 @@ class KrossServer(commands.Cog):
                   f"```"
         return await ctx.send(message)
 
-    @commands.command(name="points", aliases=["p"], hidden=True)
+    @commands.group(name="points", aliases=["p"], hidden=True, invoke_without_command=True)
     @commands.has_role(548604302768209920)
-    async def points(self, ctx, house: str, operation: str, points: int):
+    async def points(self, ctx):
         """
-        Add/remove points to/from a house.
-
-        This only works in a specific server.
-        `house`: What house to add/remove points to/from. Can be `phoenix`, `leviathan`, `kodama` or `sylph`.
-        `operation`: Wheter to add or remove points. Can be `add` or `minus`.
-        `points`: The amount of points to add/remove. Can be any number.
+        Displays a list of how many points each house has.
         """
+        data = await self.bot.db.fetch("SELECT * FROM kross_config")
+        leviathan = data[0]["points"]
+        sylph = data[1]["points"]
+        kodama = data[2]["points"]
+        phoenix = data[3]["points"]
+        return await ctx.send(f"```py\n"
+                              f"Leviathan: {' ' * int((11 - 10))} {leviathan}\n"
+                              f"Sylph: {' ' * int((11 - 6))} {sylph}\n"
+                              f"Kodama: {' ' * int((11 - 7))} {kodama}\n"
+                              f"Phoenix: {' ' * int((11 - 8))} {phoenix}\n"
+                              f"```")
 
-        if house == "kodama":
-            data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "kodama")
-            if operation == "add":
-                await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", data["points"] + points, "kodama")
-                await ctx.send(f"Added `{points}` points to house Kodama. They now have `{data['points'] + points}` points!")
-                return await self.refresh_points(ctx)
-            elif operation == "minus":
-                await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", data["points"] - points, "kodama")
-                await ctx.send(f"Removed `{points}` points from house Kodama. They now have `{data['points'] - points}` points!")
-                return await self.refresh_points(ctx)
-            else:
-                return await ctx.send("That operation was not recognised.")
-        elif house == "phoenix":
-            data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "phoenix")
-            if operation == "add":
-                await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", data["points"] + points, "phoenix")
-                await ctx.send(f"Added `{points}` points to house Phoenix. They now have `{data['points'] + points}` points!")
-                return await self.refresh_points(ctx)
-            elif operation == "minus":
-                await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", data["points"] - points, "phoenix")
-                await ctx.send(f"Removed `{points}` points from house Phoenix. They now have `{data['points'] - points}` points!")
-                return await self.refresh_points(ctx)
-            else:
-                return await ctx.send("That operation was not recognised.")
-        elif house == "leviathan":
-            data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "leviathan")
-            if operation == "add":
-                await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", data["points"] + points, "leviathan")
-                await ctx.send(f"Added `{points}` points to house Leviathan. They now have `{data['points'] + points}` points!")
-                return await self.refresh_points(ctx)
-            elif operation == "minus":
-                await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", data["points"] - points, "leviathan")
-                await ctx.send(f"Removed `{points}` points from house Leviathan. They now have `{data['points'] - points}` points!")
-                return await self.refresh_points(ctx)
-            else:
-                return await ctx.send("That operation was not recognised.")
-        elif house == "sylph":
-            data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "sylph")
-            if operation == "add":
-                await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", data["points"] + points, "sylph")
-                await ctx.send(f"Added `{points}` points to house Sylph. They now have `{data['points'] + points}` points!")
-                return await self.refresh_points(ctx)
-            elif operation == "minus":
-                await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", data["points"] - points, "sylph")
-                await ctx.send(f"Removed `{points}` points from house Sylph. They now have `{data['points'] - points}` points!")
-                return await self.refresh_points(ctx)
-            else:
-                return await ctx.send("That operation was not recognised.")
-        else:
-            return await ctx.send("That house wasn't recognised.")
+    @points.group(name="leviathan", invoke_without_command=True)
+    async def points_leviathan(self, ctx):
+        """
+        Points commands for leviathan.
+        """
+        return await ctx.send("Please specify an operation, `add` or `minus`.")
+
+    @points_leviathan.command(name="add")
+    async def points_leviathan_add(self, ctx, points: int):
+        data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "leviathan")
+        points_new = data["points"] + points
+        await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", points_new, "leviathan")
+        await ctx.send(f"Added `{points}` points to house Leviathan. They now have `{points_new}` points!")
+        return await self.refresh_points(ctx)
+
+    @points_leviathan.command(name="minus", aliases=["subtract", "remove"])
+    async def points_leviathan_minus(self, ctx, points: int):
+        data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "leviathan")
+        points_new = data["points"] - points
+        await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", points_new, "leviathan")
+        await ctx.send(f"Removed `{points}` points from house Leviathan. They now have `{points_new}` points!")
+        return await self.refresh_points(ctx)
+
+    @points.group(name="phoenix", invoke_without_command=True)
+    async def points_phoenix(self, ctx):
+        """
+        Points commands for phoenix.
+        """
+        return await ctx.send("Please specify an operation, `add` or `minus`.")
+
+    @points_phoenix.command(name="add")
+    async def points_phoenix_add(self, ctx, points: int):
+        data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "phoenix")
+        points_new = data["points"] + points
+        await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", points_new, "phoenix")
+        await ctx.send(f"Added `{points}` points to house Phoenix. They now have `{points_new}` points!")
+        return await self.refresh_points(ctx)
+
+    @points_phoenix.command(name="minus", aliases=["subtract", "remove"])
+    async def points_phoenix_minus(self, ctx, points: int):
+        data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "phoenix")
+        points_new = data["points"] - points
+        await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", points_new, "phoenix")
+        await ctx.send(f"Removed `{points}` points from house Phoenix. They now have `{points_new}` points!")
+        return await self.refresh_points(ctx)
+
+    @points.group(name="kodama", invoke_without_command=True)
+    async def points_kodama(self, ctx):
+        """
+        Points commands for kodama.
+        """
+        return await ctx.send("Please specify an operation, `add` or `minus`.")
+
+    @points_kodama.command(name="add")
+    async def points_kodama_add(self, ctx, points: int):
+        data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "kodama")
+        points_new = data["points"] + points
+        await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", points_new, "kodama")
+        await ctx.send(f"Added `{points}` points to house Kodama. They now have `{points_new}` points!")
+        return await self.refresh_points(ctx)
+
+    @points_kodama.command(name="minus", aliases=["subtract", "remove"])
+    async def points_kodama_minus(self, ctx, points: int):
+        data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "kodama")
+        points_new = data["points"] - points
+        await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", points_new, "kodama")
+        await ctx.send(f"Removed `{points}` points from house Kodama. They now have `{points_new}` points!")
+        return await self.refresh_points(ctx)
+
+    @points.group(name="sylph", invoke_without_command=True)
+    async def points_sylph(self, ctx):
+        """
+        Points commands for sylph.
+        """
+        return await ctx.send("Please specify an operation, `add` or `minus`.")
+
+    @points_sylph.command(name="add")
+    async def points_sylph_add(self, ctx, points: int):
+        data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "sylph")
+        points_new = data["points"] + points
+        await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", points_new, "sylph")
+        await ctx.send(f"Added `{points}` points to house Sylph. They now have `{points_new}` points!")
+        return await self.refresh_points(ctx)
+
+    @points_sylph.command(name="minus", aliases=["subtract", "remove"])
+    async def points_sylph_minus(self, ctx, points: int):
+        data = await self.bot.db.fetchrow("SELECT * FROM kross_config WHERE key = $1", "sylph")
+        points_new = data["points"] - points
+        await self.bot.db.execute(f"UPDATE kross_config SET points = $1 WHERE key = $2", points_new, "sylph")
+        await ctx.send(f"Removed `{points}` points from house Sylph. They now have `{points_new}` points!")
+        return await self.refresh_points(ctx)
 
     async def refresh_points(self, ctx):
         channel = self.bot.get_channel(547156691985104896)
@@ -197,7 +244,7 @@ class KrossServer(commands.Cog):
             await sm.edit(content=f"Sylph has {sylph['points']} points!")
             await ctx.send(f"Refreshed the points leaderboard in {channel.mention}")
         except discord.Forbidden:
-            return
+            return await ctx.send("Wrong bot.")
 
 
 def setup(bot):

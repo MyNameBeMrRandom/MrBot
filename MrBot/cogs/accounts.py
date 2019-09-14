@@ -14,7 +14,7 @@ class Accounts(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(name="account", aliases=["profile"], invoke_without_command=True)
+    @commands.group(name="account", aliases=["profile"])
     async def account(self, ctx):
         """
         Get information about your account.
@@ -65,7 +65,7 @@ class Accounts(commands.Cog):
         await self.bot.db.execute(f"DELETE FROM user_config WHERE key = $1", ctx.author.id)
         return await ctx.send("Deleted your account.")
 
-    @commands.group(name="background", aliases=["bg"])
+    @commands.command(name="background", aliases=["bg"])
     async def background(self, ctx):
         """
         Get your current background.
@@ -78,7 +78,7 @@ class Accounts(commands.Cog):
         # Get current background and upload picture of it.
         return await ctx.send(content=f"Your current background is `{data['background']}`.", file=discord.File(filename=f"{data['background']}.png", fp=f"files/images/backgrounds/{data['background']}.png"))
 
-    @background.group(name="change", aliases=["c"])
+    @commands.command(name="background_change", aliases=["bgc"])
     async def background_change(self, ctx, new_background: str = None):
         """
         Change your background to the one specified.
