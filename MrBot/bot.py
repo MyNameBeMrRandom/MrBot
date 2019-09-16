@@ -19,7 +19,7 @@ see <https://www.gnu.org/licenses/>.
 # noinspection PyUnresolvedReferences
 from cogs.music import Player
 # noinspection PyUnresolvedReferences
-from cogs.utils.paginator import ListPaginator, EmbedPaginator
+from cogs.utils.paginator import ListPaginator, EmbedPaginator, ListEmbedPaginator
 # noinspection PyUnresolvedReferences
 from aiOsu import OsuClient
 
@@ -165,7 +165,7 @@ class MyContext(commands.Context):
     def player(self):
         return self.bot.andesite.get_player(self.guild.id, cls=Player)
 
-    async def lpaginate(self, **kwargs):
+    async def paginate_list(self, **kwargs):
         # Get the aruguements.
         title = kwargs.get("title")
         entries = kwargs.get("entries")
@@ -197,7 +197,7 @@ class MyContext(commands.Context):
         paginator = ListPaginator(ctx=self, title=title, org_entries=entries, entries=c_entries, entries_per_page=entries_per_page, pages=pages)
         return await paginator.paginate()
 
-    async def epaginate(self, **kwargs):
+    async def paginate_list_embed(self, **kwargs):
         # Get the aruguements.
         title = kwargs.get("title")
         entries = kwargs.get("entries")
@@ -226,7 +226,17 @@ class MyContext(commands.Context):
             c_entries.append(new_entry)
 
         # Start pagination
-        paginator = EmbedPaginator(ctx=self, title=title, org_entries=entries, entries=c_entries, entries_per_page=entries_per_page, pages=pages)
+        paginator = ListEmbedPaginator(ctx=self, title=title, org_entries=entries, entries=c_entries, entries_per_page=entries_per_page, pages=pages)
+        return await paginator.paginate()
+
+    async def paginate_embeds(self, **kwargs):
+        # Get the aruguements.
+        entries = kwargs.get("entries")
+        pages = len(entries)
+
+        paginator = EmbedPaginator(ctx=self, entries=entries, pages=pages)
+
+        # Start pagination
         return await paginator.paginate()
 
 
