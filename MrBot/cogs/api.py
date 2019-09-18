@@ -1,5 +1,6 @@
 from discord.ext import commands
 from .utils import formatting
+from aiOsu import OsuClient
 import discord
 import typing
 
@@ -11,6 +12,7 @@ class Api(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.bot.osu = OsuClient(self.bot.config.OSU_API, session=self.bot.session, loop=self.bot.loop)
 
     @commands.group(name="osu", invoke_without_command=True)
     async def osu(self, ctx):

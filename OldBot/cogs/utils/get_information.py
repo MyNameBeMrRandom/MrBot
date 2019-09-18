@@ -53,7 +53,7 @@ def linecount():
                         if l.strip().startswith('async def') or l.strip().startswith('async'):
                             functions += 1
                         if len(l.strip()) is 0:
-                            pass
+                            continue
                         else:
                             lines += 1
     return file_amount, comments, lines, functions

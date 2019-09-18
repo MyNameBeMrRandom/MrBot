@@ -27,7 +27,7 @@ def linecount():
                         if l.strip().startswith("async def") or l.strip().startswith("async"):
                             functions += 1
                         if len(l.strip()) is 0:
-                            pass
+                            continue
                         else:
                             lines += 1
     return file_amount, functions, comments, lines
@@ -94,9 +94,8 @@ def user_activity(user):
     activity = ""
     if user.activity.type == discord.ActivityType.playing:
         activity += f"Playing **{user.activity.name}**"
-        if not isinstance(user.activity, discord.Game):
-            if user.activity.details:
-                activity += f" ** - {user.activity.details}**"
+        if not isinstance(user.activity, discord.Game) and user.activity.details:
+            activity += f" ** - {user.activity.details}**"
     if user.activity.type == discord.ActivityType.streaming:
         activity += f"Streaming **[{user.activity.name}]({user.activity.url})**"
     if user.activity.type == discord.ActivityType.watching:
