@@ -1,5 +1,5 @@
 from discord.ext import commands
-from .utils import images
+from .utils import imageOps
 import asyncpg
 import discord
 import re
@@ -115,8 +115,8 @@ class Accounts(commands.Cog):
                 return await ctx.send("That was not a valid URL. It must be a PNG or JPEG image.")
 
             # Get the image, resize it, and save it.
-            background_bytes = await images.get_image(self.bot, new_background)
-            background_resized = await self.bot.loop.run_in_executor(None, images.resize_image, background_bytes, 1000, 1000)
+            background_bytes = await imageOps.get_image(self.bot, new_background)
+            background_resized = await self.bot.loop.run_in_executor(None, imageOps.resize_image, background_bytes, 1000, 1000)
             background_resized.save(f"files/images/backgrounds/{ctx.author.id}.png")
 
             # Set the users background to that image.
@@ -132,8 +132,8 @@ class Accounts(commands.Cog):
                 return await ctx.send("That was not a valid attachment. It must be a PNG or JPEG image.")
 
             # Get the image, resize it, and save it.
-            background_bytes = await images.get_image(self.bot, url)
-            background_resized = await self.bot.loop.run_in_executor(None, images.resize_image, background_bytes, 1000, 1000)
+            background_bytes = await imageOps.get_image(self.bot, url)
+            background_resized = await self.bot.loop.run_in_executor(None, imageOps.resize_image, background_bytes, 1000, 1000)
             background_resized.save(f"files/images/backgrounds/{ctx.author.id}.png")
 
             # Set the users background to that image.

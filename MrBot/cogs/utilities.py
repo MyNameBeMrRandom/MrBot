@@ -1,6 +1,6 @@
 from discord.ext import commands
 from .utils import formatting
-from .utils import utils
+from .utils import botUtils
 import discord
 import inspect
 import psutil
@@ -16,15 +16,15 @@ class Utilities(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="info", aliases=["about"])
-    async def info(self, ctx):
+    @commands.command(name="about", aliases=["info"])
+    async def about(self, ctx):
         """
         Get information about the bot.
         """
 
         # Get bot information.
-        typingms, latencyms, discordms, average = await utils.ping(self.bot, ctx)
-        files, functions, comments, lines = utils.linecount()
+        typingms, latencyms, discordms, average = await botUtils.ping(self.bot, ctx)
+        files, functions, comments, lines = botUtils.linecount()
         uptime = time.time() - start_time
 
         # Create embed
@@ -34,7 +34,7 @@ class Utilities(commands.Cog):
         embed.set_author(icon_url=self.bot.user.avatar_url_as(format="png"), name=f"{self.bot.user.name}'s Info")
         embed.set_thumbnail(url=self.bot.user.avatar_url_as(format="png"))
         embed.set_footer(text=f"ID: {self.bot.user.id}")
-        embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=424637852035317770, cert=utils.random_colour()))
+        embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=424637852035317770, cert=botUtils.random_colour()))
         embed.add_field(name="__**Bot info:**__", value=f"**Uptime:** {formatting.get_time_friendly(uptime)}\n"
                                                         f"**Total users:** {len(self.bot.users)}\n"
                                                         f"**Guilds:** {len(self.bot.guilds)}\n")
@@ -88,7 +88,7 @@ class Utilities(commands.Cog):
             description=f"[Click here](https://discordbots.org/bot/424637852035317770/vote) to upvote and then do "
                         f"`{ctx.prefix} daily` to claim your reward."
         )
-        embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=424637852035317770, cert=utils.random_colour()))
+        embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=424637852035317770, cert=botUtils.random_colour()))
         await ctx.send(embed=embed)
 
     @commands.is_owner()
@@ -129,7 +129,7 @@ class Utilities(commands.Cog):
         Get information about the bots code.
         """
 
-        files, functions, comments, lines = utils.linecount()
+        files, functions, comments, lines = botUtils.linecount()
         return await ctx.send(f"**Comments:** {comments}\n"
                               f"**Functions:** {functions}\n"
                               f"**Lines:** {lines}\n"
@@ -141,7 +141,7 @@ class Utilities(commands.Cog):
         Gets the bots ping.
         """
 
-        typingms, latencyms, discordms, average = await utils.ping(self.bot, ctx)
+        typingms, latencyms, discordms, average = await botUtils.ping(self.bot, ctx)
         return await ctx.send(f"**Typing:** {typingms}ms\n**Latency:** {latencyms}ms\n"
                               f"**Discord:** {discordms}ms\n**Average:** {average}ms")
 
@@ -227,7 +227,7 @@ class Utilities(commands.Cog):
         Get information about the current server.
         """
 
-        online, offline, idle, dnd = utils.guild_user_status_count(ctx.guild)
+        online, offline, idle, dnd = botUtils.guild_user_status_count(ctx.guild)
         embed = discord.Embed(
             colour=0xFF0000,
             title=f"{ctx.guild.name}'s Stats and Information."
@@ -241,12 +241,12 @@ class Utilities(commands.Cog):
                                                                    f"<:idle:608059272923709441>{idle} |"
                                                                    f"<:dnd:608059261678911582>{dnd} |"
                                                                    f"<:offline:608059228191719424>{offline}\n"
-                                                                   f"**Verification level:** {utils.guild_verification_level(ctx.guild)}\n"
-                                                                   f"**Content filter level:** {utils.guild_content_filter_level(ctx.guild)}\n"
-                                                                   f"**2FA:** {utils.guild_mfa_level(ctx.guild)}\n", inline=False)
+                                                                   f"**Verification level:** {botUtils.guild_verification_level(ctx.guild)}\n"
+                                                                   f"**Content filter level:** {botUtils.guild_content_filter_level(ctx.guild)}\n"
+                                                                   f"**2FA:** {botUtils.guild_mfa_level(ctx.guild)}\n", inline=False)
         embed.add_field(name="__**Channels:**__", value=f"**Text channels:** {len(ctx.guild.text_channels)}\n"
                                                         f"**Voice channels:** {len(ctx.guild.voice_channels)}\n"
-                                                        f"**Voice region:** {utils.guild_region(ctx.guild)}\n"
+                                                        f"**Voice region:** {botUtils.guild_region(ctx.guild)}\n"
                                                         f"**AFK timeout:** {int(ctx.guild.afk_timeout/60)} minutes\n"
                                                         f"**AFK channel:** {ctx.guild.afk_channel}\n", inline=False)
         embed.add_field(name="__**Role information:**__", value=f"**Roles:** {' '.join([r.mention for r in ctx.guild.roles[1:]])}\n"
@@ -266,15 +266,15 @@ class Utilities(commands.Cog):
             user = ctx.author
         user = ctx.guild.get_member(user.id)
         embed = discord.Embed(
-            colour=utils.embed_color(user),
+            colour=botUtils.embed_color(user),
             title=f"{user.name}'s Stats and Information."
         )
         embed.set_author(icon_url=user.avatar_url, name=user.name)
         embed.set_footer(text=f"ID: {user.id}")
         embed.add_field(name="__**General information:**__", value=f"**Discord Name:** {user}\n"
                                                                    f"**Account created:** {user.created_at.__format__('%A %d %B %Y at %H:%M')}\n"
-                                                                   f"**Status:** {utils.user_status(user)}\n"
-                                                                   f"**Activity:** {utils.user_activity(user)}", inline=False)
+                                                                   f"**Status:** {botUtils.user_status(user)}\n"
+                                                                   f"**Activity:** {botUtils.user_activity(user)}", inline=False)
         embed.add_field(name="__**Server-related information:**__", value=f"**Nickname:** {user.nick}\n"
                                                                           f"**Joined server:** {user.joined_at.__format__('%A %d %B %Y at %H:%M')}\n"
                                                                           f"**Roles:** {' '.join([r.mention for r in user.roles[1:]])}")

@@ -1,5 +1,5 @@
 from discord.ext import commands
-from .utils import images
+from .utils import imageOps
 import discord
 import time
 
@@ -34,10 +34,10 @@ class Images(commands.Cog):
 
         # Get the users avatar.
         avatar_url = str(member.avatar_url_as(format="png", size=1024))
-        avatar_bytes = await images.get_image(self.bot, avatar_url)
+        avatar_bytes = await imageOps.get_image(self.bot, avatar_url)
 
         # Generate image.
-        imginfo = await self.bot.loop.run_in_executor(None, images.do_imageinfo, data, member, avatar_bytes)
+        imginfo = await self.bot.loop.run_in_executor(None, imageOps.do_imageinfo, data, member, avatar_bytes)
 
         # Send image.
         await ctx.send(file=discord.File(filename=f"{member.id}_imginfo.png", fp=imginfo))

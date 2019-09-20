@@ -1,6 +1,13 @@
+from discord.ext import commands
 
-class MrBotBaseException(Exception):
+
+class MrBotError(commands.CommandError):
+    """Base class for other exceptions"""
     pass
 
-class UserNotInVoiceChannel(MrBotBaseException):
+
+class WrongGuild(MrBotError):
+    """Raised when a command is used in the wrong guild."""
     pass
+
+
