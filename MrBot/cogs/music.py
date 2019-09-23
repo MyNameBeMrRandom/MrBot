@@ -176,6 +176,28 @@ class Music(commands.Cog):
         # The bot must already be in this voice channel.
         return await ctx.send("I am already in this voice channel.")
 
+    @commands.command(name="search")
+    async def search(self, ctx, *, search: str):
+        """
+        Search for all tracks with a given search query.
+
+        `search`: The name of the track you want to search for.
+        """
+        # Trigger typing.
+        await ctx.trigger_typing()
+
+        # Get a list of all the tracks for the users search term.
+        tracks = await ctx.player.node.get_tracks(f"{search}")
+        # If there were no tracks.
+        if not tracks:
+            return await ctx.send(f"No results were found for the search term `{search}`.")
+
+        results = []
+        for index, track in enumerate(tracks):
+            results.append(f"`{index + 1}.` {track.title}")
+
+        await ctx.paginate_list_embed(title=f"Showing all tracks found with the search term `{search}`.\n\n", entries=results, entries_per_page=10)
+
     @commands.command(name="leave", aliases=["disconnect", "stop"])
     async def leave(self, ctx):
         """
@@ -205,7 +227,7 @@ class Music(commands.Cog):
         """
         Play a track using a link or search query.
 
-        `search`: will default to a Youtube search however it also accepts links from SoundCloud and Twitch.
+        `search`: The name/link of the track you want to search for.
         """
 
         # If the user it not in a voice channel then tell them that have to be in one.
@@ -319,9 +341,9 @@ class Music(commands.Cog):
         if ctx.player.channel_id != ctx.author.voice.channel.id:
             return await ctx.send(f"You must be in the same voice channel as me to use this command.")
 
-        # If the queue is empty.
-        if ctx.player.queue.empty():
-            return await ctx.send("There are no tracks in the queue to skip too.")
+        # If there are no track currently playing.
+        if not ctx.player.current:
+            return await ctx.send("There is nothing currently playing.")
 
         # If the user is not the current tracks requester.
         if ctx.player.current.requester.id != ctx.author.id:
@@ -394,7 +416,7 @@ class Music(commands.Cog):
     @commands.command(name="download")
     async def download(self, ctx):
         """
-        Downloads an mp3 file of the current track.
+        Downloads an mp3 version of the current track.
         """
 
         # If the player is not connected then do nothing
@@ -524,6 +546,9 @@ class Music(commands.Cog):
 
     @commands.group(name="filter", aliases=["filters"], invoke_without_command=True)
     async def filter(self, ctx):
+        """
+        Show all the currently enabled filters.
+        """
 
         # If the player is not connected then do nothing
         if not ctx.player.is_connected:
@@ -549,6 +574,9 @@ class Music(commands.Cog):
 
     @filter.command(name="nightcore")
     async def nightcore(self, ctx):
+        """
+        Enable/Disable the nightcore filter.
+        """
 
         # If the player is not connected then do nothing
         if not ctx.player.is_connected:
@@ -576,7 +604,7 @@ class Music(commands.Cog):
     @commands.command(name="queue")
     async def queue(self, ctx):
         """
-        Display the current queue.
+        Display the queue.
         """
 
         # If the player is not connected then do nothing.
@@ -594,7 +622,7 @@ class Music(commands.Cog):
         message = f"__**Current track:**__\n[{ctx.player.current.title}]({ctx.player.current.uri}) | " \
                   f"`{formatting.get_time(round(ctx.player.current.length) / 1000)}` | " \
                   f"`Requested by:` {ctx.player.current.requester.mention}\n\n" \
-                  f"__**Up next:**__: `{len(upcoming)}` out of `{ctx.player.queue.qsize()}` entries in the queue.\n"
+                  f"__**Up next:**__: Showing `{len(upcoming)}` out of `{ctx.player.queue.qsize()}` entries in the queue.\n"
 
         # Make a counter and loop through upcoming songs, adding info about them to the message.
         counter = 1
@@ -675,7 +703,7 @@ class Music(commands.Cog):
     @commands.command(name="reverse")
     async def reverse(self, ctx):
         """
-        Remove an entry from the queue.
+        Reverse the queue.
         """
 
         # If the player is not connected then do nothing

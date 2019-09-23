@@ -85,8 +85,7 @@ class Utilities(commands.Cog):
 
         embed = discord.Embed(
             colour=0xFF0000,
-            description=f"[Click here](https://discordbots.org/bot/424637852035317770/vote) to upvote and then do "
-                        f"`{ctx.prefix} daily` to claim your reward."
+            description=f"[Click here](https://discordbots.org/bot/424637852035317770/vote) to upvote."
         )
         embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=424637852035317770, cert=botUtils.random_colour()))
         await ctx.send(embed=embed)

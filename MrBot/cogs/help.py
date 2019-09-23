@@ -40,7 +40,7 @@ class HelpCommand(commands.HelpCommand):
             colour=0xFF0000,
             title="__MrBots help page__",
             description=f"Use `{ctx.prefix} help [command]` for more info on a command.\n"
-                        f"You can also use `{ctx.prefix} help [catagory]` for more info on a catagory.\n"
+                        f"You can also use `{ctx.prefix} help [category]` for more info on a category.\n"
         )
         # Loop through all the cogs.
         for cog in ctx.bot.cogs.values():
