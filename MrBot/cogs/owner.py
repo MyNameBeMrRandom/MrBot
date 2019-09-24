@@ -93,7 +93,7 @@ class Owner(commands.Cog):
         entries = []
 
         # Set a title for the paginator.
-        title = "Guild id           |Total    |Humans   |Bots      \n"
+        title = "Guild id           |Total    |Humans   |Bots     |Name\n"
 
         # Loop through all the guilds the bot can see.
         for guild in self.bot.guilds:
@@ -110,7 +110,7 @@ class Owner(commands.Cog):
                 total += 1
 
             # Create a message with the current guilds information.
-            message = f"{guild.id} |{total}{' ' * int(9 - len(str(total)))}|{humans}{' ' * int(9 - len(str(humans)))}|{bots}"
+            message = f"{guild.id} |{total}{' ' * int(9 - len(str(total)))}|{humans}{' ' * int(9 - len(str(humans)))}|{bots}{' ' * int(9 - len(str(bots)))}|{guild.name}"
 
             # Append the message to the list of entries.
             entries.append(message)
