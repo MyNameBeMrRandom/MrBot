@@ -90,38 +90,6 @@ class Utilities(commands.Cog):
         embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=424637852035317770, cert=botUtils.random_colour()))
         await ctx.send(embed=embed)
 
-    @commands.is_owner()
-    @commands.command(name="usage", hidden=True)
-    async def usage(self, ctx):
-        """
-        Show usage of different commands per guild.
-
-        Also shows the amount of messages sent and seen per guild.
-        """
-
-        if not self.bot.usage:
-            return await ctx.send("No usage of commands yet.")
-
-        # Define a message
-        msg = ">>> "
-
-        # Loop through bot.usage to get the guild and its command uses.
-        for guild, usage in self.bot.usage.items():
-
-            # Get the guild so we can have its name.
-            guild = self.bot.get_guild(guild)
-            msg += f"**{guild}:**\n"
-
-            # Loop through the commands in the guild usages.
-            for command in usage:
-                msg += f"{command} : {usage[command]}\n"
-
-            # Add a line between each guild.
-            msg += "\n"
-
-        # Send the message
-        await ctx.send(msg)
-
     @commands.command(name="code_info", aliases=["ci"])
     async def code_info(self, ctx):
         """
