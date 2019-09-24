@@ -81,8 +81,8 @@ class Owner(commands.Cog):
         return await ctx.paginate_embeds(entries=embeds)
 
     @commands.is_owner()
-    @commands.command(name="check_for_farms", hidden=True)
-    async def check_for_farms(self, ctx, guilds_per_page=10):
+    @commands.command(name="guild_farms", hidden=True)
+    async def guild_farms(self, ctx, guilds_per_page=15):
         """
         Display how many bots/humans there are in each guild the bot can see.
 
