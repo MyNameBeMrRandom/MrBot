@@ -17,7 +17,6 @@ see <https://www.gnu.org/licenses/>.
 """
 
 import asyncio
-import math
 import os
 
 from discord.ext import commands
