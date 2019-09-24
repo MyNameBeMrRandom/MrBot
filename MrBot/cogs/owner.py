@@ -19,24 +19,27 @@ class Owner(commands.Cog):
         if not self.bot.stats:
             return await ctx.send("No usage of commands yet.")
 
-        msg = ">>> "
+        # Define a list to store embeds in.
+        embeds = []
 
         # Loop through bot.usage to get the guild and its command uses.
         for guild, usage in self.bot.stats.items():
 
-            # Get the guild so we can have its name.
+            # Get the guild by its stored id.
             guild = self.bot.get_guild(guild)
-            msg += f"**{guild}:**\n"
 
-            # Loop through the commands in the guild usages.
+            # Create the embed.
+            embed = discord.Embed(
+                title=f"{guild.name} ({guild.id})",
+                description=f"",
+                color=0xFF0000
+            )
             for command in usage:
-                msg += f"{command} : {usage[command]}\n"
-
-            # Add a line between each guild.
-            msg += "\n"
+                embed.description += f"{command} : {usage[command]}\n"
+            embeds.append(embed)
 
         # Send the message
-        await ctx.send(msg)
+        return await ctx.paginate_embeds(entries=embeds)
 
     @commands.is_owner()
     @commands.command(name="guilds", hidden=True)
