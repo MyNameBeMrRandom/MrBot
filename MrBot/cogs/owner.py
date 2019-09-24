@@ -89,6 +89,10 @@ class Owner(commands.Cog):
         `guilds_per_page`: How many guilds to show per page, this is to reduce spam.
         """
 
+        # Define a key to sort guilds by.
+        def key(e):
+            return sum([m.bot for m in e.members])
+
         # Define a list of entries to paginate through.
         entries = []
 
@@ -96,7 +100,7 @@ class Owner(commands.Cog):
         title = "Guild id           |Total    |Humans   |Bots     |Name\n"
 
         # Loop through all the guilds the bot can see.
-        for guild in self.bot.guilds:
+        for guild in sorted(self.bot.guilds, key=key, reverse=True):
 
             # Count how many members are bot/humans.
             bots = 0
