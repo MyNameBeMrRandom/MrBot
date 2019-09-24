@@ -13,7 +13,6 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         # Log the guild that was joined.
-        await self.bot.log_channel.send(f"Joined a guild called `{guild.name}`")
         print(f"[BOT] Joined a guild called `{guild.name}`")
 
         # Create a config for the guild.
@@ -31,7 +30,6 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         # Log the guild that was left.
-        await self.bot.log_channel.send(f"Left a guild called `{guild.name}`")
         print(f"\n[BOT] Left a guild called `{guild.name}`")
 
         # Try to update discord bot list count.
@@ -110,16 +108,16 @@ class Events(commands.Cog):
             command = f"{ctx.command.name}"
 
         # If the guild is not already in the dict, add it.
-        if ctx.guild.id not in self.bot.usage:
-            self.bot.usage[ctx.guild.id] = {}
+        if ctx.guild.id not in self.bot.stats:
+            self.bot.stats[ctx.guild.id] = {}
 
         # If the command is not aleady in the guilds nested dict, add it
-        if command not in self.bot.usage[ctx.guild.id]:
-            self.bot.usage[ctx.guild.id][command] = 1
+        if command not in self.bot.stats[ctx.guild.id]:
+            self.bot.stats[ctx.guild.id][command] = 1
 
         # Else increment the command by 1.
         else:
-            self.bot.usage[ctx.guild.id][command] += 1
+            self.bot.stats[ctx.guild.id][command] += 1
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -131,31 +129,31 @@ class Events(commands.Cog):
         if message.author.id == self.bot.user.id:
 
             # If the guild is not already in the dict, add it.
-            if message.guild.id not in self.bot.usage:
-                self.bot.usage[message.guild.id] = {}
+            if message.guild.id not in self.bot.stats:
+                self.bot.stats[message.guild.id] = {}
 
             # If the value is not aleady in the guilds nested dict, add it
-            if "MessagesSent" not in self.bot.usage[message.guild.id]:
-                self.bot.usage[message.guild.id]["MessagesSent"] = 1
+            if "MessagesSent" not in self.bot.stats[message.guild.id]:
+                self.bot.stats[message.guild.id]["MessagesSent"] = 1
 
             # Else increment the value by 1.
             else:
-                self.bot.usage[message.guild.id]["MessagesSent"] += 1
+                self.bot.stats[message.guild.id]["MessagesSent"] += 1
 
         # Track all message not sent by bots.
         if not message.author.bot:
 
             # If the guild is not already in the dict, add it.
-            if message.guild.id not in self.bot.usage:
-                self.bot.usage[message.guild.id] = {}
+            if message.guild.id not in self.bot.stats:
+                self.bot.stats[message.guild.id] = {}
 
             # If the value is not aleady in the guilds nested dict, add it
-            if "MessagesSeen" not in self.bot.usage[message.guild.id]:
-                self.bot.usage[message.guild.id]["MessagesSeen"] = 1
+            if "MessagesSeen" not in self.bot.stats[message.guild.id]:
+                self.bot.stats[message.guild.id]["MessagesSeen"] = 1
 
             # Else increment the value by 1.
             else:
-                self.bot.usage[message.guild.id]["MessagesSeen"] += 1
+                self.bot.stats[message.guild.id]["MessagesSeen"] += 1
 
 
 def setup(bot):

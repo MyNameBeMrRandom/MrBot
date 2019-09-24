@@ -101,7 +101,7 @@ class Api(commands.Cog):
                                                             f"**Circles:** {beatmap.circle_count}\n"
                                                             f"**Spinners:** {beatmap.spinner_count}\n"
                                                             f"**Sliders:** {beatmap.slider_count}\n"
-                                                            f"**Max combo:** {beatmap.max_combo}\n")
+                                                            f"**Max combo:** {beatmap.max_combo}\n", inline=False)
             embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{beatmap.set_id}/covers/cover.jpg")
             embed.set_footer(text=f"SET ID: {beatmap.set_id} | ID: {beatmap.id}")
             embeds.append(embed)

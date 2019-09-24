@@ -28,7 +28,7 @@ import config
 import dbl
 
 # noinspection PyUnresolvedReferences
-from cogs.utils.paginator import ListPaginator, EmbedPaginator, ListEmbedPaginator
+from cogs.utils.paginator import CodeblockPaginator, Paginator, EmbedPaginator, EmbedsPaginator
 # noinspection PyUnresolvedReferences
 from cogs.music import Player
 
@@ -43,16 +43,13 @@ os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 EXTENSIONS = [
     "cogs.utilities",
     "cogs.music",
-    "cogs.kross",
-
     "cogs.accounts",
     "cogs.images",
-
     "cogs.api",
-
     "cogs.help",
+    "cogs.kross",
+    "cogs.owner",
     "jishaku",
-
     "cogs.background",
     "cogs.events",
 ]
@@ -72,7 +69,8 @@ class MrBot(commands.Bot):
         self.db = None
         self.db_ready = False
 
-        self.usage = {}
+        self.stats = {}
+        self.owner_ids = {238356301439041536}
 
         self.dblpy = dbl.DBLClient(self, config.DBL_TOKEN, webhook_path="/dblwebhook", webhook_auth=config.DBL_TOKEN, webhook_port=5000)
 
@@ -141,6 +139,10 @@ class MrBot(commands.Bot):
     async def on_disconnect(self):
         print(f"\n[BOT] Disconnected.")
 
+    async def is_owner(self, user):
+        # Allows me to set custom owners ids dynamically.
+        return user.id in self.owner_ids
+
     async def get_context(self, message, *, cls=None):
         return await super().get_context(message, cls=MyContext)
 
@@ -151,72 +153,41 @@ class MyContext(commands.Context):
     def player(self):
         return self.bot.andesite.get_player(self.guild.id, cls=Player)
 
-    async def paginate_list(self, **kwargs):
+    async def paginate(self, **kwargs):
         # Get the aruguements.
         title = kwargs.get("title")
         entries = kwargs.get("entries")
         entries_per_page = kwargs.get("entries_per_page")
 
-        # Calculate the amount of pages we need and round it up.
-        pages = math.ceil(len(entries) / entries_per_page)
-
-        # Define a new list to store the new entries.
-        c_entries = []
-
-        # Create a loop for the amount of pages needed.
-        for i in range(pages):
-            # Define a new entry for us to add amount of "entries_per_page" of entries to.
-            new_entry = ""
-            # Add one to the page loop so that the next step works lmao.
-            i += 1
-            # Loop through the entries, getting the first amount of "entries_per_page" and then the next amount of "entries_per_page" in next page cycle.
-            for entry in entries[entries_per_page * i - entries_per_page:entries_per_page * i]:
-                new_entry += f"{entry}\n"
-            # Append the new entry to the new entry list
-            c_entries.append(new_entry)
-
         # Start pagination
-        paginator = ListPaginator(ctx=self, title=title, org_entries=entries, entries=c_entries, entries_per_page=entries_per_page, pages=pages)
+        paginator = Paginator(ctx=self, title=title,  entries=entries, entries_per_page=entries_per_page, total_entries=len(entries))
         return await paginator.paginate()
 
-    async def paginate_list_embed(self, **kwargs):
+    async def paginate_embed(self, **kwargs):
         # Get the aruguements.
         title = kwargs.get("title")
         entries = kwargs.get("entries")
         entries_per_page = kwargs.get("entries_per_page")
 
-        # Calculate the amount of pages we need and round it up.
-        pages = math.ceil(len(entries) / entries_per_page)
+        # Start pagination
+        paginator = EmbedPaginator(ctx=self, title=title,  entries=entries, entries_per_page=entries_per_page, total_entries=len(entries))
+        return await paginator.paginate()
 
-        # Define a new list to store the new entries.
-        c_entries = []
-
-        # Create a loop for the amount of pages needed.
-        for i in range(pages):
-
-            # Define a new entry for us to add amount of "entries_per_page" of entries to.
-            new_entry = ""
-
-            # Add one to the page loop so that the next step works lmao.
-            i += 1
-
-            # Loop through the entries, getting the first amount of "entries_per_page" and then the next amount of "entries_per_page" in next page cycle.
-            for entry in entries[entries_per_page * i - entries_per_page:entries_per_page * i]:
-                new_entry += f"{entry}\n"
-
-            # Append the new entry to the "combined" entry list
-            c_entries.append(new_entry)
+    async def paginate_codeblock(self, **kwargs):
+        # Get the aruguements.
+        title = kwargs.get("title")
+        entries = kwargs.get("entries")
+        entries_per_page = kwargs.get("entries_per_page")
 
         # Start pagination
-        paginator = ListEmbedPaginator(ctx=self, title=title, org_entries=entries, entries=c_entries, entries_per_page=entries_per_page, pages=pages)
+        paginator = CodeblockPaginator(ctx=self, title=title,  entries=entries, entries_per_page=entries_per_page, total_entries=len(entries))
         return await paginator.paginate()
 
     async def paginate_embeds(self, **kwargs):
         # Get the aruguements.
         entries = kwargs.get("entries")
-        pages = len(entries)
 
-        paginator = EmbedPaginator(ctx=self, entries=entries, pages=pages)
+        paginator = EmbedsPaginator(ctx=self, entries=entries)
 
         # Start pagination
         return await paginator.paginate()
