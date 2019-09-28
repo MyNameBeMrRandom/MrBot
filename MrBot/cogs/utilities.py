@@ -34,7 +34,7 @@ class Utilities(commands.Cog):
         embed.set_author(icon_url=self.bot.user.avatar_url_as(format="png"), name=f"{self.bot.user.name}'s Info")
         embed.set_thumbnail(url=self.bot.user.avatar_url_as(format="png"))
         embed.set_footer(text=f"ID: {self.bot.user.id}")
-        embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=424637852035317770, cert=botUtils.random_colour()))
+        embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=627491967391236097, cert=botUtils.random_colour()))
         embed.add_field(name="__**Bot info:**__", value=f"**Uptime:** {formatting.get_time_friendly(uptime)}\n"
                                                         f"**Total users:** {len(self.bot.users)}\n"
                                                         f"**Guilds:** {len(self.bot.guilds)}\n")
@@ -45,9 +45,9 @@ class Utilities(commands.Cog):
                                                     f"**Lines:** {lines}\n **Files:** {files}\n")
         embed.add_field(name="__**Ping:**__", value=f"**Typing:** {typingms}ms\n**Latency:** {latencyms}ms\n"
                                                     f"**Discord:** {discordms}ms\n**Average:** {average}ms")
-        embed.add_field(name="__**Links:**__", value=f"**[Bot Invite](https://discordapp.com/oauth2/authorize?client_id=424637852035317770&scope=bot&permissions=37080128)** | "
-                                                     f"**[DBL Upvote](https://discordbots.org/bot/424637852035317770/vote)** | "
-                                                     f"**[Support server](https://discord.gg/fKbeTr4)** | "
+        embed.add_field(name="__**Links:**__", value=f"**[Bot Invite](https://discordapp.com/oauth2/authorize?client_id=627491967391236097&scope=bot)** | "
+                                                     f"**[DBL Upvote](https://discordbots.org/bot/627491967391236097/vote)** | "
+                                                     f"**[Support server](https://discord.gg/XejxSqT)** | "
                                                      f"**[Source code](https://github.com/MyNameBeMrRandom/MrBot)**", inline=False)
         return await ctx.send(embed=embed)
 
@@ -85,9 +85,9 @@ class Utilities(commands.Cog):
 
         embed = discord.Embed(
             colour=0xFF0000,
-            description=f"[Click here](https://discordbots.org/bot/424637852035317770/vote) to upvote."
+            description=f"[Click here](https://discordbots.org/bot/627491967391236097/vote) to upvote."
         )
-        embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=424637852035317770, cert=botUtils.random_colour()))
+        embed.set_image(url=await self.bot.dblpy.generate_widget_large(bot_id=627491967391236097, cert=botUtils.random_colour()))
         await ctx.send(embed=embed)
 
     @commands.command(name="code_info", aliases=["ci"])

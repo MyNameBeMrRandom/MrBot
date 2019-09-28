@@ -79,7 +79,7 @@ class Events(commands.Cog):
         # Leave any guilds that are blacklisted.
         for guild in self.bot.guilds:
             if guild.id in self.bot.guild_blacklist:
-                #await guild.leave()
+                await guild.leave()
                 print(f"[BOT] Left blacklisted guild - {guild.id}")
 
     @commands.Cog.listener()
@@ -213,8 +213,8 @@ class Events(commands.Cog):
         print(f"\n[BOT] Joined a guild - {guild.name}")
 
         if guild.id in self.bot.guild_blacklist:
-            await guild.leave()
             print(f"[BOT] Left blacklisted guild - {guild.name}")
+            await guild.leave()
 
         # Create a config for the guild.
         if not await self.bot.db.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id):
