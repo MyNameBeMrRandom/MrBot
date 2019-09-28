@@ -62,7 +62,7 @@ class Player(andesite.Player):
         self.nightcore = False
 
     async def stop(self):
-        # Overriding stop because it clear current track.
+        # Overriding stop because it clears current track.
         await self.node._websocket._send(op="stop", guildId=str(self.guild_id))
 
     async def player_loop(self):
@@ -120,36 +120,6 @@ class Music(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.bot.loop.create_task(self.initiate_nodes())
-
-        self.bot.andesite = andesite.Client(self.bot)
-
-    async def initiate_nodes(self):
-
-        nodes = {"Node_1": {"ip": config.IP_1,
-                            "port": config.PORT_1,
-                            "rest_uri": config.ADRESS_1,
-                            "password": config.PASSWORD_1,
-                            "identifier": config.IDENTIFIER_1,
-                            }
-                 }
-
-        for n in nodes.values():
-            try:
-                await self.bot.andesite.start_node(
-                    n["ip"],
-                    n["port"],
-                    rest_uri=n["rest_uri"],
-                    password=n["password"],
-                    identifier=n["identifier"]
-                )
-            except andesite.InvalidCredentials:
-                print(f"\n[ANDESITE] Invalid credentials for node {n['identifier']}.")
-                return
-            except ConnectionRefusedError:
-                print(f"Failed to connect to node {n['identifier']}")
-                return
-            print(f"\n[ANDESITE] Node {n['identifier']} connected.")
 
     @commands.command(name="join", aliases=["connect"])
     async def join(self, ctx):

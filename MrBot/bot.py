@@ -70,6 +70,8 @@ class MrBot(commands.Bot):
 
         self.stats = {}
         self.owner_ids = {238356301439041536}
+        self.user_blacklist = []
+        self.guild_blacklist = []
 
         self.dblpy = dbl.DBLClient(self, config.DBL_TOKEN, webhook_path="/dblwebhook", webhook_auth=config.DBL_TOKEN, webhook_port=5000)
 
@@ -86,7 +88,29 @@ class MrBot(commands.Bot):
         except KeyboardInterrupt:
             self.loop.run_until_complete(self.bot_close())
 
+    async def db_connect(self):
+        # Try to connect to the database.
+        try:
+            self.db = await asyncpg.create_pool(**config.DB_CONN_INFO)
+            print(f"\n[DB] Connected to database.")
+
+            # Create tables if the dont exist.
+            print("\n[DB] Creating tables.")
+            with open("schema.sql") as r:
+                await self.db.execute(r.read())
+            print("[DB] Done creating tables.")
+
+            # Tell the bot that the databse is ready.
+            self.db_ready = True
+
+        # Accept any exceptions we might find.
+        except ConnectionRefusedError:
+            print(f"\n[DB] Connection to database was denied.")
+        except Exception as e:
+            print(f"\n[DB] An error occured: {e}")
+
     async def bot_start(self):
+        await self.db_connect()
         await self.login(config.DISCORD_TOKEN)
         await self.connect()
 
@@ -94,53 +118,24 @@ class MrBot(commands.Bot):
         await super().logout()
         await self.session.close()
 
-    async def on_ready(self):
-        print(f"\n[BOT] Logged in as {self.user} - {self.user.id}")
-
-        # If the database has already been connected
-        if self.db_ready is True:
-            return
-
-        # Try to connect to the database.
-        try:
-            self.db = await asyncpg.create_pool(**config.DB_CONN_INFO)
-            print(f"\n[DB] Connected to database.")
-
-            # Create tables if the dont exist.
-            print("[DB] Creating tables.")
-            with open("schema.sql") as r:
-                await self.db.execute(r.read())
-            print("[DB] Done creating tables.")
-
-            # Create config for guilds..
-            print("[DB] Adding guilds.")
-            # Loop through all the bots guilds.
-            for guild in self.guilds:
-                # If the guild already has a config, skip it.
-                if await self.db.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id):
-                    continue
-                # Else create a config for the guild.
-                await self.db.execute("INSERT INTO guild_config VALUES ($1)", guild.id)
-                print(f"[DB] Created config for guild - {guild.name}.")
-            print("[DB] Done adding guilds.")
-
-            # Tell the bot that the databse is ready.
-            self.db_ready = True
-
-        except ConnectionRefusedError:
-            print(f"[DB] Connection to database was denied.")
-        except Exception as e:
-            print(f"[DB] An error occured: {e}")
-
-    async def on_resume(self):
-        print(f"\n[BOT] Connection resumed.")
-
-    async def on_disconnect(self):
-        print(f"\n[BOT] Disconnected.")
-
     async def is_owner(self, user):
         # Allows me to set custom owners ids dynamically.
         return user.id in self.owner_ids
+
+    async def on_message(self, message):
+        # Ignore all other bots.
+        if message.author.bot:
+            return
+
+        # Get the context of the message.
+        ctx = await self.get_context(message)
+
+        # If it was a command and the author is blacklisted, return.
+        if ctx.command:
+            if message.author.id in self.user_blacklist:
+                return await message.channel.send(f"Sorry, you are blacklisted.")
+            # Otherwise process the command.
+            await self.process_commands(message)
 
     async def get_context(self, message, *, cls=None):
         return await super().get_context(message, cls=MyContext)
