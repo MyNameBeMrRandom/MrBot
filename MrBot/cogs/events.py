@@ -227,6 +227,8 @@ class Events(commands.Cog):
             print(f"\n[DBL] Posted guild count of {len(self.bot.guilds)}")
         except dbl.Forbidden:
             print("[DBL] Forbidden - Failed to post guild count")
+        except dbl.Unauthorized:
+            print("[DBL] Forbidden - Failed to post guild count")
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
@@ -238,6 +240,8 @@ class Events(commands.Cog):
             await self.bot.dblpy.post_guild_count()
             print(f"\n[DBL] Posted guild count of {len(self.bot.guilds)}")
         except dbl.Forbidden:
+            print("[DBL] Forbidden - Failed to post guild count")
+        except dbl.Unauthorized:
             print("[DBL] Forbidden - Failed to post guild count")
 
 
