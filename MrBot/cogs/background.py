@@ -12,6 +12,7 @@ class Background(commands.Cog):
     def cog_unload(self):
         self.change_prescence.stop()
 
+    # noinspection PyCallingNonCallable
     @tasks.loop(minutes=10.0)
     async def change_prescence(self):
         prescences = [discord.Activity(type=discord.ActivityType.watching, name=f'{len(self.bot.guilds)} Guilds'),

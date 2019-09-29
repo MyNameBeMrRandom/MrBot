@@ -11,6 +11,7 @@ def random_colour():
     return "%02X%02X%02X" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 
+# noinspection PyArgumentEqualDefault
 def linecount():
     file_amount = 0
     functions = 0
@@ -26,7 +27,7 @@ def linecount():
                             comments += 1
                         if l.strip().startswith("async def") or l.strip().startswith("async"):
                             functions += 1
-                        if len(l.strip()) is 0:
+                        if len(l.strip()) == 0:
                             continue
                         else:
                             lines += 1
@@ -53,7 +54,7 @@ async def ping(bot, ctx):
     discords = time.monotonic()
     try:
         async with bot.session.get("https://discordapp.com/") as resp:
-            if resp.status is 200:
+            if resp.status == 200:
                 discorde = time.monotonic()
                 discordms = round((discorde - discords) * 1000, 2)
                 pings.append(discordms)

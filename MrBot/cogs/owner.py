@@ -49,7 +49,7 @@ class Owner(commands.Cog):
         Display information about all the different guilds the bot is in.
         """
 
-        # Define a list for all the embed objects.
+        # Define a list for all the embeds.
         embeds = []
 
         # Loop through all bots guilds and create an embed for each one.
@@ -63,10 +63,10 @@ class Owner(commands.Cog):
             embed.add_field(name="__**General information:**__", value=f"**Owner:** {guild.owner}\n"
                                                                        f"**Server created at:** {guild.created_at.__format__('%A %d %B %Y at %H:%M')}\n"
                                                                        f"**Members:** {guild.member_count} |"
-                                                                       f"<:online:608059247099379732>{online} |"
-                                                                       f"<:idle:608059272923709441>{idle} |"
-                                                                       f"<:dnd:608059261678911582>{dnd} |"
-                                                                       f"<:offline:608059228191719424>{offline}\n"
+                                                                       f"<:online:627627415224713226>{online} |"
+                                                                       f"<:away:627627415119724554>{idle} |"
+                                                                       f"<:dnd:627627404784828416>{dnd} |"
+                                                                       f"<:offline:627627415144890389>{offline}\n"
                                                                        f"**Verification level:** {botUtils.guild_verification_level(guild)}\n"
                                                                        f"**Content filter level:** {botUtils.guild_content_filter_level(guild)}\n"
                                                                        f"**2FA:** {botUtils.guild_mfa_level(guild)}\n"
@@ -85,8 +85,8 @@ class Owner(commands.Cog):
         return await ctx.paginate_embeds(entries=embeds)
 
     @commands.is_owner()
-    @commands.command(name="guild_farms", hidden=True)
-    async def guild_farms(self, ctx, guilds_per_page=15):
+    @commands.command(name="farms", hidden=True)
+    async def farms(self, ctx, guilds_per_page=15):
         """
         Display how many bots/humans there are in each guild the bot can see.
 
@@ -129,94 +129,171 @@ class Owner(commands.Cog):
     @commands.is_owner()
     @commands.group(name="blacklist", invoke_without_command=True)
     async def blacklist(self, ctx):
+        """
+        Base command for blacklisting.
+        """
         return await ctx.send("Please choose a valid subcommand.")
 
     @commands.is_owner()
     @blacklist.group(name="user", invoke_without_command=True)
     async def blacklist_user(self, ctx):
+        """
+        Display a list of all blacklisted users.
+        """
+        # Define a list for all blacklisted users.
         blacklisted = []
+
+        # Fetch blacklisted users from the database.
         blacklist = await self.bot.db.fetch("SELECT * FROM user_blacklist")
+
+        # If no blacklisted users where found, return.
         if not blacklist:
             return await ctx.send("No blacklisted users.")
+
+        # Loop through users in the blacklist add them to the list of blacklisted users with their reason.
         for entry in blacklist:
             user = self.bot.get_user(entry['id'])
             if not user:
                 blacklisted.append(f"User not found - {entry['id']} - Reason: {entry['reason']}")
             else:
                 blacklisted.append(f"{user.name} - {user.id} - Reason: {entry['reason']}")
+
+        # Paginate the list of blacklisted users.
         return await ctx.paginate_codeblock(entries=blacklisted, entries_per_page=10, title=f"Showing {len(blacklisted)} blacklisted users.\n\n")
 
     @commands.is_owner()
     @blacklist_user.command(name="add")
     async def blacklist_user_add(self, ctx, user: int = None, *, reason=None):
+        """
+        Add a user to the user blacklist.
+
+        `user`: The users id.
+        `reason`: Why the user is blacklisted.
+        """
+        # If the user doesnt specify a reason, add one.
         if not reason:
             reason = "No reason"
+
+        # If the user picks a reason over 512 chars.
         if len(reason) > 512:
             return await ctx.caution("The reason can't be more than 512 characters.")
+
+        # If the user doesn't specify a user to blacklist.
         if not user:
             return await ctx.send("You must specify a user id.")
+
         try:
+            # Fetch the user and add them to the local blacklist and database.
             user = await self.bot.fetch_user(user)
             self.bot.guild_blacklist.append(user.id)
             await self.bot.db.execute("INSERT INTO user_blacklist (id, reason) VALUES ($1, $2)", user.id, reason)
             return await ctx.send(f"User: `{user.name} - {user.id}` has been blacklisted with reason `{reason}`")
+
+        # Accept an error if the user is already blacklisted.
         except asyncpg.UniqueViolationError:
             return await ctx.send("That user is already blacklisted.")
 
     @commands.is_owner()
     @blacklist_user.command(name="remove")
     async def blacklist_user_remove(self, ctx, user: int = None):
+        """
+        Remove a user from the user blacklist.
+
+        `user`: The users id.
+        """
+
+        # If the user doesn't specify a user to unblacklist.
         if not user:
             return await ctx.send("You must specify a user id.")
         try:
+            # Fetch the user and remove them from the local blacklist and database.
             user = await self.bot.fetch_user(user)
             self.bot.guild_blacklist.remove(user.id)
             await self.bot.db.execute("DELETE FROM user_blacklist WHERE id = $1", user.id)
             return await ctx.send(f"User: `{user.name} - {user.id}` has been unblacklisted.")
+        # Accept an error if the user is not blacklisted.
         except ValueError:
             return await ctx.send(f"User: `{user.name} - {user.id}` is not blacklisted.")
 
     @commands.is_owner()
     @blacklist.group(name="guild", invoke_without_command=True)
     async def blacklist_guild(self, ctx):
+        """
+        Display a list of all blacklisted guilds.
+        """
+        # Define a list of blacklisted guilds.
         blacklisted = []
+
+        # Fetch blacklisted guilds from the database.
         blacklist = await self.bot.db.fetch("SELECT * FROM guild_blacklist")
+
+        # If no guilds are blacklisted, return
         if not blacklist:
             return await ctx.send("No blacklisted guilds.")
+        # Loop through blacklisted guilds and append to the list with their reason.
         for entry in blacklist:
             blacklisted.append(f"{entry['id']} - Reason: {entry['reason']}")
+
+        # Paginate the list of blacklisted guilds.
         return await ctx.paginate_codeblock(entries=blacklisted, entries_per_page=10, title=f"Showing {len(blacklisted)} blacklisted guilds.\n\n")
 
     @commands.is_owner()
     @blacklist_guild.command(name="add")
     async def blacklist_guild_add(self, ctx, guild: int = None, *, reason=None):
+        """
+        Add a guild to the guild blacklist.
+
+        `user`: The guilds id.
+        `reason`: Why the guild is blacklisted.
+        """
+        # If the user doesnt specify a reason, add one.
         if not reason:
             reason = "No reason"
+
+        # If the user picks a reason over 512 chars.
         if len(reason) > 512:
             return await ctx.caution("The reason can't be more than 512 characters.")
+
+        # If the user doesn't specify a guild to blacklist.
         if not guild:
             return await ctx.send("You must specify a guild id.")
+
         try:
+            # Add the guild to the local blacklist and database.
             self.bot.guild_blacklist.append(guild)
             await self.bot.db.execute("INSERT INTO guild_blacklist (id, reason) VALUES ($1, $2)", guild, reason)
+
+            # Try to fetch the guild and leave it, accepting an error if we are not in the guild.
             try:
                 guild = await self.bot.fetch_guild(guild)
                 await guild.leave()
             except discord.Forbidden:
                 pass
+
             return await ctx.send(f"Guild: `{guild}` has been blacklisted with reason `{reason}`")
+
+        # Accept an error if the quild is already blacklisted.
         except asyncpg.UniqueViolationError:
             return await ctx.send("That guild is already blacklisted.")
 
     @commands.is_owner()
     @blacklist_guild.command(name="remove")
     async def blacklist_guild_remove(self, ctx, guild: int = None):
+        """
+        Remove a guild from the guild blacklist.
+
+        `user`: The guilds id.
+        """
+        # If the user doesn't specify a guild to unblacklist.
         if not guild:
             return await ctx.send("You must specify a user id.")
+
         try:
+            # Remove the guild from the local blacklist and database.
             self.bot.guild_blacklist.remove(guild)
             await self.bot.db.execute("DELETE FROM guild_blacklist WHERE id = $1", guild)
             return await ctx.send(f"Guild: `{guild}` has been unblacklisted.")
+        # Accept an error if the guild is not blacklisted.
         except ValueError:
             return await ctx.send(f"Guild: `{guild}` is not blacklisted.")
 

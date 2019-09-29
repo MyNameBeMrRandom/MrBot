@@ -60,7 +60,7 @@ class HelpCommand(commands.HelpCommand):
                     embed.description += f"{command.name} \u200b "
                 # Else, add the command to the discription even if it is hidden.
                 else:
-                    embed.description  += f"{command.name} \u200b "
+                    embed.description += f"{command.name} \u200b "
         # Send the embed.
         return await ctx.send(embed=embed)
 

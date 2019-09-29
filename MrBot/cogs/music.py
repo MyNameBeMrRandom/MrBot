@@ -1,14 +1,14 @@
-from discord.ext import commands
-from youtube_dl import YoutubeDL
-from .utils.queue import Queue
-from .utils import formatting
 import itertools
+import os
+import random
+
 import andesite
 import discord
-import random
-import config
-import os
+from discord.ext import commands
+from youtube_dl import YoutubeDL
 
+from .utils import formatting
+from .utils.queue import Queue
 
 ytdlopts = {
     'format': 'bestaudio',
@@ -61,6 +61,7 @@ class Player(andesite.Player):
         self.filter_count = 0
         self.nightcore = False
 
+    # noinspection PyProtectedMember
     async def stop(self):
         # Overriding stop because it clears current track.
         await self.node._websocket._send(op="stop", guildId=str(self.guild_id))
@@ -317,7 +318,6 @@ class Music(commands.Cog):
 
         # If the user is not the current tracks requester.
         if ctx.player.current.requester.id != ctx.author.id:
-            # todo vote skipping.
             return await ctx.send("Vote skipping coming soon.")
 
         # If the user has not specified an amount of tracks to skip.

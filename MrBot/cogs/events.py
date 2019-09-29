@@ -127,6 +127,7 @@ class Events(commands.Cog):
             else:
                 self.bot.stats[message.guild.id]["MessagesSeen"] += 1
 
+    # noinspection PyUnusedLocal
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         # If the edited message is not embedded or pinned, process it, this allow a user a message and run the command. Useful for misspellings.
@@ -201,7 +202,7 @@ class Events(commands.Cog):
             if error.cooldown.type == commands.BucketType.guild:
                 return await ctx.send(f"The command `{ctx.command}` is on cooldown for this guild, retry in `{formatting.get_time_friendly(error.retry_after)}`.")
         if isinstance(error, exceptions.WrongGuild):
-            return await ctx.send("This command can not be used in this guild.")
+            return await ctx.send("This command can't be used in this guild.")
 
         # Print the error and traceback if it doesnt match any of the above.
         print(f"Ignoring exception in command {ctx.command}:")
@@ -214,12 +215,12 @@ class Events(commands.Cog):
 
         if guild.id in self.bot.guild_blacklist:
             print(f"[BOT] Left blacklisted guild - {guild.name}")
-            await guild.leave()
+            return await guild.leave()
 
         # Create a config for the guild.
         if not await self.bot.db.fetchrow("SELECT * FROM guild_config WHERE key = $1", guild.id):
             await self.bot.db.execute("INSERT INTO guild_config VALUES ($1)", guild.id)
-            print(f"\n[DB] Created config for guild - {guild.name}")
+            print(f"[DB] Created config for guild - {guild.name}")
 
         # Try to update discord bot list guild count.
         try:
