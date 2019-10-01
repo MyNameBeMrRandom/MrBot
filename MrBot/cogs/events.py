@@ -225,7 +225,7 @@ class Events(commands.Cog):
         # Try to update discord bot list guild count.
         try:
             await self.bot.dblpy.post_guild_count()
-            print(f"\n[DBL] Posted guild count of {len(self.bot.guilds)}")
+            print(f"[DBL] Posted guild count of {len(self.bot.guilds)}")
         except dbl.Forbidden:
             print("[DBL] Forbidden - Failed to post guild count")
         except dbl.Unauthorized:
@@ -239,7 +239,7 @@ class Events(commands.Cog):
         # Try to update discord bot list count.
         try:
             await self.bot.dblpy.post_guild_count()
-            print(f"\n[DBL] Posted guild count of {len(self.bot.guilds)}")
+            print(f"[DBL] Posted guild count of {len(self.bot.guilds)}")
         except dbl.Forbidden:
             print("[DBL] Forbidden - Failed to post guild count")
         except dbl.Unauthorized:
