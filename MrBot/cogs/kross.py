@@ -123,17 +123,16 @@ class KrossServer(commands.Cog):
         """
         Displays a list of how many points each house has.
         """
+
+        def key(e):
+            return e["points"]
+
         data = await self.bot.db.fetch("SELECT * FROM kross_config")
-        leviathan = data[0]["points"]
-        sylph = data[1]["points"]
-        kodama = data[2]["points"]
-        phoenix = data[3]["points"]
-        return await ctx.send(f"```py\n"
-                              f"Leviathan: {' ' * int((11 - 10))} {leviathan}\n"
-                              f"Sylph: {' ' * int((11 - 6))} {sylph}\n"
-                              f"Kodama: {' ' * int((11 - 7))} {kodama}\n"
-                              f"Phoenix: {' ' * int((11 - 8))} {phoenix}\n"
-                              f"```")
+        message = "```py\n"
+        for entry in sorted(data, key=key, reverse=True):
+            message += f"{entry['key'].title()}: {' ' * int((11 - len(entry['key'])))} {entry['points']}\n"
+        message += "\n```"
+        return await ctx.send(message)
 
     @points.group(name="leviathan", invoke_without_command=True)
     async def points_leviathan(self, ctx):
