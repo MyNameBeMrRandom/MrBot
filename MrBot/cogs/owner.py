@@ -24,13 +24,13 @@ ytdlopts = {
             }
         ],
 }
-ytdl = YoutubeDL(ytdlopts)
 
 
 class Owner(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.bot.ytdl = YoutubeDL(ytdlopts)
 
     @commands.is_owner()
     @commands.command(name="download", hidden=True)
@@ -88,8 +88,8 @@ class Owner(commands.Cog):
         return await message.delete()
 
     def do_download(self, ctx):
-        data = ytdl.extract_info(f"{ctx.player.current.uri}", download=False)
-        ytdl.download([f"{ctx.player.current.uri}"])
+        data = self.bot.ytdl.extract_info(f"{ctx.player.current.uri}", download=False)
+        self.bot.ytdl.download([f"{ctx.player.current.uri}"])
         return data["title"], data["id"]
 
     @commands.is_owner()
@@ -111,10 +111,14 @@ class Owner(commands.Cog):
 
             # Get the guild by its stored id.
             guild = self.bot.get_guild(guild)
+            if not guild:
+                guild_name = None
+            else:
+                guild_name = guild.name
 
             # Create the embed.
             embed = discord.Embed(
-                title=f"{guild.name} ({guild.id})",
+                title=f"{guild_name} ({guild})",
                 description=f"",
                 color=0xFF0000
             )
