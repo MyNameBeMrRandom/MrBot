@@ -1,96 +1,13 @@
 from discord.ext import commands
-from youtube_dl import YoutubeDL
 from .utils import botUtils
 import discord
 import asyncpg
-import os
-
-ytdlopts = {
-    'format': 'bestaudio',
-    'outtmpl': 'files/voice/%(id)s.%(ext)s',
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0',
-    'postprocessors':
-        [
-            {
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }
-        ],
-}
 
 
 class Owner(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.bot.ytdl = YoutubeDL(ytdlopts)
-
-    @commands.is_owner()
-    @commands.command(name="download", hidden=True)
-    async def download(self, ctx):
-        """
-        Downloads an mp3 version of the current track.
-        """
-
-        # If the player is not connected then do nothing
-        if not ctx.player.is_connected:
-            return await ctx.send(f"MrBot is not connected to any voice channels.")
-
-        # If the user is not a voice channel.
-        if not ctx.author.voice or not ctx.author.voice.channel:
-            return await ctx.send(f"You must be in a voice channel to use this command.")
-
-        # If the user is not in the same voice channel as the bot.
-        if ctx.player.channel_id != ctx.author.voice.channel.id:
-            return await ctx.send(f"You must be in the same voice channel as me to use this command.")
-
-        # If nothing is current playing.
-        if not ctx.player.current:
-            return await ctx.send("No tracks currently playing.")
-
-        # Start process
-        message = await ctx.send("Downloading track... <a:downloading:616426925350715393>")
-        await ctx.trigger_typing()
-
-        # Download the track in an executor, cuz this is blocking.
-        track_title, track_id = await self.bot.loop.run_in_executor(None, self.do_download, ctx)
-
-        if ctx.guild.premium_tier == 1 or ctx.guild.premium_tier == 0:
-            size = os.path.getsize(f"files/voice/{track_id}.mp3")
-            if size >= 8388608:
-                os.remove(f"files/voice/{track_id}.mp3")
-                return await ctx.send("This track is too big to upload to discord.")
-        if ctx.guild.premium_tier == 2:
-            size = os.path.getsize(f"files/voice/{track_id}.mp3")
-            if size >= 52428800:
-                os.remove(f"files/voice/{track_id}.mp3")
-                return await ctx.send("This track is too big to upload to discord.")
-        if ctx.guild.premium_tier == 3:
-            size = os.path.getsize(f"files/voice/{track_id}.mp3")
-            if size >= 104857600:
-                os.remove(f"files/voice/{track_id}.mp3")
-                return await ctx.send("This track is too big to upload to discord.")
-
-        await message.edit(content="Uploading track... <a:downloading:616426925350715393>")
-
-        # Upload the file
-        await ctx.send(content="Here is your download.", file=discord.File(filename=f"{track_title}.mp3", fp=f"files/voice/{track_id}.mp3"))
-
-        # Delete the file and message
-        os.remove(f"files/voice/{track_id}.mp3")
-        return await message.delete()
-
-    def do_download(self, ctx):
-        data = self.bot.ytdl.extract_info(f"{ctx.player.current.uri}", download=False)
-        self.bot.ytdl.download([f"{ctx.player.current.uri}"])
-        return data["title"], data["id"]
 
     @commands.is_owner()
     @commands.command(name="stats", hidden=True)
@@ -107,23 +24,28 @@ class Owner(commands.Cog):
         embeds = []
 
         # Loop through bot.usage to get the guild and its command uses.
-        for guild, usage in self.bot.stats.items():
+        for guild_id, usage in self.bot.stats.items():
 
             # Get the guild by its stored id.
-            guild = self.bot.get_guild(guild)
-            if not guild:
-                guild_name = None
-            else:
-                guild_name = guild.name
+            guild = self.bot.get_guild(guild_id)
+
+            # If the guild is not found anymore, skip it.
+            if guild is None:
+                continue
 
             # Create the embed.
             embed = discord.Embed(
-                title=f"{guild_name} ({guild})",
-                description=f"",
-                color=0xFF0000
+                colour=discord.Color.gold(),
+                title=f"{guild.name}",
+                description=f"```py\n"
             )
+            embed.set_footer(text=f"{guild.id}")
+            embed.set_thumbnail(url=guild.icon_url_as(format="png", size=1024))
             for command in usage:
                 embed.description += f"{command} : {usage[command]}\n"
+            embed.description += "```"
+
+            # Append the embed to the list of embeds
             embeds.append(embed)
 
         # Send the message
