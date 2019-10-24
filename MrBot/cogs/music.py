@@ -147,7 +147,7 @@ class Music(commands.Cog):
             message = f"**{index}.** [{track.title}]({track.uri})"
             results.append(message)
             
-        await ctx.paginate_embed(entries=results)
+        await ctx.paginate_embed(entries=results, entries_per_page=10)
 
     @commands.command(name="leave", aliases=["disconnect", "stop"])
     async def leave(self, ctx):
