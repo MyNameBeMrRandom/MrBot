@@ -144,15 +144,10 @@ class Music(commands.Cog):
         results = []
     
         for index, track in enumerate(tracks):
-            embed = discord.Embed(
-                colour=0x57FFF5,
-                timestamp=ctx.message.created_at,
-                title=f"Showing all tracks found with the search term `{search}`",
-                description=f"**{index}.** [{track.title}]({track.uri})"
-            )
-            results.append(embed)
+            message = f"**{index}.** [{track.title}]({track.uri})"
+            results.append(message)
             
-        await ctx.paginate_embeds(entries=results)
+        await ctx.paginate_embed(entries=results)
 
     @commands.command(name="leave", aliases=["disconnect", "stop"])
     async def leave(self, ctx):
