@@ -142,10 +142,17 @@ class Music(commands.Cog):
             return await ctx.send(f"No results were found for the search term `{search}`.")
 
         results = []
+    
         for index, track in enumerate(tracks):
-            results.append(f"`{index + 1}.` {track.title}")
-
-        await ctx.paginate_list_embed(title=f"Showing all tracks found with the search term `{search}`.\n\n", entries=results, entries_per_page=10)
+            embed = discord.Embed(
+                colour=0x57FFF5,
+                timestamp=ctx.message.created_at,
+                title=f"Showing all tracks found with the search term `{search}`",
+                description=f"**{index}.** [{track.title}]({track.uri})"
+            )
+            results.append(embed)
+            
+        await ctx.paginate_embeds(entries=results)
 
     @commands.command(name="leave", aliases=["disconnect", "stop"])
     async def leave(self, ctx):
